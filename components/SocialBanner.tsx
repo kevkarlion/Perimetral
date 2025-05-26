@@ -2,7 +2,7 @@ import { FaInstagram, FaFacebook, FaWhatsapp } from "react-icons/fa";
 
 export default function SocialBanner() {
   return (
-    <div className="bg-blackCharcoal py-8 px-4">
+    <div className="bg-balckHero py-8 px-4">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="text-center md:text-left">
           <h3 className="text-2xl font-bold text-white mb-2">¡Conecta con nosotros!</h3>

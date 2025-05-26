@@ -78,23 +78,9 @@ export default function HeroCarousel() {
         <ChevronRight className="w-6 h-6" />
       </button>
 
-      {/* Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-[98]">
-        {images.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex([i, i > index ? 1 : -1])}
-            className={`w-3 h-3 rounded-full transition ${
-              i === index ? 'bg-white' : 'bg-white/40'
-            }`}
-            aria-label={`Ir al slide ${i + 1}`}
-          />
-        ))}
-      </div>
-
       {/* Content */}
       <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-start z-[50]">
-        <div className="max-w-xl text-white">
+        <div className="max-w-xl text-white pt-8 pb-8">
           <div className="inline-block bg-yellowOne text-blackCharcoal px-4 py-1 mb-4 rounded-md font-bold">
             CERCOS DE SEGURIDAD
           </div>
@@ -121,7 +107,7 @@ export default function HeroCarousel() {
           </div>
 
           {/* Quick Contact */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 flex-wrap pb-16 sm:pb-0">
             <div className="flex items-center">
               <div className="bg-white/20 p-2 rounded-full mr-3">
                 <Truck className="h-5 w-5 text-yellow-400" />
@@ -142,6 +128,20 @@ export default function HeroCarousel() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Indicators - Moved outside content div and adjusted position */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-[98]">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex([i, i > index ? 1 : -1])}
+            className={`w-3 h-3 rounded-full transition ${
+              i === index ? 'bg-white' : 'bg-white/40'
+            }`}
+            aria-label={`Ir al slide ${i + 1}`}
+          />
+        ))}
       </div>
     </section>
   )
