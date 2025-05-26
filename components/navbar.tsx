@@ -51,14 +51,14 @@ export default function Navbar() {
   ]
 
   return (
-    <header className={`sticky top-0 z-[100] bg-white transition-shadow ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
+    <header className={`sticky top-0 z-[100] bg-balckHero transition-shadow ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
       {/* Barra superior informativa */}
       <div className="bg-brand text-white py-1 px-4 text-xs sm:text-sm">
         <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <Phone size={14} className="mr-1" />
-              <span>299 - 597-3644</span>
+              <span>298 - 4392148</span>
             </div>
             <div className="hidden sm:flex items-center">
               <MapPin size={14} className="mr-1" />
@@ -69,8 +69,8 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             <Link href="/seguimiento" className="hover:underline flex items-center">
               <Truck size={14} className="mr-1" />
-              <span className="hidden xs:inline">Envíos Alto Valle y Neuquén</span>
-              <span className="xs:hidden">Envíos</span>
+              <span className="hidden xs:inline">Envíos Gratis - Alto Valle y Neuquén</span>
+              <span className="xs:hidden">Envíos Gratis - Alto Valle y Neuquén</span>
             </Link>
             <Link href="/presupuesto" className="hover:underline flex items-center">
               <HardHat size={14} className="mr-1" />
@@ -98,7 +98,7 @@ export default function Navbar() {
                   />
                 ) : (
                   <Image
-                    src="/Logos/Perimetral-header-rezises.svg" // Ruta de tu logo para desktop
+                    src="/Logos/logo-header-black.svg" // Ruta de tu logo para desktop
                     alt="Corralón Perimetral - Versión completa"
                     fill
                     className="object-contain"
@@ -116,19 +116,19 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-3 py-2 text-gray-700 hover:text-blackDeep font-medium transition-colors group"
+                className="relative px-3 py-2 text-white font-medium transition-colors group"
               >
                 {link.label}
-                <span className="absolute bottom-0 left-1/2 h-0.5 bg-blackDeep w-0 transition-all duration-300 group-hover:w-4/5 group-hover:left-[10%]" />
+                <span className="absolute bottom-0 left-1/2 h-0.5 bg-white w-0 transition-all duration-300 group-hover:w-4/5 group-hover:left-[10%]" />
               </Link>
             ))}
           </nav>
 
           {/* Iconos de acción */}
           <div className="hidden md:flex items-center space-x-4 ml-6">
-            <button className="p-2 text-gray-700 hover:text-blackDeep transition-colors relative">
+            <button className="p-2 text-white transition-colors relative">
               <ShoppingCart size={22} />
-              <span className="absolute -top-1 -right-1 bg-blackDeep text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 border-2 bg-blackDeep text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 3
               </span>
             </button>
@@ -136,7 +136,7 @@ export default function Navbar() {
 
           {/* Botón menú móvil */}
           <button
-            className="md:hidden p-2 text-gray-700 hover:text-brand transition-colors"
+            className="md:hidden p-2 text-white transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Menú"
           >
@@ -159,7 +159,7 @@ export default function Navbar() {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Encabezado del menú móvil */}
-          <div className="flex justify-between items-center p-4 bg-brand text-white">
+          <div className="flex justify-between items-center p-4 bg-balckHero text-white">
             <div className="font-bold text-lg">MENÚ</div>
             <button
               className="p-2 text-white hover:text-yellow-200 transition-colors"
@@ -180,25 +180,25 @@ export default function Navbar() {
                   className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="text-brand">{link.icon}</span>
+                  <span className="text-blackHero">{link.icon}</span>
                   <span className="font-medium">{link.label}</span>
                 </Link>
               ))}
 
               <div className="border-t border-gray-200 pt-4 mt-2">
                 <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
-                  <span className="text-brand">
+                  <span className="text-blackHero">
                     <User size={18} />
                   </span>
                   <span className="font-medium">Mi cuenta</span>
                 </button>
 
                 <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative">
-                  <span className="text-brand">
+                  <span className="text-blackHero">
                     <ShoppingCart size={18} />
                   </span>
                   <span className="font-medium">Carrito</span>
-                  <span className="absolute right-4 top-3 bg-brand text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute right-4 top-3 bg-balckHero text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     3
                   </span>
                 </button>

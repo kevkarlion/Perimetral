@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
 
 export default function WhatsAppCTA() {
-  const phoneNumber = "+5491112345678"; // Reemplaza con tu número
+  const phoneNumber = "5492984392148"; // Reemplaza con tu número
   const message = "Hola, estoy interesado en cercos perimetrales. ¿Me pueden asesorar?";
 
   return (

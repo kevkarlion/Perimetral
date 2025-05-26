@@ -60,6 +60,7 @@ const config = {
         grayLight: "#BFBFBF",
         grayMid: "#7A7A7A",
         blackCharcoal: "#1B1B1B",
+        balckHero: '#0a0a0a',
         blackDeep: "#0D0D0D",
         yellowOne: "#FFD700"
       },

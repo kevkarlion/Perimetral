@@ -7,15 +7,15 @@ export default function ProductosSection() {
   const productos = [
     {
       id: 1,
-      nombre: "Cerca Electrosoldada",
-      imagen: "cerco-electrosoldado.webp",
-      descripcion: "Malla de alta resistencia con recubrimiento galvanizado o PVC",
+      nombre: "Alambrado Perimetral Galvanizado",
+      imagen: "alambrado-vedette/a1.webp",
+      descripcion: "Ideal para cercos perimetrales en terrenos rurales, industriales o residenciales. Alta resistencia y durabilidad gracias a su recubrimiento galvanizado.",
       caracteristicas: [
-        "Alturas: 1.50m a 3.00m",
-        "Postes de 2mm a 3mm de espesor",
+        "Altura: 1.80mts x 10mts",
+        "Diametro 63mm",
         "Vida útil: 15+ años"
       ],
-      precio: "$4.200/m lineal",
+      precio: "$80.000/m lineal + iva",
       destacado: true
     },
     {
@@ -121,7 +121,7 @@ export default function ProductosSection() {
               {/* Imagen del producto */}
               <div className="relative h-64 overflow-hidden">
                 <Image
-                  src={`/productos/${producto.imagen}`}
+                  src={`/Productos/${producto.imagen}`}
                   alt={producto.nombre}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"

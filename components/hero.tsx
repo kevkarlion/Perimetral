@@ -126,7 +126,7 @@ export default function HeroCarousel() {
               <div className="bg-white/20 p-2 rounded-full mr-3">
                 <Truck className="h-5 w-5 text-yellow-400" />
               </div>
-              <span className="text-sm">Envíos Alto Valle y Neuquén</span>
+              <span className="text-sm">Envíos Gratis - Alto Valle y Neuquén</span>
             </div>
             <div className="flex items-center">
               <div className="bg-white/20 p-2 rounded-full mr-3">
@@ -138,7 +138,7 @@ export default function HeroCarousel() {
               <div className="bg-white/20 p-2 rounded-full mr-3">
                 <Phone className="h-5 w-5 text-yellow-400" />
               </div>
-              <span className="text-sm">299 - 597-3644</span>
+              <span className="text-sm text-left whitespace-nowrap">298 - 4392148</span>
             </div>
           </div>
         </div>
