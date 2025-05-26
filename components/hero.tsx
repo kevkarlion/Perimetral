@@ -38,7 +38,7 @@ export default function HeroCarousel() {
 
   return (
     <section
-      className="relative h-[70vh] min-h-[500px] w-full overflow-hidden"
+      className="relative h-[80vh] min-h-[750px] w-full overflow-hidden"
       {...swipeHandlers}
     >
       {/* Carousel Images */}
@@ -79,8 +79,8 @@ export default function HeroCarousel() {
       </button>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-start z-[50]">
-        <div className="max-w-xl text-white pt-8 pb-8">
+      <div className="relative top-3 h-full container mx-auto px-4 flex flex-col justify-center items-start z-[50]">
+        <div className="max-w-xl text-white">
           <div className="inline-block bg-yellowOne text-blackCharcoal px-4 py-1 mb-4 rounded-md font-bold">
             CERCOS DE SEGURIDAD
           </div>
