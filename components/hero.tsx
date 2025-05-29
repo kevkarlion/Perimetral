@@ -1,9 +1,11 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Truck, HardHat, Phone, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Truck, HardHat, Phone, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useSwipeable } from 'react-swipeable'
 
@@ -95,14 +97,25 @@ export default function HeroCarousel() {
           </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button size="lg" className="bg-blackCharcoal hover:bg-blackDeep text-white font-bold">
-              Ver Productos
+              <Link href="/catalogo" className="flex items-center gap-2">
+               Ver Catálogo 
+              </Link>
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="text-blackCharcoal border-white hover:bg-white/10 font-bold"
+              asChild
             >
-              Solicitar Presupuesto
+              <a 
+                href="https://wa.me/5492984392148?text=Hola,%20me%20interesa%20solicitar%20un%20presupuesto%20de%20cercos%20perimetrales"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <FaWhatsapp className="h-5 w-5 text-green-500" />
+                Solicitar Presupuesto
+              </a>
             </Button>
           </div>
 
@@ -120,12 +133,7 @@ export default function HeroCarousel() {
               </div>
               <span className="text-sm">Asesoramiento técnico</span>
             </div>
-            <div className="flex items-center">
-              <div className="bg-white/20 p-2 rounded-full mr-3">
-                <Phone className="h-5 w-5 text-yellow-400" />
-              </div>
-              <span className="text-sm text-left whitespace-nowrap">298 - 4392148</span>
-            </div>
+          
           </div>
         </div>
       </div>
