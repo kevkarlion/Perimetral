@@ -38,7 +38,7 @@ export default function HeroCarousel() {
 
   return (
     <section
-      className="relative h-[80vh] min-h-[750px] w-full overflow-hidden"
+      className="relative h-[80vh] md:h-[60vh] md:min-h-[600px] min-h-[750px] w-full overflow-hidden"
       {...swipeHandlers}
     >
       {/* Carousel Images */}
