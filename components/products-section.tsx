@@ -8,10 +8,10 @@ export default function ProductosSection() {
     {
       id: 1,
       nombre: "Alambrado Perimetral Galvanizado 1.80mts. x 10 mts.",
-      
       imagen: "alambrado-principal.webp",
       precio: "$80.000/m lineal + iva",
-      destacado: true
+      destacado: true,
+      src: '/Productos/alambrado-principal.webp',
     },
     {
       id: 2,
@@ -19,7 +19,8 @@ export default function ProductosSection() {
       detalle: "1.80mts x 10 mts",
       imagen: "alambrePuas.webp",
       precio: "$185.000",
-      destacado: false
+      destacado: false,
+      src: '/Productos/alambrePuas.webp'
     },
     {
       id: 3,
@@ -56,7 +57,7 @@ export default function ProductosSection() {
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-white" id="products">
       <div className="container mx-auto px-4">
         {/* Encabezado */}
         <div className="text-center mb-12">
@@ -73,7 +74,7 @@ export default function ProductosSection() {
           {productos.map((producto) => (
             <Link 
               key={producto.id}
-              href={`/productos/${producto.id}`}
+              href={`/catalogo/${producto.id}`}
               className={`group relative flex flex-col h-full border border-gray-200 hover:border-primary rounded-lg overflow-hidden transition-all duration-300 ${
                 producto.destacado ? 'ring-1 ring-primary' : ''
               }`}
@@ -88,7 +89,7 @@ export default function ProductosSection() {
               {/* Imagen del producto - Más alargada */}
               <div className="relative w-full aspect-[4/3]">
                 <Image
-                  src={`/Productos/${producto.imagen}`}
+                  src={producto.src || `/images/${producto.imagen}`}
                   alt={producto.nombre}
                   fill
                   className="object-contain transition-transform duration-500 group-hover:scale-105"
@@ -118,8 +119,8 @@ export default function ProductosSection() {
         {/* CTA final */}
          <div className="text-center mt-12">
           <Button asChild className="bg-primary hover:bg-primary/90 text-white py-5 px-7 text-base">
-            <Link href="/contacto">
-              SOLICITAR CATÁLOGO COMPLETO
+            <Link href="/catalogo">
+              VER CATÁLOGO COMPLETO
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

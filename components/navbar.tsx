@@ -44,10 +44,10 @@ export default function Navbar() {
 
   // Links del navbar (centralizado para fácil mantenimiento)
   const navLinks = [
-    { href: "/", label: "Inicio", icon: <Home size={18} /> },
-    { href: "/productos", label: "Productos", icon: <Box size={18} /> },
-    { href: "/nosotros", label: "Nosotros", icon: <Info size={18} /> },
-    { href: "/contacto", label: "Contacto", icon: <PhoneCall size={18} /> },
+    { href: "/", label: "Inicio", icon: <Home size={18} /> , id: '#inicio'},
+    { href: "/catalogo", label: "Catálogo", icon: <Box size={18} /> , id: '#products'},
+    { href: "/nosotros", label: "Nosotros", icon: <Info size={18} /> , id: '#nosotros'},
+    { href: "/contacto", label: "Contacto", icon: <PhoneCall size={18} /> , id: '#contact'},
   ]
 
   return (
@@ -116,6 +116,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                id={link.id}
                 className="relative px-3 py-2 text-white font-medium transition-colors group"
               >
                 {link.label}

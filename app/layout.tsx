@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import  WhatsAppCTA  from "@/components/WhatsAppCTA"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import Navbar from "@/components/navbar"
+import  Footer  from "@/components/footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,8 +24,10 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Navbar />
           {children}
           <WhatsAppCTA />
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
