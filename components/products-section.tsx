@@ -77,9 +77,9 @@ const sliderSettings = {
       imagenes: [
         { src: '/Productos/alambrado/a1.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/a5.webp', alt: 'Alambrado principal' },
-        { src: '/Productos/alambrado/alambre-arbol1.webp', alt: 'Detalle 1' },
-        { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Detalle 2' },
-        { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Detalle 2' }
+        { src: '/Productos/alambrado/alambre-arbol1.webp', alt: 'Alambrado principal' },
+        { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Alambrado principal' },
+        { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado principal' }
       ],
       precio: "$80.000/m lineal + iva",
       destacado: true
@@ -101,10 +101,24 @@ const sliderSettings = {
       nombre: "Alambre de alta resistencia",
       detalle: "1.80mts x 10 mts",
       imagenes: [
-        { src: '/Productos/rompevistas.webp', alt: 'Rompevistas' }
+        { src: '/Productos/resistencia/resistencia.webp', alt: 'Alambre de alta resistencia' },
+        { src: '/Productos/resistencia/resistencia1.webp', alt: 'Alambre de alta resistencia' }
       ],
       precio: "$6.800/m lineal",
       destacado: true
+    },
+     {
+      id: 4,
+      nombre: "Postes premoldeados de hormigón",
+      detalle: "1.80mts x 10 mts",
+      imagenes: [
+        { src: '/Productos/pre/pre1.webp', alt: 'Premoldeado' },
+        { src: '/Productos/pre/pre2.webp', alt: 'Premoldeado' },
+        { src: '/Productos/pre/pre3.webp', alt: 'Premoldeado' },
+        { src: '/Productos/pre/pre4.webp', alt: 'Premoldeado' },
+      ],
+      precio: "$6.800/m lineal",
+      destacado: false
     },
   ];
 
