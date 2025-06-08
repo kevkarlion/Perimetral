@@ -1,59 +1,111 @@
+'use client'
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+// Componente personalizado para las flechas de navegación
+import type { CSSProperties } from "react";
+
+interface ArrowProps {
+  className?: string;
+  style?: CSSProperties;
+  onClick?: () => void;
+}
+
+function SampleNextArrow(props: ArrowProps) {
+  const { onClick } = props;
+  return (
+    <button
+      type="button"
+      className="absolute top-1/2 -translate-y-1/2 right-2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
+      onClick={onClick}
+      aria-label="Next image"
+    >
+      <div className="bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors shadow-md">
+        <ChevronRight className="h-5 w-5 text-white" />
+      </div>
+    </button>
+  );
+}
+
+function SamplePrevArrow(props: ArrowProps) {
+  const { onClick } = props;
+  return (
+    <button
+      type="button"
+      className="absolute top-1/2 -translate-y-1/2 left-2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
+      onClick={onClick}
+      aria-label="Previous image"
+    >
+      <div className="bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors shadow-md">
+        <ChevronLeft className="h-5 w-5 text-white" />
+      </div>
+    </button>
+  );
+}
 
 export default function ProductosSection() {
+  // Configuración del carrusel con flechas personalizadas
+const sliderSettings = {
+  dots: true,
+  infinite: true,
+  speed: 500,
+  slidesToShow: 1,
+  slidesToScroll: 1,
+  // nextArrow: <SampleNextArrow />,
+  // prevArrow: <SamplePrevArrow />,
+  adaptiveHeight: true,
+  // autoplay: true,
+  autoplaySpeed: 5000,
+  pauseOnHover: true,
+  // Estas son las configuraciones clave:
+  arrows: true, // Habilita las flechas
+  prevArrow: <SamplePrevArrow />, // Usa tu componente personalizado
+  nextArrow: <SampleNextArrow />, // Usa tu componente personalizado
+};
+
   const productos = [
     {
       id: 1,
-      nombre: "Alambrado Perimetral Galvanizado 1.80mts. x 10 mts.",
-      imagen: "alambrado-principal.webp",
+      nombre: "Alambrado Perimetral Galvanizado",
+      detalle: "1.80mts x 10 mts",
+      imagenes: [
+        { src: '/Productos/alambrado/a1.webp', alt: 'Alambrado principal' },
+        { src: '/Productos/alambrado/a5.webp', alt: 'Alambrado principal' },
+        { src: '/Productos/alambrado/alambre-arbol1.webp', alt: 'Detalle 1' },
+        { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Detalle 2' },
+        { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Detalle 2' }
+      ],
       precio: "$80.000/m lineal + iva",
-      destacado: true,
-      src: '/Productos/alambrado-principal.webp',
+      destacado: true
     },
     {
       id: 2,
       nombre: "Alambre de puas",
       detalle: "1.80mts x 10 mts",
-      imagen: "alambrePuas.webp",
+      imagenes: [
+        { src: '/Productos/puas/pua1.webp', alt: 'Alambre de púas' },
+        { src: '/Productos/puas/pua2.webp', alt: 'Alambre de púas' },
+        { src: '/Productos/puas/pua-planta1.webp', alt: 'Alambre de púas' },
+      ],
       precio: "$185.000",
-      destacado: false,
-      src: '/Productos/alambrePuas.webp'
+      destacado: false
     },
     {
       id: 3,
       nombre: "Alambre de alta resistencia",
       detalle: "1.80mts x 10 mts",
-      imagen: "rompevistas.webp",
+      imagenes: [
+        { src: '/Productos/rompevistas.webp', alt: 'Rompevistas' }
+      ],
       precio: "$6.800/m lineal",
       destacado: true
     },
-    {
-      id: 4,
-      nombre: "Alambrados a medida",
-      detalle: "1.80mts x 10 mts",
-      imagen: "alambrado-olimpico.webp",
-      precio: "$2.900/m lineal",
-      destacado: false
-    },
-    {
-      id: 5,
-      nombre: "Postes para cerco",
-      detalle: "1.80mts x 10 mts",
-      imagen: "cerco-electrico.webp",
-      precio: "$9.500/m lineal",
-      destacado: true
-    },
-    {
-      id: 6,
-      nombre: "Accesorios para alambrados",
-      detalle: "1.80mts x 10 mts",
-      imagen: "reja-artistica.webp",
-      precio: "Consultar",
-      destacado: false
-    }
   ];
 
   return (
@@ -69,55 +121,79 @@ export default function ProductosSection() {
           </p>
         </div>
 
-        {/* Grid de productos alargados */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        {/* Grid de productos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {productos.map((producto) => (
-            <Link 
+            <div 
               key={producto.id}
-              href={`/catalogo/${producto.id}`}
-              className={`group relative flex flex-col h-full border border-gray-200 hover:border-primary rounded-lg overflow-hidden transition-all duration-300 ${
-                producto.destacado ? 'ring-1 ring-primary' : ''
+              className={`group relative flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg ${
+                producto.destacado ? 'ring-2 ring-primary' : ''
               }`}
             >
-              {/* Badge destacado */}
-              {producto.destacado && (
-                <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center">
-                  <Star className="h-3 w-3 mr-1" /> DESTACADO
+              <Link href={`/catalogo/${producto.id}`} className="flex flex-col h-full">
+                {/* Badge destacado */}
+                {producto.destacado && (
+                  <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center">
+                    <Star className="h-3 w-3 mr-1" /> DESTACADO
+                  </div>
+                )}
+                
+                {/* Contenedor de imágenes con flechas */}
+                <div className="relative w-full h-80 bg-white overflow-hidden">
+                  {producto.imagenes.length > 1 ? (
+                    <Slider {...sliderSettings} className="h-full">
+                      {producto.imagenes.map((imagen, index) => (
+                        <div key={index} className="relative h-80 w-full">
+                          <Image
+                            src={imagen.src}
+                            alt={imagen.alt}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            priority={index === 0}
+                          />
+                        </div>
+                      ))}
+                    </Slider>
+                  ) : (
+                    <div className="relative h-80 w-full">
+                      <Image
+                        src={producto.imagenes[0].src}
+                        alt={producto.imagenes[0].alt}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        priority
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-              
-              {/* Imagen del producto - Más alargada */}
-              <div className="relative w-full aspect-[4/3]">
-                <Image
-                  src={producto.src || `/images/${producto.imagen}`}
-                  alt={producto.nombre}
-                  fill
-                  className="object-contain transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                />
-              </div>
-              
-              {/* Contenido */}
-              <div className="p-4 flex-grow flex flex-col">
-                <h3 className="text-sm font-light text-gray-900 group-hover:text-primary transition-colors">
-                  {producto.nombre}
-                </h3><p className="mt-1 font-medium text-gray-900">
-                  {producto.detalle}
-                </p>
-                <p className="text-lg mt-1 font-bold text-gray-900">
-                  {producto.precio}
-                </p>
-                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center text-sm text-primary font-medium">
-                  Ver detalles
-                  <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                
+                {/* Contenido del producto */}
+                <div className="p-4 flex-grow flex flex-col">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
+                    {producto.nombre}
+                  </h3>
+                  {producto.detalle && (
+                    <p className="mt-1 text-sm text-gray-600">
+                      {producto.detalle}
+                    </p>
+                  )}
+                  <p className="text-lg mt-2 font-bold text-gray-900">
+                    {producto.precio}
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-primary font-medium">
+                    Ver detalles
+                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
 
         {/* CTA final */}
-         <div className="text-center mt-12">
+        <div className="text-center mt-12">
           <Button asChild className="bg-primary hover:bg-primary/90 text-white py-5 px-7 text-base">
             <Link href="/catalogo">
               VER CATÁLOGO COMPLETO
