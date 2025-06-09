@@ -73,7 +73,7 @@ const sliderSettings = {
     {
       id: 1,
       nombre: "Alambrado Perimetral Galvanizado",
-      detalle: "1.80mts x 10 mts",
+      detalle: "Medidas: 1.50×10 m | 1.80×10 m | 2×10 m",
       imagenes: [
         { src: '/Productos/alambrado/a1.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/a5.webp', alt: 'Alambrado principal' },
@@ -118,7 +118,7 @@ const sliderSettings = {
         { src: '/Productos/pre/pre4.webp', alt: 'Premoldeado' },
       ],
       precio: "$6.800/m lineal",
-      destacado: false
+      destacado: false  
     },
   ];
 
