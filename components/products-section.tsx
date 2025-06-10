@@ -26,7 +26,7 @@ function SampleNextArrow(props: ArrowProps) {
       onClick={onClick}
       aria-label="Next image"
     >
-      <div className="bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors shadow-md">
+      <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
         <ChevronRight className="h-5 w-5 text-white" />
       </div>
     </button>
@@ -42,7 +42,7 @@ function SamplePrevArrow(props: ArrowProps) {
       onClick={onClick}
       aria-label="Previous image"
     >
-      <div className="bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors shadow-md">
+      <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
         <ChevronLeft className="h-5 w-5 text-white" />
       </div>
     </button>
@@ -128,7 +128,7 @@ const sliderSettings = {
         {/* Encabezado */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            Nuestros <span className="text-primary">Productos</span>
+            Nuestros <span className=" text-brand">Productos</span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Soluciones de calidad para cada necesidad de cerramiento y seguridad
@@ -141,13 +141,13 @@ const sliderSettings = {
             <div 
               key={producto.id}
               className={`group relative flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg ${
-                producto.destacado ? 'ring-2 ring-primary' : ''
+                producto.destacado ? 'ring-2 ring-brand' : ''
               }`}
             >
               <Link href={`/catalogo/${producto.id}`} className="flex flex-col h-full">
                 {/* Badge destacado */}
                 {producto.destacado && (
-                  <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center">
+                  <div className="absolute top-3 right-3 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center">
                     <Star className="h-3 w-3 mr-1" /> DESTACADO
                   </div>
                 )}
@@ -185,7 +185,7 @@ const sliderSettings = {
                 
                 {/* Contenido del producto */}
                 <div className="p-4 flex-grow flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
                     {producto.nombre}
                   </h3>
                   {producto.detalle && (
@@ -196,7 +196,7 @@ const sliderSettings = {
                   <p className="text-lg mt-2 font-bold text-gray-900">
                     {producto.precio}
                   </p>
-                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-primary font-medium">
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-brand font-medium">
                     Ver detalles
                     <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
@@ -208,7 +208,7 @@ const sliderSettings = {
 
         {/* CTA final */}
         <div className="text-center mt-12">
-          <Button asChild className="bg-primary hover:bg-primary/90 text-white py-5 px-7 text-base">
+          <Button asChild className="bg-brand hover:bg-brandHover text-white py-5 px-7 text-base">
             <Link href="/catalogo">
               VER CATÁLOGO COMPLETO
               <ArrowRight className="ml-2 h-4 w-4" />
