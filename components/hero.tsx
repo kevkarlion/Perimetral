@@ -83,21 +83,21 @@ export default function HeroCarousel() {
       {/* Content */}
       <div className="relative top-3 h-full container mx-auto px-4 flex flex-col justify-center items-start z-[50]">
         <div className="max-w-xl text-white">
-          <div className="inline-block bg-yellowOne text-blackCharcoal px-4 py-1 mb-4 rounded-md font-bold">
+          <div className="inline-block bg-brand tracking-tighter text-blackCharcoal px-4 py-1 mb-4 rounded-md font-bold">
             CERCOS DE SEGURIDAD
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-5xl font-bold mb-4 leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tighter mb-4 leading-tight">
             Cercos Perimetrales a Medida - Instalación Profesional
           </h1>
-          <h2 className="text-lg md:text-xl mb-8 text-gray-200">
-            <span className="block text-yellowOne mt-2">
+          <h2 className="text-lg md:text-xl mb-8 text-gray-200 tracking-tighter">
+            <span className="block text-brand mt-2 tracking-tighter">
               Protección y Seguridad con Cercos de Alta Calidad
             </span>{' '}
             para Empresas y Hogares 
           </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button size="lg" className="bg-blackCharcoal hover:bg-blackDeep text-white font-bold">
-              <Link href="/catalogo" className="flex items-center gap-2">
+              <Link href="/catalogo" className="flex items-center gap-2 ">
                Ver Catálogo 
               </Link>
             </Button>
@@ -123,13 +123,13 @@ export default function HeroCarousel() {
           <div className="mt-8 flex flex-col sm:flex-row gap-4 flex-wrap pb-16 sm:pb-0">
             <div className="flex items-center">
               <div className="bg-white/20 p-2 rounded-full mr-3">
-                <Truck className="h-5 w-5 text-yellow-400" />
+                <Truck className="h-5 w-5 text-brand" />
               </div>
               <span className="text-sm">Envíos Gratis - Alto Valle y Neuquén</span>
             </div>
             <div className="flex items-center">
               <div className="bg-white/20 p-2 rounded-full mr-3">
-                <HardHat className="h-5 w-5 text-yellow-400" />
+                <HardHat className="h-5 w-5 text-brand" />
               </div>
               <span className="text-sm">Asesoramiento técnico</span>
             </div>
