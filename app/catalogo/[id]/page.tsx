@@ -31,16 +31,44 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
       </div>
 
       {/* Contenedor principal */}
-      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-        {/* Galería de imágenes sticky */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:sticky lg:top-36 lg:self-start">
-          {/* Miniaturas verticales */}
-          <div className="flex lg:flex-col gap-2 order-last lg:order-first">
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-8 lg:gap-12">
+        {/* Encabezado móvil */}
+        <div className="md:hidden space-y-3">
+          {producto.destacado && (
+            <div className="inline-flex items-center bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+              <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
+            </div>
+          )}
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{producto.nombre}</h1>
+          {producto.categoria && (
+            <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              {producto.categoria}
+            </span>
+          )}
+        </div>
+
+        {/* Galería de imágenes sticky - Versión optimizada */}
+        <div className="flex flex-col lg:flex-row-reverse gap-4 lg:sticky lg:top-32 lg:self-start">
+          {/* Imagen principal - Contenedor compacto */}
+          <div className="w-full">
+            <div className="relative aspect-square bg-contraste rounded-lg overflow-hidden">
+              <Image
+                src={imagenes[imagenPrincipal].src}
+                alt={imagenes[imagenPrincipal].alt}
+                fill
+                className="object-contain p-2"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Miniaturas - Ahora en columna a la derecha */}
+          <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
             {imagenes.map((imagen, index) => (
               <button
                 key={index}
                 onClick={() => setImagenPrincipal(index)}
-                className={`w-16 h-16 md:w-20 md:h-20 relative rounded-md overflow-hidden border-2 transition-all ${
+                className={`flex-shrink-0 w-14 h-14 md:w-16 md:h-16 relative rounded-md overflow-hidden border-2 transition-all ${
                   imagenPrincipal === index
                     ? 'border-primary scale-105'
                     : 'border-gray-200 hover:border-gray-300'
@@ -51,30 +79,17 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
                   alt={imagen.alt}
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="64px"
                 />
               </button>
             ))}
-          </div>
-
-          {/* Imagen principal */}
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="aspect-square relative">
-              <Image
-                src={imagenes[imagenPrincipal].src}
-                alt={imagenes[imagenPrincipal].alt}
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
           </div>
         </div>
 
         {/* Información del producto (contenido scrollable) */}
         <div className="space-y-6">
-          {/* Encabezado */}
-          <div className="space-y-3">
+          {/* Encabezado desktop (oculto en móvil) */}
+          <div className="hidden md:block space-y-3">
             {producto.destacado && (
               <div className="inline-flex items-center bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
                 <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
@@ -148,23 +163,28 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           )}
 
           {/* CTA */}
-          <div className="pt-6 sticky bottom-0 bg-white pb-6 border-t border-gray-200">
-            <Link
-              href="/contacto"
-              className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg shadow-md hover:shadow-lg  sm:w-auto"
-            >
-              Consultar por este producto
-              <ChevronRight className="h-5 w-5 ml-2" />
-            </Link>
+          <div className="sticky bottom-0 backdrop-blur-sm py-3 px-4  ">
+            <div className="max-w-4xl mx-auto">
+              <Link
+                href="/contacto"
+                className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
+              >
+                <span>¿Interesado en este producto?</span>
+                <span className="flex items-center bg-primary rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
+                  Contactar
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Sección de productos relacionados */}
       {/* <div className="mt-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Productos relacionados</h2> */}
-        {/* Componente de grid de productos aquí */}
-      {/* </div> */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Productos relacionados</h2>
+       
+      </div> */}
     </div>
   )
 }

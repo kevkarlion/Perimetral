@@ -117,7 +117,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 id={link.id}
-                className="relative px-3 py-2 text-white font-medium transition-colors group"
+                className="relative px-3  py-2 text-white font-medium transition-colors group"
               >
                 {link.label}
                 <span className="absolute bottom-0 left-1/2 h-0.5 bg-white w-0 transition-all duration-300 group-hover:w-4/5 group-hover:left-[10%]" />

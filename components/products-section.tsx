@@ -81,7 +81,7 @@ const sliderSettings = {
         { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado principal' }
       ],
-      precio: "$80.000/m lineal + iva",
+      precio: "$80.000 + iva",
       destacado: true
     },
     {

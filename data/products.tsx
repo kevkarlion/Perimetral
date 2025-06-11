@@ -15,7 +15,7 @@ export const productos = [
       { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado vista frontal' },
     ],
     imagenesAdicionales: ["alambrado-2.jpg", "alambrado-3.jpg"],
-    precio: "$80.000/m lineal + IVA",
+    precio: "$80.000 + IVA",
     destacado: true,
     especificaciones: [
       "Medidas: 1.50×10 m | 1.80×10 m | 2×10 m",

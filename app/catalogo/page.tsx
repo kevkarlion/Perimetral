@@ -68,7 +68,7 @@ export default function ProductosPage() {
                     <div key={index} className="relative h-96 w-full">
                       <Link href={`/catalogo/${producto.id}`} className="block h-full">
                         <Image
-                          src={imagen.src || producto.src}
+                          src={imagen.src || producto.imagen}
                           alt={imagen.alt || producto.nombre}
                           fill
                           className="object-cover"
@@ -83,7 +83,7 @@ export default function ProductosPage() {
                 <div className="relative h-96 w-full">
                   <Link href={`/catalogo/${producto.id}`} className="block h-full">
                     <Image
-                      src={producto.src}
+                      src={producto.imagen}
                       alt={producto.nombre}
                       fill
                       className="object-cover hover:scale-105 transition-transform duration-500"

@@ -57,6 +57,7 @@ const config = {
         // 🎨 Colores personalizados de la marca
         brand: "#DAA520",
         brandHover: '#C2911C',
+        contraste: '#EDECE8',
         LigthText: "#FFFBEB",
         grayLight: "#BFBFBF",
         grayMid: "#7A7A7A",
