@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, Mail, Phone, MapPin, Clock, MessageCircle } from "lucide-react"
+import { Facebook, Instagram, Mail, Phone, MapPin, Clock } from "lucide-react"
+import { FaWhatsapp } from "react-icons/fa"
 
 export default function Footer() {
   return (
@@ -131,7 +132,7 @@ export default function Footer() {
                   className="flex items-center text-gray-400 hover:text-brand transition-colors"
                 >
                   <div className="bg-brand text-black p-2 rounded-full mr-3">
-                    <MessageCircle size={18} />
+                    <FaWhatsapp size={18} />
                   </div>
                   <span>WhatsApp</span>
                 </a>
