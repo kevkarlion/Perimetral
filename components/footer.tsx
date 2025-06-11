@@ -1,11 +1,11 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, Mail, Phone, MapPin, Clock, CreditCard, Truck, HardHat } from "lucide-react"
+import { Facebook, Instagram, Mail, Phone, MapPin, Clock, MessageCircle } from "lucide-react"
 
 export default function Footer() {
   return (
-    <footer>
-      <div className="bg-gray-800 text-white py-12">
+    <footer className="bg-black text-white">
+      <div className="bg-black py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
@@ -16,38 +16,22 @@ export default function Footer() {
                   alt="Corralón Logo"
                   width={160}
                   height={48}
-                  className="object-contain bg-white p-2 rounded-md"
+                  className="object-contain bg-brand p-2 rounded-md"
                 />
               </div>
               <p className="text-gray-400 mb-6">
                 Más de 20 años brindando materiales de calidad para la construcción y el hogar.
               </p>
-              <div className="flex space-x-4">
-                <Link
-                  href="https://facebook.com"
-                  className="bg-[#C4A97A] p-2 rounded-full hover:bg-[#D4B98A] transition-colors"
-                >
-                  <Facebook size={20} />
-                  <span className="sr-only">Facebook</span>
-                </Link>
-                <Link
-                  href="https://instagram.com"
-                  className="bg-[#C4A97A] p-2 rounded-full hover:bg-[#D4B98A] transition-colors"
-                >
-                  <Instagram size={20} />
-                  <span className="sr-only">Instagram</span>
-                </Link>
-              </div>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Navegación</h3>
+              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Navegación</h3>
               <ul className="space-y-3">
                 <li>
                   <Link
                     href="/"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Inicio
                   </Link>
@@ -55,7 +39,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/catalogo"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Catálogo
                   </Link>
@@ -63,7 +47,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/nosotros"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Nosotros
                   </Link>
@@ -71,7 +55,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/novedades"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Novedades
                   </Link>
@@ -79,7 +63,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/consejos"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Consejos Técnicos
                   </Link>
@@ -89,22 +73,22 @@ export default function Footer() {
 
             {/* Contact Info */}
             <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Contacto</h3>
+              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Contacto</h3>
               <ul className="space-y-4">
                 <li className="flex items-start">
-                  <MapPin className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
-                  <span>Av. Siempreviva 742, Springfield</span>
+                  <MapPin className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
+                  <span>Av. Siempreviva 742, General Roca, Río Negro</span>
                 </li>
                 <li className="flex items-start">
-                  <Phone className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
-                  <span>+54 11 5555-5555</span>
+                  <Phone className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
+                  <span>+54 298 5555-5555</span>
                 </li>
                 <li className="flex items-start">
-                  <Mail className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
+                  <Mail className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
                   <span>info@corralon.com</span>
                 </li>
                 <li className="flex items-start">
-                  <Clock className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
+                  <Clock className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
                   <span>
                     Lun-Vie: 8:00 - 19:00
                     <br />
@@ -114,31 +98,44 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Services */}
+            {/* Redes Sociales */}
             <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Servicios</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <Truck className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
-                  <span>Entrega a domicilio</span>
-                </li>
-                <li className="flex items-center">
-                  <HardHat className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
-                  <span>Asesoramiento técnico</span>
-                </li>
-                <li className="flex items-center">
-                  <CreditCard className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
-                  <span>Financiación disponible</span>
-                </li>
-                <li>
-                  <Link
-                    href="/faq"
-                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center mt-4"
-                  >
-                    <span className="mr-2">›</span> Preguntas Frecuentes
-                  </Link>
-                </li>
-              </ul>
+              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Nuestras Redes</h3>
+              <div className="space-y-4">
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
+                >
+                  <div className="bg-brand text-black p-2 rounded-full mr-3">
+                    <Facebook size={18} />
+                  </div>
+                  <span>Facebook</span>
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
+                >
+                  <div className="bg-brand text-black p-2 rounded-full mr-3">
+                    <Instagram size={18} />
+                  </div>
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://wa.me/542985555555"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
+                >
+                  <div className="bg-brand text-black p-2 rounded-full mr-3">
+                    <MessageCircle size={18} />
+                  </div>
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
