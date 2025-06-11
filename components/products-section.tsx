@@ -81,7 +81,7 @@ const sliderSettings = {
         { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado principal' }
       ],
-      precio: "$80.000 + iva",
+      precio: "$80.000",
       destacado: true
     },
     {
@@ -104,7 +104,7 @@ const sliderSettings = {
         { src: '/Productos/resistencia/resistencia.webp', alt: 'Alambre de alta resistencia' },
         { src: '/Productos/resistencia/resistencia1.webp', alt: 'Alambre de alta resistencia' }
       ],
-      precio: "$6.800/m lineal",
+      precio: "$6.800 lineal",
       destacado: true
     },
      {
@@ -195,6 +195,7 @@ const sliderSettings = {
                   )}
                   <p className="text-lg mt-2 font-bold text-gray-900">
                     {producto.precio}
+                    <span className="text-xs text-gray-500"> + IVA</span>
                   </p>
                   <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-brand font-medium">
                     Ver detalles

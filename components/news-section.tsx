@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 const newsItems = [
   {
@@ -11,16 +12,16 @@ const newsItems = [
   },
   {
     id: 2,
-    title: "Guía de construcción en seco",
-    excerpt: "Aprende todo sobre las ventajas y el proceso de construcción en seco para tus proyectos.",
-    date: "2 Mayo, 2025",
+    title: "Alambrados de Alta Resistencia: ¿Cuál Elegir para tu Proyecto?",  
+    excerpt: "Comparativa técnica entre mallas torsionadas, concertinas y alambres galvanizados para máxima seguridad.",  
+    date: "15 Junio, 2025",
     image: "/placeholder.svg?height=400&width=600",
   },
   {
     id: 3,
-    title: "Promociones de temporada",
-    excerpt: "Aprovecha nuestras ofertas especiales en materiales de construcción durante este mes.",
-    date: "28 Abril, 2025",
+    title: "Instalación Profesional de Alambre de Púas: Errores y Soluciones",  
+    excerpt: "Aprende a evitar fallos comunes y maximiza la durabilidad de tu cerco perimetral con estos tips expertos.",  
+    date: "22 Junio, 2025",
     image: "/placeholder.svg?height=400&width=600",
   },
 ]
@@ -56,10 +57,13 @@ export default function NewsSection() {
                   {item.title}
                 </h3>
                 <p className="text-gray-600 mb-4">{item.excerpt}</p>
-                <button className="flex items-center text-brand font-bold hover:text-orange-700 transition-colors group">
+                <Link 
+                  href={`/news/${item.id}`}
+                  className="flex items-center text-brand font-bold hover:text-orange-700 transition-colors group"
+                >
                   Leer más
                   <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
-                </button>
+                </Link>
               </div>
             </div>
           ))}
@@ -134,7 +138,7 @@ export default function NewsSection() {
                 <div>
                   <h4 className="text-xl font-bold text-white mb-2">¿Necesitas ayuda?</h4>
                   <p className="text-gray-200 mb-4">Nuestro equipo técnico está disponible para asesorarte</p>
-                  <button className="bg-brand hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                  <button className="bg-brand hover:bg-brandHover text-white font-bold py-2 px-4 rounded-md transition-colors">
                     Contactar ahora
                   </button>
                 </div>

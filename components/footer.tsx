@@ -25,14 +25,14 @@ export default function Footer() {
               <div className="flex space-x-4">
                 <Link
                   href="https://facebook.com"
-                  className="bg-orange-600 p-2 rounded-full hover:bg-orange-700 transition-colors"
+                  className="bg-[#C4A97A] p-2 rounded-full hover:bg-[#D4B98A] transition-colors"
                 >
                   <Facebook size={20} />
                   <span className="sr-only">Facebook</span>
                 </Link>
                 <Link
                   href="https://instagram.com"
-                  className="bg-orange-600 p-2 rounded-full hover:bg-orange-700 transition-colors"
+                  className="bg-[#C4A97A] p-2 rounded-full hover:bg-[#D4B98A] transition-colors"
                 >
                   <Instagram size={20} />
                   <span className="sr-only">Instagram</span>
@@ -40,24 +40,71 @@ export default function Footer() {
               </div>
             </div>
 
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Navegación</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                  >
+                    <span className="mr-2">›</span> Inicio
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/catalogo"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                  >
+                    <span className="mr-2">›</span> Catálogo
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nosotros"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                  >
+                    <span className="mr-2">›</span> Nosotros
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/novedades"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                  >
+                    <span className="mr-2">›</span> Novedades
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/consejos"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center"
+                  >
+                    <span className="mr-2">›</span> Consejos Técnicos
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
             {/* Contact Info */}
             <div>
               <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Contacto</h3>
               <ul className="space-y-4">
                 <li className="flex items-start">
-                  <MapPin className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
+                  <MapPin className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
                   <span>Av. Siempreviva 742, Springfield</span>
                 </li>
                 <li className="flex items-start">
-                  <Phone className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
+                  <Phone className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
                   <span>+54 11 5555-5555</span>
                 </li>
                 <li className="flex items-start">
-                  <Mail className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
+                  <Mail className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
                   <span>info@corralon.com</span>
                 </li>
                 <li className="flex items-start">
-                  <Clock className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
+                  <Clock className="h-5 w-5 text-[#C4A97A] mr-3 mt-1 flex-shrink-0" />
                   <span>
                     Lun-Vie: 8:00 - 19:00
                     <br />
@@ -67,80 +114,28 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Enlaces Rápidos</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/productos"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Productos
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/nosotros"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Sobre Nosotros
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/servicios"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Servicios
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/blog"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contacto"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Contacto
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
             {/* Services */}
             <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Nuestros Servicios</h3>
+              <h3 className="text-lg font-bold mb-6 border-b border-gray-700 pb-2">Servicios</h3>
               <ul className="space-y-3">
                 <li className="flex items-center">
-                  <Truck className="h-5 w-5 text-orange-500 mr-3 flex-shrink-0" />
+                  <Truck className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
                   <span>Entrega a domicilio</span>
                 </li>
                 <li className="flex items-center">
-                  <HardHat className="h-5 w-5 text-orange-500 mr-3 flex-shrink-0" />
+                  <HardHat className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
                   <span>Asesoramiento técnico</span>
                 </li>
                 <li className="flex items-center">
-                  <CreditCard className="h-5 w-5 text-orange-500 mr-3 flex-shrink-0" />
+                  <CreditCard className="h-5 w-5 text-[#C4A97A] mr-3 flex-shrink-0" />
                   <span>Financiación disponible</span>
                 </li>
                 <li>
                   <Link
                     href="/faq"
-                    className="text-gray-400 hover:text-orange-500 transition-colors flex items-center mt-4"
+                    className="text-gray-400 hover:text-[#C4A97A] transition-colors flex items-center mt-4"
                   >
                     <span className="mr-2">›</span> Preguntas Frecuentes
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/faq" className="text-gray-400 hover:text-orange-500 transition-colors flex items-center">
-                    <span className="mr-2">›</span> Términos y Condiciones
                   </Link>
                 </li>
               </ul>
