@@ -23,7 +23,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
       <div className="mb-6">
         <Link
           href="/catalogo"
-          className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+          className="inline-flex items-center text-brand hover:text-brandHover transition-colors"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Volver al catálogo
@@ -35,7 +35,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
         {/* Encabezado móvil */}
         <div className="md:hidden space-y-3">
           {producto.destacado && (
-            <div className="inline-flex items-center bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+            <div className="inline-flex items-center bg-brand text-black text-xs font-bold px-3 py-1 rounded-full">
               <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
             </div>
           )}
@@ -91,7 +91,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           {/* Encabezado desktop (oculto en móvil) */}
           <div className="hidden md:block space-y-3">
             {producto.destacado && (
-              <div className="inline-flex items-center bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+              <div className="inline-flex items-center bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
                 <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
               </div>
             )}
@@ -105,7 +105,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
 
           {/* Precio */}
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-bold text-primary">{producto.precio}</p>
+            <p className="text-2xl md:text-3xl font-bold text-brand">{producto.precio}</p>
             <span className="text-sm text-gray-500">+ IVA</span>
           </div>
 
@@ -137,7 +137,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
                     key={index}
                     className="flex items-center bg-gray-50 px-4 py-3 rounded-lg"
                   >
-                    <Check className="h-5 w-5 text-primary mr-2 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-brand mr-2 flex-shrink-0" />
                     <span className="text-gray-700">{caract}</span>
                   </div>
                 ))}
@@ -170,7 +170,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
                 className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
               >
                 <span>¿Interesado en este producto?</span>
-                <span className="flex items-center bg-primary rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
+                <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
                   Contactar
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </span>

@@ -16,7 +16,7 @@ export default function NosotrosPage() {
         <div className="absolute inset-0 bg-black/40 flex items-center">
           <div className="container mx-auto px-4 text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Expertos en Seguridad Perimetral desde 2003
+              Expertos en Seguridad Perimetral
             </h1>
           </div>
         </div>
@@ -28,31 +28,33 @@ export default function NosotrosPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Nuestra Historia y Compromiso
           </h2>
-          
+
           <p>
-            En <strong>PERIMETRAL</strong> nos especializamos en la fabricación e instalación 
-            de sistemas de protección perimetral de alta calidad. Con más de 20 años de experiencia 
-            en el mercado, hemos protegido cientos de hogares y empresas en toda la Patagonia.
+            En <strong>PERIMETRAL</strong> nos dedicamos a la fabricación e instalación de sistemas de protección perimetral pensados para brindar tranquilidad, durabilidad y confianza. Estamos ubicados en <strong>General Roca, Río Negro</strong>, lo que nos permite estar cerca de nuestros clientes y responder rápidamente a cada necesidad.
           </p>
-          
+
           <p>
-            Nuestra fábrica, ubicada estratégicamente en Neuquén, cuenta con tecnología de última 
-            generación para garantizar productos duraderos y resistentes a las condiciones climáticas 
-            más exigentes. Todos nuestros materiales pasan por rigurosos controles de calidad.
+            Realizamos <strong>envíos gratuitos a toda la provincia de Río Negro y Neuquén</strong>, lo que facilita el acceso a nuestros productos sin costos ocultos ni sorpresas. Sabemos que en nuestra región el clima y las condiciones del terreno pueden ser desafiantes, por eso diseñamos productos robustos, resistentes al viento, la lluvia y las variaciones extremas de temperatura.
+          </p>
+
+          <p>
+            Además, entendemos que elegir un sistema de protección es una decisión importante. Por eso ofrecemos asesoramiento honesto, adaptado a cada situación, y un servicio postventa que nos diferencia. Estamos acá para acompañarte, desde la primera consulta hasta mucho después de la instalación.
           </p>
 
           <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">
             ¿Por qué elegirnos?
           </h3>
-          
+
           <ul className="space-y-3">
-            <li>Fabricación propia con estándares internacionales</li>
-            <li>Instalación profesional por equipos certificados</li>
-            <li>Materiales galvanizados de alta resistencia</li>
-            <li>Asesoramiento técnico personalizado</li>
-            <li>Garantía escrita en todos nuestros productos</li>
+            <li>Fabricación propia con materiales de primera calidad</li>
+            <li>Instalación profesional, sin tercerizados</li>
+            <li>Diseños adaptados al clima y terreno de la Patagonia</li>
+            <li>Envíos gratis a toda Río Negro y Neuquén</li>
+            <li>Asesoramiento claro y personalizado para cada cliente</li>
+            <li>Garantía real y respaldo local</li>
           </ul>
         </div>
+
 
         {/* CTA y Redes Sociales */}
         <div className="mt-16 text-center bg-gray-50 p-8 rounded-xl">

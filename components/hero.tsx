@@ -58,7 +58,7 @@ export default function HeroCarousel() {
             alt={`Slide ${index + 1}`}
             fill
             className="object-cover brightness-75"
-            priority
+            priority={index === 0}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
         </motion.div>

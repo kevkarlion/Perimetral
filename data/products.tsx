@@ -42,7 +42,7 @@ export const productos = [
       { src: '/Productos/puas/pua-planta1.webp', alt: 'Alambrado vista frontal' },
     ],
     imagenesAdicionales: ["alambrado-2.jpg", "alambrado-3.jpg"],
-    precio: "$180.000/m lineal + IVA",
+    precio: "$180.000",
     destacado: false,
     especificaciones: [
       "Altura estándar: 1.80 metros (personalizable)",
@@ -75,7 +75,7 @@ export const productos = [
     { src: '/Productos/resistencia/resistencia.webp', alt: 'Alambre de alta resistencia instalado' },
     { src: '/Productos/resistencia/resistencia1.webp', alt: 'Detalle del alambre' }
   ],
-  precio: "$95.000/m lineal + IVA",
+  precio: "$95.000",
   destacado: true,
   especificaciones: [
     "Diámetro: 2.7 mm (calibre 11)",
@@ -118,7 +118,7 @@ export const productos = [
     { src: '/Productos/pre/pre3.webp', alt: 'Instalación en terreno' },
     { src: '/Productos/pre/pre4.webp', alt: 'Postes esquineros' }
   ],
-  precio: "$120.000 unidad + IVA",
+  precio: "$120.000",
   destacado: true,
   especificaciones: [
     "Alturas disponibles: 1.8m, 2.1m, 2.4m",

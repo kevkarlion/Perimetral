@@ -20,7 +20,7 @@ const CustomArrow = ({ direction, onClick }) => {
       onClick={onClick}
       aria-label={`${direction === 'next' ? 'Next' : 'Previous'} image`}
     >
-      <div className="bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors shadow-md">
+      <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
         <Icon className="h-5 w-5 text-white" />
       </div>
     </button>
@@ -94,7 +94,7 @@ export default function ProductosPage() {
                 </div>
               )}
               {producto.destacado && (
-                <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center shadow-md z-10">
+                <div className="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center shadow-md z-10">
                   <Star className="h-4 w-4 mr-1.5" /> DESTACADO
                 </div>
               )}
@@ -104,7 +104,7 @@ export default function ProductosPage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <Link href={`/catalogo/${producto.id}`} className="group">
-                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-2">
+                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-brandHover transition-colors line-clamp-2">
                     {producto.nombre}
                   </h2>
                 </Link>
@@ -135,14 +135,14 @@ export default function ProductosPage() {
 
               <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Precio desde</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {producto.precio}
+                  <p className="text-sm text-gray-500 mb-1">Precio desde </p>
+                  <p className="text-2xl font-bold text-brand">
+                    {producto.precio} <span className="text-xs text-gray-500"> + IVA</span>
                   </p>
                 </div>
                 <Link 
                   href={`/catalogo/${producto.id}`}
-                  className="flex items-center text-base font-medium text-primary hover:text-primary/80 transition-colors group"
+                  className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"
                 >
                   Ver detalles
                   <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -164,7 +164,7 @@ export default function ProductosPage() {
           </p>
           <Link
             href="/contacto"
-            className="inline-block bg-primary hover:bg-primary/90 text-white font-medium py-4 px-8 rounded-lg transition-colors text-lg shadow-md hover:shadow-lg"
+            className="inline-block bg-brand hover:bg-brandHover text-white font-medium py-4 px-8 rounded-lg transition-colors text-lg shadow-md hover:shadow-lg"
           >
             Contactar a un asesor
           </Link>
