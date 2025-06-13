@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import { FaWhatsapp } from 'react-icons/fa';
 
 // Datos simulados (reemplaza con tu fuente real: API, CMS, etc.)
 const newsItems = [
@@ -12,7 +13,7 @@ const newsItems = [
     title: "Guía para Elegir el Cercado Perfecto para tu Propiedad",
     excerpt: "Factores clave a considerar antes de instalar tu cerco perimetral.",
     date: "10 Mayo, 2025",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/consejos/cerco1.webp",
     content: `
       <h3 class="text-xl font-bold mb-4">¿Por qué es importante elegir bien?</h3>
       <p class="mb-4">Un cerco perimetral no solo define los límites de tu propiedad, sino que también aporta seguridad y estética. Materiales como el alambre tejido, madera tratada o cercos eléctricos tienen ventajas específicas según tu necesidad.</p>
@@ -61,7 +62,7 @@ const newsItems = [
   title: "Cómo Maximizar la Seguridad con Alambre de Púas",
   excerpt: "Errores comunes y soluciones profesionales en instalaciones de cercos punzantes.",
   date: "22 Junio, 2025",
-  image: "/placeholder.svg?height=400&width=600",
+  image: "/Productos/puas/pua-planta1.webp",
   content: `
     <h3 class="text-xl font-bold mb-4">Tipos de alambre de púas:</h3>
     <p class="mb-4">No todos los alambres punzantes son iguales. Los más usados en Argentina son:</p>
@@ -115,10 +116,10 @@ export default function NewsDetailPage({
         {/* Botón de regreso */}
          <button
             onClick={() => router.back()} // Aquí es donde ocurre la magia
-            className="flex items-center text-brand font-bold hover:text-orange-700 transition-colors mb-8"
+            className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
       >
             <ArrowLeft size={16} className="mr-2" />
-            Volver atrás
+            Volver
       </button>
 
         {/* Encabezado */}
@@ -149,16 +150,24 @@ export default function NewsDetailPage({
         />
 
         {/* CTA al final */}
-        <div className="mt-12 bg-gray-800 p-6 rounded-lg text-white">
-          <h3 className="text-2xl font-bold mb-4">¿Te gustó esta guía?</h3>
-          <p className="mb-6">
-            Suscríbete para recibir más consejos profesionales directamente en tu
-            email.
-          </p>
-          <button className="bg-brand hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-md transition-colors">
-            Suscribirme
-          </button>
-        </div>
+         {/* CTA y Redes Sociales */}
+              <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
+                 <div className="bg-white rounded-xl p-8 text-center">
+                   <h3 className="text-2xl font-bold text-gray-900 mb-3 hover">¿Listo para proteger tu propiedad?</h3>
+                   <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                     Nuestros especialistas están disponibles para responder todas tus consultas.
+                   </p>
+                   <a
+                     href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-bold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md"
+                   >
+                     <FaWhatsapp className="w-5 h-5" /> {/* Icono de WhatsApp */}
+                     Contactar por WhatsApp
+                   </a>
+                 </div>
+               </div>
       </div>
     </section>
   );

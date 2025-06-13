@@ -8,7 +8,7 @@ const newsItems = [
     title: "Guía para Elegir el Cercado Perfecto para tu Propiedad",
     excerpt: "Factores clave a considerar antes de instalar tu cerco perimetral.",
     date: "10 Mayo, 2025",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/consejos/cerco1.webp",
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ const newsItems = [
     title: "Instalación Profesional de Alambre de Púas: Errores y Soluciones",  
     excerpt: "Aprende a evitar fallos comunes y maximiza la durabilidad de tu cerco perimetral con estos tips expertos.",  
     date: "22 Junio, 2025",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/Productos/puas/pua-planta1.webp",
   },
 ]
 

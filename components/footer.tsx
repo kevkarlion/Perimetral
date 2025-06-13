@@ -10,18 +10,18 @@ export default function Footer() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
-            <div>
+            <div className="flex flex-col items-center">
               <div className="mb-6">
                 <Image
-                  src="/placeholder.svg?height=48&width=160"
+                  src="/Logos/Logo-mobile.webp"
                   alt="Corralón Logo"
                   width={160}
                   height={48}
-                  className="object-contain bg-brand p-2 rounded-md"
+                  className="object-containp-2 rounded-md"
                 />
               </div>
               <p className="text-gray-400 mb-6">
-                Más de 20 años brindando materiales de calidad para la construcción y el hogar.
+                Especialistas en materiales de alta calidad para la construcción y seguridad perimetral.
               </p>
             </div>
 
@@ -55,7 +55,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/novedades"
+                    href="/news"
                     className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
                     <span className="mr-2">›</span> Novedades y consejos

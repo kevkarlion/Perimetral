@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, X, ShoppingCart, User, Truck, HardHat, Phone, MapPin, Home, Box, Info, PhoneCall } from "lucide-react"
+import { Menu, X, ShoppingCart, User, Truck, HardHat, Phone, MapPin, Home, Box, Info, PhoneCall, Newspaper } from "lucide-react"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -47,6 +47,7 @@ export default function Navbar() {
     { href: "/", label: "Inicio", icon: <Home size={18} /> , id: '#inicio'},
     { href: "/catalogo", label: "Catálogo", icon: <Box size={18} /> , id: '#products'},
     { href: "/nosotros", label: "Nosotros", icon: <Info size={18} /> , id: '#nosotros'},
+    { href: "/news", label: "Novedades", icon: <Newspaper  size={18} /> , id: '#novedades'},
     { href: "/contacto", label: "Contacto", icon: <PhoneCall size={18} /> , id: '#contact'},
   ]
 
@@ -54,31 +55,41 @@ export default function Navbar() {
     <header className={`sticky top-0 z-[100] bg-balckHero transition-shadow ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
       {/* Barra superior informativa */}
       <div className="bg-brand text-white py-1 px-4 text-xs sm:text-sm">
-        <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Phone size={14} className="mr-1" />
-              <span>298 - 4392148</span>
-            </div>
-            <div className="hidden sm:flex items-center">
-              <MapPin size={14} className="mr-1" />
-              <span>General Roca - Cipolletti, Río Negro / Neuquén</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Link href="/seguimiento" className="hover:underline flex items-center">
-              <Truck size={14} className="mr-1" />
-              <span className="hidden xs:inline">Envíos Gratis - Alto Valle y Neuquén</span>
-              <span className="xs:hidden">Envíos Gratis - Alto Valle y Neuquén</span>
-            </Link>
-            <Link href="/presupuesto" className="hover:underline flex items-center">
-              <HardHat size={14} className="mr-1" />
-              <span>Presupuesto</span>
-            </Link>
+      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+        <div className="flex items-center space-x-4">
+          <a 
+            href="https://wa.me/5492984392148" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:underline flex items-center"
+          >
+            <Phone size={14} className="mr-1" />
+            <span>298 - 4392148 (WhatsApp)</span>
+          </a>
+          <div className="hidden sm:flex items-center">
+            <MapPin size={14} className="mr-1" />
+            <span>General Roca - Cipolletti, Río Negro / Neuquén</span>
           </div>
         </div>
+        
+        <div className="flex items-center space-x-3">
+          <Link href="/seguimiento" className="hover:underline flex items-center">
+            <Truck size={14} className="mr-1" />
+            <span className="hidden xs:inline">Envíos Gratis - Alto Valle y Neuquén</span>
+            <span className="xs:hidden">Envíos Gratis</span>
+          </Link>
+          <a 
+            href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20un%20presupuesto" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:underline flex items-center"
+          >
+            <HardHat size={14} className="mr-1" />
+            <span>Presupuesto</span>
+          </a>
+        </div>
       </div>
+    </div>
 
       {/* Navbar principal */}
       <div className="container mx-auto px-4 py-3">
@@ -126,7 +137,7 @@ export default function Navbar() {
           </nav>
 
           {/* Iconos de acción */}
-          <div className="hidden md:flex items-center space-x-4 ml-6">
+          <div className="hidden md:flex items-center space-x-4 ml-6 invisible">
             <button className="p-2 text-white transition-colors relative">
               <ShoppingCart size={22} />
               <span className="absolute -top-1 -right-1 border-2 bg-blackDeep text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -186,7 +197,7 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              <div className="border-t border-gray-200 pt-4 mt-2">
+              <div className="border-t border-gray-200 pt-4 mt-2 invisible">
                 <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
                   <span className="text-blackHero">
                     <User size={18} />
@@ -194,7 +205,7 @@ export default function Navbar() {
                   <span className="font-medium">Mi cuenta</span>
                 </button>
 
-                <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative">
+                {/* <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative">
                   <span className="text-blackHero">
                     <ShoppingCart size={18} />
                   </span>
@@ -202,7 +213,7 @@ export default function Navbar() {
                   <span className="absolute right-4 top-3 bg-balckHero text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     3
                   </span>
-                </button>
+                </button> */}
               </div>
             </div>
           </nav>
