@@ -57,29 +57,20 @@ export default function NosotrosPage() {
 
 
         {/* CTA y Redes Sociales */}
-        <div className="mt-16 text-center bg-gray-50 p-8 rounded-xl">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">
-            ¿Listo para proteger tu propiedad?
-          </h3>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+       <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
+          <div className="bg-white rounded-xl p-8 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3 hover">¿Listo para proteger tu propiedad?</h3>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Nuestros especialistas están disponibles para responder todas tus consultas.
+            </p>
             <a
-              href="https://wa.me/5492984392148?text=Hola,%20me%20interesa%20cotizar%20un%20cerco%20perimetral"
+              href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg inline-flex items-center justify-center gap-2 transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-bold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md"
             >
-              <FaWhatsapp className="h-5 w-5" />
+              <FaWhatsapp className="w-5 h-5" /> {/* Icono de WhatsApp */}
               Contactar por WhatsApp
-            </a>
-          </div>
-          
-          <div className="flex justify-center gap-6">
-            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-600 transition-colors">
-              <FaFacebook className="h-6 w-6" />
-            </a>
-            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-pink-600 transition-colors">
-              <FaInstagram className="h-6 w-6" />
             </a>
           </div>
         </div>

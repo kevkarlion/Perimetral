@@ -10,13 +10,13 @@ export default function SocialBanner() {
         </div>
 
         <div className="flex gap-5">
-          <a href="#" className="text-white hover:text-pink-300 transition-colors">
+          <a href="https://www.instagram.com/perimetralroca/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-pink-300 transition-colors">
             <FaInstagram className="text-3xl" />
           </a>
-          <a href="#" className="text-white hover:text-blue-300 transition-colors">
+          <a href="https://www.facebook.com/perimetralroca" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-300 transition-colors">
             <FaFacebook className="text-3xl" />
           </a>
-          <a href="#" className="text-white hover:text-green-300 transition-colors">
+          <a href="https://wa.me/5492984392148" target="_blank" rel="noopener noreferrer" className="text-white hover:text-green-300 transition-colors">
             <FaWhatsapp className="text-3xl" />
           </a>
         </div>

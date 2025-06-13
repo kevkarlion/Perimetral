@@ -5,7 +5,8 @@ import {
   ClipboardCheck, 
   ShieldCheck,
   UserCircle,
-  Construction
+  Construction,
+  MapPin 
 } from "lucide-react"
 
 export default function ServicesBanner() {
@@ -40,10 +41,15 @@ export default function ServicesBanner() {
       title: "Atención Personalizada",
       description: "Soluciones adaptadas a tus necesidades"
     },
-      {
-        icon: <Wrench className="h-6 w-6" />,
-        title: "Reparación y Mantenimiento",
-        description: "Servicio técnico especializado"
+    {
+      icon: <Wrench className="h-6 w-6" />,
+      title: "Reparación y Mantenimiento",
+      description: "Servicio técnico especializado"
+    },
+    {
+        icon: <MapPin className="h-6 w-6" />,
+        title: "Envíos a todo el país",
+        description: "Logística segura y seguimiento personalizado."
       }
     ];
 

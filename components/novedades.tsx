@@ -30,11 +30,11 @@ export default function NewsSection() {
   return (
     <section className="py-16 construction-pattern">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 flex flex-col items-center">
           <div className="inline-block bg-brand text-white px-4 py-1 mb-4 rounded-md font-bold">NOVEDADES</div>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Novedades y Consejos</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Mantente informado sobre las últimas tendencias en construcción y consejos útiles para tus proyectos.
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">¿No sabés qué cerco elegir?</h2>
+          <p className="max-w-[700px] pb-8 font-bold  text-center text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            Leé nuestras guías y consejos.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function NewsSection() {
                 <p className="text-gray-600 mb-4">{item.excerpt}</p>
                 <Link 
                   href={`/news/${item.id}`}
-                  className="flex items-center text-brand font-bold hover:text-orange-700 transition-colors group"
+                  className="flex items-center text-brand font-bold hover:text-brandHover transition-colors group"
                 >
                   Leer más
                   <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />

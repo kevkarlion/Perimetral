@@ -126,11 +126,11 @@ const sliderSettings = {
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white" id="products">
       <div className="container mx-auto px-4">
         {/* Encabezado */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 flex flex-col items-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             Nuestros <span className=" text-brand">Productos</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="max-w-[700px] pb-8 font-bold  text-center text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
             Soluciones de calidad para cada necesidad de cerramiento y seguridad
           </p>
         </div>

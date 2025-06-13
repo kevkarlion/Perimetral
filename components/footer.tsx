@@ -58,17 +58,10 @@ export default function Footer() {
                     href="/novedades"
                     className="text-gray-400 hover:text-brand transition-colors flex items-center"
                   >
-                    <span className="mr-2">›</span> Novedades
+                    <span className="mr-2">›</span> Novedades y consejos
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/consejos"
-                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Consejos Técnicos
-                  </Link>
-                </li>
+              
               </ul>
             </div>
 
@@ -82,7 +75,7 @@ export default function Footer() {
                 </li>
                 <li className="flex items-start">
                   <Phone className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>+54 298 5555-5555</span>
+                  <span>+54 298 - 4392148</span>
                 </li>
                 <li className="flex items-start">
                   <Mail className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
@@ -104,7 +97,7 @@ export default function Footer() {
               <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Nuestras Redes</h3>
               <div className="space-y-4">
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/perimetralroca"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-gray-400 hover:text-brand transition-colors"
@@ -115,7 +108,7 @@ export default function Footer() {
                   <span>Facebook</span>
                 </a>
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/perimetralroca/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-gray-400 hover:text-brand transition-colors"
@@ -126,7 +119,7 @@ export default function Footer() {
                   <span>Instagram</span>
                 </a>
                 <a
-                  href="https://wa.me/542985555555"
+                  href="https://wa.me/542984392148"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-gray-400 hover:text-brand transition-colors"
@@ -145,7 +138,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="bg-gray-900 py-4 text-center text-gray-400">
         <div className="container mx-auto px-4">
-          <p>© {new Date().getFullYear()} Corralón. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} PERIMETRAL. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

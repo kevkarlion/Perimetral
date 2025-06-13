@@ -24,33 +24,33 @@ export default function ContactoPage() {
                 <input
                   type="text"
                   placeholder="Nombre completo"
-                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-[#B99B76] outline-none bg-transparent"
+                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-brandHover outline-none bg-transparent"
                 />
               </div>
               <div>
                 <input
                   type="email"
                   placeholder="Email"
-                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-[#B99B76] outline-none bg-transparent"
+                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-brandHover outline-none bg-transparent"
                 />
               </div>
               <div>
                 <input
                   type="tel"
                   placeholder="Teléfono"
-                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-[#B99B76] outline-none bg-transparent"
+                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-brandHover outline-none bg-transparent"
                 />
               </div>
               <div>
                 <textarea
                   placeholder="Mensaje"
                   rows={4}
-                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-[#B99B76] outline-none bg-transparent"
+                  className="w-full px-4 py-3 border-b border-[#BFBFBF] focus:border-brandHover outline-none bg-transparent"
                 ></textarea>
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-[#1B1B1B] text-white hover:bg-[#B99B76] transition-colors"
+                className="w-full py-3 bg-[#1B1B1B] text-white hover:bg-brandHover transition-colors"
               >
                 Enviar
               </button>
@@ -74,7 +74,7 @@ export default function ContactoPage() {
                 </div>
                 <div>
                   <p className="font-medium text-[#1B1B1B]">Chat directo</p>
-                  <p className="text-sm text-[#7A7A7A] group-hover:text-[#B99B76] transition-colors">
+                  <p className="text-sm text-[#7A7A7A] group-hover:text-brandHover transition-colors">
                     Respuesta inmediata
                   </p>
                 </div>
@@ -131,7 +131,7 @@ export default function ContactoPage() {
       {/* Mapa Minimalista */}
       <div className="border-t border-gray-200 py-16">
         <div className="container mx-auto px-4 max-w-4xl">
-          <h2 className="text-2xl font-bold text-[#1B1B1B] mb-8 text-center">Nuestra ubicación</h2>
+          <h2 className="text-4xl text-center md:text-5xl font-bold text-[#1B1B1B] mb-8">Nuestra ubicación</h2>
           <div className="aspect-video bg-gray-100">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3108.053943519541!2d-68.12345678901234!3d-38.98765432109876!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDU5JzE1LjYiUyA2OMKwMDcnMTYuNiJX!5e0!3m2!1ses!2sar!4v1234567890123!5m2!1ses!2sar"
