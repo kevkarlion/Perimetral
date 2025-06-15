@@ -7,7 +7,7 @@ export default function NosotrosPage() {
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[500px] w-full">
         <Image
-          src="/campo-nosotros.jpg"
+          src="/nosotros.webp"
           alt="Fábrica de cercos perimetrales en Neuquén"
           fill
           className="object-cover"
@@ -34,7 +34,7 @@ export default function NosotrosPage() {
           </p>
 
           <p>
-            Realizamos <strong>envíos gratuitos a toda la provincia de Río Negro y Neuquén</strong>, lo que facilita el acceso a nuestros productos sin costos ocultos ni sorpresas. Sabemos que en nuestra región el clima y las condiciones del terreno pueden ser desafiantes, por eso diseñamos productos robustos, resistentes al viento, la lluvia y las variaciones extremas de temperatura.
+            Realizamos <strong>envíos gratuitos a General Roca, Cipolletti y Neuquén</strong>, lo que facilita el acceso a nuestros productos sin costos ocultos ni sorpresas. Sabemos que en nuestra región el clima y las condiciones del terreno pueden ser desafiantes, por eso diseñamos productos robustos, resistentes al viento, la lluvia y las variaciones extremas de temperatura.
           </p>
 
           <p>
@@ -49,7 +49,7 @@ export default function NosotrosPage() {
             <li>Fabricación propia con materiales de primera calidad</li>
             <li>Instalación profesional, sin tercerizados</li>
             <li>Diseños adaptados al clima y terreno de la Patagonia</li>
-            <li>Envíos gratis a toda Río Negro y Neuquén</li>
+            <li>Envíos gratis a General Roca, Cipolletti y Neuquén</li>
             <li>Asesoramiento claro y personalizado para cada cliente</li>
             <li>Garantía real y respaldo local</li>
           </ul>

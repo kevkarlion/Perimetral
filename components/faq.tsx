@@ -18,12 +18,12 @@ export default function FaqSection() {
     },
     {
       question: "¿Los cercos resisten el viento fuerte de la Patagonia?",
-      answer: "Sí. Usamos <strong>postes de acero galvanizado anclados con hormigón</strong> (1m de profundidad) y alambres de alta tensión con tratamiento anticorrosivo. Nuestros cercos han superado vientos de 90 km/h en pruebas reales en Neuquén.",
+      answer: "Sí. Usamos <strong>postes de acero galvanizado anclados con hormigón</strong> (60cm de profundidad) y alambres de alta tensión con tratamiento anticorrosivo. Nuestros cercos han superado vientos de 90 km/h en pruebas reales en Neuquén.",
       icon: <MapPin className="text-brand" size={20} />
     },
     {
       question: "¿Hacen envíos a otras ciudades de Río Negro o Neuquén?",
-      answer: "Cubrimos todo el <strong>Alto Valle (Río Negro y Neuquén)</strong> con logística propia. Envíos a Cipolletti, Villa Regina, Cinco Saltos y zonas aledañas sin costo adicional en compras mayores a $150.000.",
+      answer: "Cubrimos todo el <strong>Alto Valle (Río Negro y Neuquén)</strong> con logística propia. Envíos a Cipolletti y General Roca sin cargo.",
       icon: <Truck className="text-brand" size={20} />
     },
     {
@@ -33,17 +33,17 @@ export default function FaqSection() {
     },
     {
       question: "¿Ofrecen financiación?",
-      answer: "Sí. Tenemos <strong>planes de pago en cuotas</strong> sin interés con bancos locales (ej: Banco de Río Negro) y opciones de pago a 30/60 días para clientes registrados.",
+      answer: "Sí. Tenemos <strong>planes de pago en cuotas</strong> sin interés con bancos. Contamos con un esquema de precios preferenciales para clientes que confían de manera continua en nuestros servicios.",
       icon: <CircleDollarSign className="text-brand" size={20} />
     },
     {
       question: "¿Cuánto tiempo tarda la instalación?",
-      answer: "Depende del terreno, pero en propiedades estándar (500m²) realizamos la instalación en <strong>2-3 días</strong>. Incluimos soldadura in situ y pintura antioxidante.",
+      answer: "Depende del terreno, pero en propiedades estándar (500m²) realizamos la instalación en <strong>7-15 días</strong>.",
       icon: <Clock className="text-brand" size={20} />
     },
     {
       question: "¿Dan garantía? ¿Qué cubre?",
-      answer: "Garantía de <strong>5 años</strong> en materiales y <strong>2 años</strong> en mano de obra. Cubrimos roturas por defectos de fabricación, corrosión prematura o fallas en la instalación.",
+      answer: "Garantía de <strong>6 meses</strong> en materiales y mano de obra. Cubrimos roturas por defectos de fabricación, corrosión prematura o fallas en la instalación.",
       icon: <ShieldCheck className="text-brand" size={20} />
     },
   ];

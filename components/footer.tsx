@@ -71,7 +71,7 @@ export default function Footer() {
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <MapPin className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>Av. Siempreviva 742, General Roca, Río Negro</span>
+                  <span>Cacique Catriel 850, Stefenelli, General Roca, Río Negro</span>
                 </li>
                 <li className="flex items-start">
                   <Phone className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
@@ -79,7 +79,7 @@ export default function Footer() {
                 </li>
                 <li className="flex items-start">
                   <Mail className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>info@corralon.com</span>
+                  <span>perimetral.info@gmail.com</span>
                 </li>
                 <li className="flex items-start">
                   <Clock className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />

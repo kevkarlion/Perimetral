@@ -1,16 +1,22 @@
 'use client'
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { Star, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import { productos } from '@/data/products';
+import Link from 'next/link'
+import Image from 'next/image'
+import { Star, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
+import { productos } from '@/data/products'
 
 // Componente de flechas personalizado
-const CustomArrow = ({ direction, onClick }) => {
-  const Icon = direction === 'next' ? ChevronRight : ChevronLeft;
+type CustomArrowProps = {
+  direction: 'next' | 'prev'
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
+}
+
+const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
+  const Icon = direction === 'next' ? ChevronRight : ChevronLeft
   return (
     <button
       type="button"
@@ -24,8 +30,8 @@ const CustomArrow = ({ direction, onClick }) => {
         <Icon className="h-5 w-5 text-white" />
       </div>
     </button>
-  );
-};
+  )
+}
 
 export default function ProductosPage() {
   const sliderSettings = {
@@ -41,7 +47,7 @@ export default function ProductosPage() {
     autoplaySpeed: 5000,
     pauseOnHover: true,
     arrows: true,
-  };
+  }
 
   return (
     <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -60,26 +66,41 @@ export default function ProductosPage() {
             key={producto.id}
             className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white"
           >
-            {/* Carrusel de imágenes */}
+            {/* Carrusel de imágenes - Versión corregida */}
             <div className="relative h-96 bg-gray-100">
-              {producto.imagenes?.length > 1 ? (
-                <Slider {...sliderSettings} className="h-full">
-                  {producto.imagenes.map((imagen, index) => (
-                    <div key={index} className="relative h-96 w-full">
-                      <Link href={`/catalogo/${producto.id}`} className="block h-full">
-                        <Image
-                          src={imagen.src || producto.imagen}
-                          alt={imagen.alt || producto.nombre}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          priority={index === 0}
-                        />
-                      </Link>
-                    </div>
-                  ))}
-                </Slider>
-              ) : (
+              {producto.imagenes?.length > 0 ? (
+                producto.imagenes.length > 1 ? (
+                  <Slider {...sliderSettings} className="h-full">
+                    {producto.imagenes.map((imagen, index) => (
+                      <div key={index} className="relative h-96 w-full">
+                        <Link href={`/catalogo/${producto.id}`} className="block h-full">
+                          <Image
+                            src={imagen.src}
+                            alt={imagen.alt || producto.nombre}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={index === 0}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                  </Slider>
+                ) : (
+                  <div className="relative h-96 w-full">
+                    <Link href={`/catalogo/${producto.id}`} className="block h-full">
+                      <Image
+                        src={producto.imagenes[0].src}
+                        alt={producto.imagenes[0].alt || producto.nombre}
+                        fill
+                        className="object-cover hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        priority
+                      />
+                    </Link>
+                  </div>
+                )
+              ) : producto.imagen ? (
                 <div className="relative h-96 w-full">
                   <Link href={`/catalogo/${producto.id}`} className="block h-full">
                     <Image
@@ -91,6 +112,10 @@ export default function ProductosPage() {
                       priority
                     />
                   </Link>
+                </div>
+              ) : (
+                <div className="relative h-96 w-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400">Imagen no disponible</span>
                 </div>
               )}
               {producto.destacado && (
@@ -154,22 +179,23 @@ export default function ProductosPage() {
       </div>
 
       {/* CTA al final */}
-      <div className="text-center mt-20">
-        <div className="bg-gray-50 rounded-2xl p-8 md:p-10 inline-block max-w-4xl">
-          <h3 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-5">
-            ¿No encuentras lo que necesitas?
-          </h3>
-          <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-            Nuestros asesores pueden ayudarte a encontrar la solución perfecta para tu proyecto
+      <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
+        <div className="bg-white rounded-xl p-8 text-center">
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">¿Necesitas más información?</h3>
+          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            Nuestros especialistas están disponibles para responder todas tus consultas.
           </p>
-          <Link
-            href="/contacto"
-            className="inline-block bg-brand hover:bg-brandHover text-white font-medium py-4 px-8 rounded-lg transition-colors text-lg shadow-md hover:shadow-lg"
+          <a
+            href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-bold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md"
           >
-            Contactar a un asesor
-          </Link>
+            <FaWhatsapp className="w-5 h-5" />
+            Contactar por WhatsApp
+          </a>
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -72,54 +72,87 @@ const sliderSettings = {
   const productos = [
     {
       id: 1,
-      nombre: "Alambrado Perimetral Galvanizado",
+      nombre: 'Tejido romboidal calibre 14 - Luz de malla: 2" Calidad Acindar',
       detalle: "Medidas: 1.50×10 m | 1.80×10 m | 2×10 m",
       imagenes: [
         { src: '/Productos/alambrado/a1.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/a5.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-arbol1.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-arbol2.webp', alt: 'Alambrado principal' },
+        { src: '/Productos/alambrado/alambrado-instalacion-cancha.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado principal' }
       ],
-      precio: "$80.000",
+      precio: "Desde $65.000",
       destacado: true
     },
     {
       id: 2,
-      nombre: "Alambre de puas",
-      detalle: "1.80mts x 10 mts",
+      nombre: "Alambre de Púas Bagual",
+      detalle: '5" (16-127)',
       imagenes: [
         { src: '/Productos/puas/pua1.webp', alt: 'Alambre de púas' },
-        { src: '/Productos/puas/pua2.webp', alt: 'Alambre de púas' },
+        { src: '/Productos/puas/alambre-instalado.webp', alt: 'Alambre de púas' },
         { src: '/Productos/puas/pua-planta1.webp', alt: 'Alambre de púas' },
       ],
-      precio: "$185.000",
+      precio: "$365/mt.",
       destacado: false
     },
     {
       id: 3,
-      nombre: "Alambre de alta resistencia",
-      detalle: "1.80mts x 10 mts",
+      nombre: "Alambre de Alta Resistencia INVENCIBLE",
+      detalle: "Diámetro: 16/14",
       imagenes: [
         { src: '/Productos/resistencia/resistencia.webp', alt: 'Alambre de alta resistencia' },
+        { src: '/Productos/resistencia/instacion-resitencia.webp', alt: 'Detalle del alambre' },
         { src: '/Productos/resistencia/resistencia1.webp', alt: 'Alambre de alta resistencia' }
       ],
-      precio: "$6.800 lineal",
+      precio: "$260/ mt.",
       destacado: true
     },
-     {
-      id: 4,
-      nombre: "Postes premoldeados de hormigón",
-      detalle: "1.80mts x 10 mts",
-      imagenes: [
-        { src: '/Productos/pre/pre1.webp', alt: 'Premoldeado' },
-        { src: '/Productos/pre/pre2.webp', alt: 'Premoldeado' },
-        { src: '/Productos/pre/pre3.webp', alt: 'Premoldeado' },
-        { src: '/Productos/pre/pre4.webp', alt: 'Premoldeado' },
-      ],
-      precio: "$6.800/m lineal",
-      destacado: false  
-    },
+    {
+    id: 4,
+    nombre: "Postes premoldeados de hormigón",
+    detalle: "Alturas disponibles: 1.8m, 2.1m, 2.4m",
+    imagenes: [
+      { src: '/Productos/pre/pre1.webp', alt: 'Premoldeado' },
+      { src: '/Productos/pre/pre2.webp', alt: 'Premoldeado' },
+      { src: '/Productos/pre/poste-hormigon.webp', alt: 'Instalación en terreno' },
+      { src: '/Productos/pre/pre4.webp', alt: 'Premoldeado' },
+    ],
+    precio: "Desde $27.500",
+    destacado: false  
+  },
+  {
+    id: 5,
+    nombre: "Ganchos J",
+    detalle: "Gancho galvanizado para sujeción segura de alambre liso de alta resistencia. Ideal para postes de hormigón o madera.",
+    imagenes: [
+      { src: '/Productos/accesorios/ganchos.webp', alt: 'Gancho J' },
+
+    ],
+    precio: "$1.160 c/u",
+    destacado: false  
+  },
+  {
+  id: 6,
+  nombre: "Tensor Mini Galvanizado",
+  detalle: "Tensor para alambre de 1/8\" a 1/4\" (3-6 mm). Carga máxima: 150 kg.",
+  especificaciones: [
+    "Material: Acero galvanizado",
+    "Rango de alambre: 1/8\" - 1/4\" (3-6 mm)",
+    "Largo total: 6\" (15 cm)",
+    "Rosca: 5/16\" (8 mm)",
+    "Incluye tuerca hexagonal y arandela",
+    "Uso: Cercos perimetrales y viñedos"
+  ],
+  imagenes: [
+    { src: '/Productos/accesorios/tensor.webp', alt: 'Tensor mini galvanizado vista frontal' },
+  ],
+  precio: "$2.195 c/u",
+  destacado: false,
+  codigo: "TM-2025G",
+  garantia: "2 años contra defectos de fabricación"
+}
   ];
 
   return (

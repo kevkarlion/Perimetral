@@ -95,7 +95,34 @@ const newsItems = [
     <h3 class="text-xl font-bold mb-4">Normativas legales:</h3>
     <p>En la mayoría de las provincias, los cercos con púas deben tener señalización visible y no pueden invadir espacio público.</p>
   `,
+},
+{
+  id: 4,
+  title: "¿Por qué es clave usar zapata en instalaciones de alambrado?",
+  excerpt: "La base del alambrado define su durabilidad. Conocé por qué la zapata mejora la resistencia estructural del cerco.",
+  date: "15 Junio, 2025",
+  image: "/placeholder.svg?height=400&width=600",
+  content: `
+    <h3 class="text-xl font-bold mb-4">Función de la zapata:</h3>
+    <p class="mb-4">La <strong>zapata</strong> es la base de hormigón donde se ancla el poste. Su función principal es <strong>absorber tensiones</strong> y evitar que el poste se hunda, se incline o se mueva con el paso del tiempo.</p>
+
+    <h3 class="text-xl font-bold mb-4">Ventajas estructurales:</h3>
+    <ul class="list-disc pl-6 space-y-2 mb-6">
+      <li>Distribuye el peso del cerco de forma uniforme en el terreno.</li>
+      <li>Evita desplazamientos ante vientos fuertes o suelos blandos.</li>
+      <li>Prolonga la vida útil del alambrado al reducir esfuerzos sobre los postes.</li>
+    </ul>
+
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <h4 class="font-bold text-brand mb-2">Dato práctico:</h4>
+      <p>Se recomienda una zapata de al menos <strong>30x30x60cm</strong> con mezcla de cemento H21 para alambrados de alta resistencia.</p>
+    </div>
+
+    <h3 class="text-xl font-bold mb-4">Consejo profesional:</h3>
+    <p>En terrenos arcillosos o con pendiente, reforzar la zapata con varillas de hierro mejora significativamente la estabilidad del sistema.</p>
+  `,
 }
+
 
   // ... (otros items con contenido extendido)
 ];
