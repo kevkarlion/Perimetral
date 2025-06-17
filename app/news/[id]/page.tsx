@@ -8,35 +8,52 @@ import { FaWhatsapp } from 'react-icons/fa';
 
 // Datos simulados (reemplaza con tu fuente real: API, CMS, etc.)
 const newsItems = [
-  {
-    id: 1,
-    title: "Guía para Elegir el Cercado Perfecto para tu Propiedad",
-    excerpt: "Factores clave a considerar antes de instalar tu cerco perimetral.",
-    date: "10 Mayo, 2025",
-    image: "/consejos/cerco1.webp",
-    content: `
-      <h3 class="text-xl font-bold mb-4">¿Por qué es importante elegir bien?</h3>
-      <p class="mb-4">Un cerco perimetral no solo define los límites de tu propiedad, sino que también aporta seguridad y estética. Materiales como el alambre tejido, madera tratada o cercos eléctricos tienen ventajas específicas según tu necesidad.</p>
-      
-      <h3 class="text-xl font-bold mb-4">Factores clave:</h3>
-      <ul class="list-disc pl-6 space-y-2 mb-6">
-        <li><strong>Clima:</strong> En zonas húmedas, evita materiales corrosibles.</li>
-        <li><strong>Seguridad:</strong> Altura y resistencia según el nivel de protección requerido.</li>
-        <li><strong>Mantenimiento:</strong> Cercos de PVC requieren menos cuidado que los de madera.</li>
-      </ul>
-      
-      <div class="bg-gray-100 p-4 rounded-lg mb-6">
-        <h4 class="font-bold text-brand mb-2">Tip profesional:</h4>
-        <p>Para propiedades rurales, combina cercos eléctricos con mallas de alta resistencia.</p>
-      </div>
-    `,
-  },
+{
+  id: 1,
+  title: "Guía para Elegir el Cercado Perfecto para tu Propiedad",
+  excerpt: "Todo lo que necesitás saber para proteger tu terreno con los cercos más resistentes del mercado.",
+  date: "10 Mayo, 2025",
+  image: "/consejos/cerco1.webp",
+  content: `
+    <h3 class="text-xl font-bold mb-4">La protección empieza por un buen cerco</h3>
+    <p class="mb-4">En PERIMETRAL, nos especializamos en ofrecer soluciones duraderas y confiables para el cercado de tu propiedad. Ya sea un terreno urbano, rural o una chacra, contamos con opciones robustas que se adaptan a tus necesidades reales. Porque entendemos que un buen cerco no solo delimita, también protege.</p>
+
+    <h3 class="text-xl font-bold mb-4">¿Qué tipo de cerco necesitás?</h3>
+    <p class="mb-4">No todos los terrenos requieren el mismo tipo de cerramiento. Por eso te ayudamos a elegir entre nuestras opciones más confiables:</p>
+
+    <ul class="list-disc pl-6 space-y-2 mb-6">
+      <li><strong>Tejido romboidal galvanizado:</strong> Ideal para cercos perimetrales clásicos. Flexible, resistente y con excelente terminación.</li>
+      <li><strong>Alambre de alta resistencia:</strong> Perfecto para grandes extensiones o zonas con alta tensión de uso. Requiere menos postes, lo que optimiza la instalación.</li>
+      <li><strong>Alambre de púas:</strong> Opción eficiente para reforzar el límite de propiedades rurales o ganaderas. Alta resistencia y fácil colocación.</li>
+    </ul>
+
+    <h3 class="text-xl font-bold mb-4">Factores a considerar al elegir tu cerco</h3>
+    <ul class="list-disc pl-6 space-y-2 mb-6">
+      <li><strong>Ubicación:</strong> Para zonas rurales, el alambre de alta resistencia es clave por su bajo mantenimiento y larga vida útil.</li>
+      <li><strong>Función:</strong> ¿Querés solo delimitar? ¿O también reforzar seguridad? El tejido romboidal permite ambas opciones con excelente estética.</li>
+      <li><strong>Durabilidad:</strong> Todos nuestros productos son galvanizados o preparados para resistir a la intemperie.</li>
+    </ul>
+
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <h4 class="font-bold text-brand mb-2">Tip PERIMETRAL:</h4>
+      <p>Si necesitás cubrir grandes distancias, combiná postes bien distribuidos con alambre de alta resistencia para lograr un cerco firme, duradero y económico.</p>
+    </div>
+
+    <h3 class="text-xl font-bold mb-4">¿Por qué elegirnos?</h3>
+    <p class="mb-4">En PERIMETRAL no solo vendemos materiales, ofrecemos soluciones. Te asesoramos desde el primer momento para que elijas el cerco más adecuado según el terreno, el uso y tu presupuesto. Contamos con años de experiencia, entrega inmediata y productos de primera calidad.</p>
+
+    <h3 class="text-xl font-bold mb-4">Listo para cercar tu propiedad</h3>
+    <p class="mb-4">Contactanos hoy mismo y encontrá el equilibrio perfecto entre protección, estética y durabilidad. Estamos listos para ayudarte a asegurar tu terreno con los mejores materiales del mercado.</p>
+  `,
+}
+
+,
   {
   id: 2,
   title: "Innovaciones en Alambrados de Alta Resistencia para 2025",
   excerpt: "Descubre los nuevos materiales y diseños que están revolucionando la seguridad perimetral.",
   date: "15 Junio, 2025",
-  image: "/placeholder.svg?height=400&width=600",
+  image: "/panoramica-completo.webp",
   content: `
     <h3 class="text-xl font-bold mb-4">Tendencias clave en alambrados:</h3>
     <p class="mb-4">Los cerramientos con alambre de acero galvanizado y recubrimiento de PVC están dominando el mercado por su durabilidad y bajo mantenimiento. Este año, destacan las <strong>mallas torsionadas con triple capa anticorrosiva</strong>.</p>
@@ -62,7 +79,7 @@ const newsItems = [
   title: "Cómo Maximizar la Seguridad con Alambre de Púas",
   excerpt: "Errores comunes y soluciones profesionales en instalaciones de cercos punzantes.",
   date: "22 Junio, 2025",
-  image: "/Productos/puas/pua-planta1.webp",
+  image: "/Productos/puas/alambre-instalado.webp",
   content: `
     <h3 class="text-xl font-bold mb-4">Tipos de alambre de púas:</h3>
     <p class="mb-4">No todos los alambres punzantes son iguales. Los más usados en Argentina son:</p>

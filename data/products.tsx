@@ -17,6 +17,12 @@ export const productos = [
     ],
     imagenesAdicionales: ["alambrado-2.jpg", "alambrado-3.jpg"],
     precio: "Desde $65.000",
+    tieneVariaciones: true,
+    variaciones: [
+      { medida: "1.50 × 10 m", precio: "$65.000" },
+      { medida: "1.80 × 10 m", precio: "$72.000" },
+      { medida: "2.00 × 10 m", precio: "$78.000" }
+    ],
     destacado: true,
     especificaciones: [
       "Medidas: 1.50×10 m | 1.80×10 m | 2×10 m",
@@ -28,7 +34,8 @@ export const productos = [
       "Resistente a la corrosión",
       "Fácil instalación",
       "Bajo mantenimiento"
-    ]
+    ],
+   
   },
   {
     id: 2,
@@ -152,7 +159,7 @@ export const productos = [
 },
 {
   id: 5,
-  nombre: "Ganchos J Galvanizados PREMIUM",
+  nombre: "Ganchos J Galvanizados",
   descripcionCorta: "Sujeción profesional para cercos de alambre tensado",
   descripcionLarga: "Ganchos tipo J fabricados en acero de alta resistencia con triple capa de galvanizado para fijación segura de alambres en postes de hormigón, madera o metal. Diseño ergonómico que facilita la instalación.",
   categoria: "Accesorios para Cerramientos",
@@ -160,7 +167,7 @@ export const productos = [
   imagenes: [
     { src: '/Productos/accesorios/ganchos.webp', alt: 'Gancho J vista frontal' },
   ],
-  precio: "$$1.160 c/u",
+  precio: "$1.160 c/u",
   destacado: true,
   especificaciones: [
     "Diámetro: 5/16\" (8 mm)",
@@ -169,7 +176,7 @@ export const productos = [
     "Capacidad de carga: 200 kg",
     "Protección: Galvanizado clase G-90",
     "Incluye: Arandela de seguridad",
-    "Garantía: 1 año",
+    "Garantía: 6 meses",
     "Compatibilidad: Para alambres de 12 a 14 1/2"
   ],
   caracteristicas: [
@@ -188,7 +195,7 @@ export const productos = [
 },
 {
   id: 6,
-  nombre: "Tensor Profesional HEAVY DUTY",
+  nombre: "Tensor Profesional",
   descripcionCorta: "Sistema de tensado para cercos de alta exigencia",
   descripcionLarga: "Tensor metálico profesional con mecanismo de rosca gruesa para tensado preciso de alambres en cercos perimetrales. Fabricado en acero carbono con protección anticorrosiva para uso en exteriores.",
   categoria: "Sistemas de Tensado",
@@ -201,13 +208,8 @@ export const productos = [
   destacado: true,
   especificaciones: [
     "Rango de alambre: 1/8\" a 5/16\" (3-8 mm)",
-    "Largo total: 8\" (20 cm)",
-    "Rosca: 3/8\" (9.5 mm) gruesa",
-    "Carga máxima: 500 kg",
     "Material: Acero carbono galvanizado",
-    "Incluye: 2 tuercas de seguridad y arandela plana",
-    "Garantía: 2 años",
-    "Peso unitario: 450 g"
+    "Garantía: 6 meses",
   ],
   caracteristicas: [
     "Mecanismo de tensado de alta precisión",

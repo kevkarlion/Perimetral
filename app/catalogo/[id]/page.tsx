@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ChevronRight, Check, Star } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Check, Star, ChevronDown } from 'lucide-react'
 import { productos } from '@/data/products'
 import { notFound } from 'next/navigation'
 
 export default function ProductoDetalle({ params }: { params: { id: string } }) {
   const [imagenPrincipal, setImagenPrincipal] = useState(0)
+  const [variacionSeleccionada, setVariacionSeleccionada] = useState(0)
   const producto = productos.find((p) => p.id.toString() === params.id)
 
   if (!producto) {
@@ -16,6 +17,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
   }
 
   const imagenes = producto.imagenes || [{ src: producto.src, alt: producto.nombre }]
+  const tieneVariaciones = producto.tieneVariaciones && producto.variaciones?.length > 0
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -32,24 +34,8 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
 
       {/* Contenedor principal */}
       <div className="flex flex-col md:grid md:grid-cols-2 gap-8 lg:gap-12">
-        {/* Encabezado móvil */}
-        <div className="md:hidden space-y-3">
-          {producto.destacado && (
-            <div className="inline-flex items-center bg-brand text-black text-xs font-bold px-3 py-1 rounded-full">
-              <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
-            </div>
-          )}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{producto.nombre}</h1>
-          {producto.categoria && (
-            <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              {producto.categoria}
-            </span>
-          )}
-        </div>
-
-        {/* Galería de imágenes sticky - Versión optimizada */}
+        {/* Galería de imágenes */}
         <div className="flex flex-col lg:flex-row-reverse gap-4 lg:sticky lg:top-32 lg:self-start">
-          {/* Imagen principal - Contenedor compacto */}
           <div className="w-full">
             <div className="relative aspect-square bg-contraste rounded-lg overflow-hidden">
               <Image
@@ -62,7 +48,6 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Miniaturas - Ahora en columna a la derecha */}
           <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
             {imagenes.map((imagen, index) => (
               <button
@@ -86,10 +71,10 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           </div>
         </div>
 
-        {/* Información del producto (contenido scrollable) */}
+        {/* Información del producto */}
         <div className="space-y-6">
-          {/* Encabezado desktop (oculto en móvil) */}
-          <div className="hidden md:block space-y-3">
+          {/* Encabezado */}
+          <div className="space-y-3">
             {producto.destacado && (
               <div className="inline-flex items-center bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
                 <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
@@ -103,10 +88,37 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
             )}
           </div>
 
-          {/* Precio */}
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-bold text-brand">{producto.precio}</p>
-            <span className="text-sm text-gray-500">+ IVA</span>
+          {/* Precio y variantes */}
+          <div className="space-y-4">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-bold text-brand">
+                {tieneVariaciones 
+                  ? producto.variaciones[variacionSeleccionada].precio
+                  : producto.precio}
+              </p>
+              <span className="text-sm text-gray-500">+ IVA</span>
+            </div>
+
+            {tieneVariaciones && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium text-gray-900">Medidas disponibles:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {producto.variaciones.map((variacion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setVariacionSeleccionada(index)}
+                      className={`px-4 py-2 rounded-md border transition-colors ${
+                        variacionSeleccionada === index
+                          ? 'border-brand bg-brand/10 text-brand font-medium'
+                          : 'border-gray-300 hover:border-brand'
+                      }`}
+                    >
+                      {variacion.medida}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Descripción */}
@@ -163,10 +175,12 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           )}
 
           {/* CTA */}
-          <div className="sticky bottom-0 backdrop-blur-sm py-3 px-4  ">
+          <div className="sticky bottom-0 backdrop-blur-sm py-3 px-4">
             <div className="max-w-4xl mx-auto">
               <Link
-                href="/contacto"
+                href={`/contacto?producto=${producto.nombre}${
+                  tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+                }`}
                 className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
               >
                 <span>¿Interesado en este producto?</span>
@@ -179,12 +193,6 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           </div>
         </div>
       </div>
-
-      {/* Sección de productos relacionados */}
-      {/* <div className="mt-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Productos relacionados</h2>
-       
-      </div> */}
     </div>
   )
 }

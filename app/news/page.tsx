@@ -16,28 +16,26 @@ const newsItems = [
   },
   {
     id: 2,
-    title: "Innovaciones en Alambrados de Alta Resistencia para 2025",
-    excerpt: "Descubre los nuevos materiales y diseños que están revolucionando la seguridad perimetral en el mercado actual.",
+    title: "Alambrados de Alta Resistencia: ¿Cuál Elegir?",  
+    excerpt: "Comparativa técnica entre mallas torsionadas, concertinas y alambres galvanizados.",  
     date: "15 Junio, 2025",
-    image: "/placeholder.svg?height=400&width=600",
-    category: "Tendencias"
+    image: "/panoramica-completo.webp",
   },
-  {
+   {
     id: 3,
-    title: "Cómo Maximizar la Seguridad con Alambre de Púas",
-    excerpt: "Errores comunes y soluciones profesionales en instalaciones de cercos punzantes que debes conocer.",
+    title: "Instalación Profesional de Alambre de Púas",  
+    excerpt: "Aprende a evitar fallos comunes y maximiza la durabilidad de tu cerco.",  
     date: "22 Junio, 2025",
-    image: "/Productos/puas/pua-planta1.webp",
-    category: "Seguridad"
+    image: "/Productos/puas/alambre-instalado.webp",
   },
-  {
-  id: 4,
-  title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
-  excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
-  date: "15 Junio, 2025",
-  image: "/Productos/zapata/zapata-cemento.webp",
-  category: "Instalación Profesional"
-}
+ {
+    id: 4,
+    title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
+    excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
+    date: "15 Junio, 2025",
+    image: "/Productos/zapata/zapata-cemento.webp",
+    category: "Instalación Profesional"
+  }
 ];
 
 export default function NewsMagazinePage() {
