@@ -1,7 +1,7 @@
 export const productos = [
   {
     id: 1,
-    nombre: 'Tejido romboidal calibre 14 - 2" Calidad Acinda',
+    nombre: 'Tejido Romboidal',
     descripcionCorta: "Solución duradera para cerramientos de alta seguridad",
     descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas...",
     categoria: "Alambrados",

@@ -32,6 +32,21 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
         </Link>
       </div>
 
+      {/* Encabezado móvil (arriba de la imagen) */}
+      <div className="md:hidden space-y-3 mb-6">
+        {producto.destacado && (
+          <div className="inline-flex items-center bg-brand text-black text-xs font-bold px-3 py-1 rounded-full">
+            <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
+          </div>
+        )}
+        <h1 className="text-3xl font-bold text-gray-900">{producto.nombre}</h1>
+        {producto.categoria && (
+          <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            {producto.categoria}
+          </span>
+        )}
+      </div>
+
       {/* Contenedor principal */}
       <div className="flex flex-col md:grid md:grid-cols-2 gap-8 lg:gap-12">
         {/* Galería de imágenes */}
@@ -73,8 +88,8 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
 
         {/* Información del producto */}
         <div className="space-y-6">
-          {/* Encabezado */}
-          <div className="space-y-3">
+          {/* Encabezado desktop (oculto en móvil) */}
+          <div className="hidden md:block space-y-3">
             {producto.destacado && (
               <div className="inline-flex items-center bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
                 <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
@@ -173,24 +188,38 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
               </div>
             </div>
           )}
+        </div>
+      </div>
 
-          {/* CTA */}
-          <div className="sticky bottom-0 backdrop-blur-sm py-3 px-4">
-            <div className="max-w-4xl mx-auto">
-              <Link
-                href={`/contacto?producto=${producto.nombre}${
-                  tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
-                }`}
-                className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
-              >
-                <span>¿Interesado en este producto?</span>
-                <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
-                  Contactar
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </span>
-              </Link>
-            </div>
-          </div>
+      {/* Nuevo CTA reposicionado - Fuera del contenedor principal */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg md:hidden z-50">
+        <div className="container mx-auto px-4 py-3">
+          <Link
+            href={`/contacto?producto=${producto.nombre}${
+              tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+            }`}
+            className="flex items-center justify-center bg-brand hover:bg-brand-dark text-white font-bold py-3 px-6 rounded-lg transition-colors w-full"
+          >
+            <span>Contactar sobre este producto</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* CTA para desktop - Mantenemos el original pero sin sticky */}
+      <div className="mt-8 hidden md:block">
+        <div className="max-w-4xl mx-auto">
+          <Link
+            href={`/contacto?producto=${producto.nombre}${
+              tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+            }`}
+            className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
+          >
+            <span>¿Interesado en este producto?</span>
+            <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
+              Contactar
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </span>
+          </Link>
         </div>
       </div>
     </div>
