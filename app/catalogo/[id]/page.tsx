@@ -20,7 +20,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
   const tieneVariaciones = producto.tieneVariaciones && producto.variaciones?.length > 0
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8"> {/* Añadido padding-bottom para móviles */}
       {/* Botón de volver */}
       <div className="mb-6">
         <Link
@@ -188,39 +188,35 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
               </div>
             </div>
           )}
+
+          {/* CTA para desktop */}
+          <div className="hidden md:block mt-8">
+            <Link
+              href={`/contacto?producto=${producto.nombre}${
+                tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+              }`}
+              className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
+            >
+              <span>¿Interesado en este producto?</span>
+              <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
+                Contactar
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Nuevo CTA reposicionado - Fuera del contenedor principal */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg md:hidden z-50">
-        <div className="container mx-auto px-4 py-3">
-          <Link
-            href={`/contacto?producto=${producto.nombre}${
-              tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
-            }`}
-            className="flex items-center justify-center bg-brand hover:bg-brand-dark text-white font-bold py-3 px-6 rounded-lg transition-colors w-full"
-          >
-            <span>Contactar sobre este producto</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* CTA para desktop - Mantenemos el original pero sin sticky */}
-      <div className="mt-8 hidden md:block">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href={`/contacto?producto=${producto.nombre}${
-              tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
-            }`}
-            className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
-          >
-            <span>¿Interesado en este producto?</span>
-            <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-primary-dark">
-              Contactar
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </span>
-          </Link>
-        </div>
+      {/* CTA para móvil - Solución definitiva */}
+      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50">
+        <Link
+          href={`/contacto?producto=${producto.nombre}${
+            tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+          }`}
+          className="block bg-brand hover:bg-brand-dark text-white font-bold py-3 px-6 rounded-lg shadow-lg text-center transition-colors"
+        >
+          Consultar por este producto
+        </Link>
       </div>
     </div>
   )
