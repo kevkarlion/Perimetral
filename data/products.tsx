@@ -20,8 +20,8 @@ export const productos = [
     tieneVariaciones: true,
     variaciones: [
       { medida: "1.50 × 10 m", precio: "$65.000" },
-      { medida: "1.80 × 10 m", precio: "$72.000" },
-      { medida: "2.00 × 10 m", precio: "$78.000" }
+      { medida: "1.80 × 10 m", precio: "$80.000" },
+      { medida: "2.00 × 10 m", precio: "$98.500" }
     ],
     destacado: true,
     especificaciones: [
@@ -119,13 +119,13 @@ export const productos = [
   precio: "Desde $27.500",
    tieneVariaciones: true,
     variaciones: [
-      { medida: "1.80 × 10 m", precio: "$65.000" },
-      { medida: "2.10 × 10 m", precio: "$72.000" },
-      { medida: "2.40 × 10 m", precio: "$78.000" }
+      { medida: "Esquinero", precio: "$56.000" },
+      { medida: "Rompe tramo", precio: "$55.500" },
+      { medida: "Intermedio Olimpico", precio: "$41.600" },
+      { medida: "Puntal", precio: "$27.500" }
     ],
   destacado: true,
   especificaciones: [
-    "Alturas disponibles: 1.8m, 2.1m, 2.4m",
     "Refuerzo interno: 4 varillas de acero de 6 a 8 mm",
     "Peso por unidad: 85-110 kg (según altura)",
     "Profundidad de enterrado recomendada: 60 cm",

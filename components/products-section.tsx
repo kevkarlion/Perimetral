@@ -82,7 +82,7 @@ const sliderSettings = {
         { src: '/Productos/alambrado/alambrado-instalacion-cancha.webp', alt: 'Alambrado principal' },
         { src: '/Productos/alambrado/alambre-pre.webp', alt: 'Alambrado principal' }
       ],
-      precio: "Desde $65.000",
+      // precio: "Desde $65.000",
       destacado: true
     },
     {
@@ -94,7 +94,7 @@ const sliderSettings = {
         { src: '/Productos/puas/alambre-instalado.webp', alt: 'Alambre de púas' },
         { src: '/Productos/puas/pua-planta1.webp', alt: 'Alambre de púas' },
       ],
-      precio: "$365/mt.",
+      // precio: "$365/mt.",
       destacado: false
     },
     {
@@ -106,7 +106,7 @@ const sliderSettings = {
         { src: '/Productos/resistencia/instacion-resitencia.webp', alt: 'Detalle del alambre' },
         { src: '/Productos/resistencia/resistencia1.webp', alt: 'Alambre de alta resistencia' }
       ],
-      precio: "$260/ mt.",
+      // precio: "$260/ mt.",
       destacado: true
     },
     {
@@ -119,8 +119,8 @@ const sliderSettings = {
       { src: '/Productos/pre/poste-hormigon.webp', alt: 'Instalación en terreno' },
       { src: '/Productos/pre/pre4.webp', alt: 'Premoldeado' },
     ],
-    precio: "Desde $27.500",
-    destacado: false  
+    // precio: "Desde $27.500",
+    destacado: true  
   },
   {
     id: 5,
@@ -130,7 +130,7 @@ const sliderSettings = {
       { src: '/Productos/accesorios/ganchos.webp', alt: 'Gancho J' },
 
     ],
-    precio: "$1.160 c/u",
+    // precio: "$1.160 c/u",
     destacado: false  
   },
   {
@@ -148,7 +148,7 @@ const sliderSettings = {
   imagenes: [
     { src: '/Productos/accesorios/tensor.webp', alt: 'Tensor mini galvanizado vista frontal' },
   ],
-  precio: "$2.195 c/u",
+  // precio: "$2.195 c/u",
   destacado: false,
   codigo: "TM-2025G",
   garantia: "2 años contra defectos de fabricación"
@@ -228,7 +228,7 @@ const sliderSettings = {
                   )}
                   <p className="text-lg mt-2 font-bold text-gray-900">
                     {producto.precio}
-                    <span className="text-xs text-gray-500"> + IVA</span>
+                    {/* <span className="text-xs text-gray-500"> + IVA</span> */}
                   </p>
                   <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-brand font-medium">
                     Ver detalles

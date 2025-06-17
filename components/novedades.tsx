@@ -27,14 +27,14 @@ const newsItems = [
     date: "22 Junio, 2025",
     image: "/Productos/puas/alambre-instalado.webp",
   },
-  {
-    id: 4,
-    title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
-    excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
-    date: "15 Junio, 2025",
-    image: "/Productos/zapata/zapata-cemento.webp",
-    category: "Instalación Profesional"
-  }
+  // {
+  //   id: 4,
+  //   title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
+  //   excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
+  //   date: "15 Junio, 2025",
+  //   image: "/Productos/zapata/zapata-cemento.webp",
+  //   category: "Instalación Profesional"
+  // }
 ]
 
 export default function NewsCarousel() {

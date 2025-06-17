@@ -159,12 +159,12 @@ export default function ProductosPage() {
               )}
 
               <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
-                <div>
+                {/* <div>
                   <p className="text-sm text-gray-500 mb-1">Precio desde </p>
                   <p className="text-2xl font-bold text-brand">
                     {producto.precio} <span className="text-xs text-gray-500"> + IVA</span>
                   </p>
-                </div>
+                </div> */}
                 <Link 
                   href={`/catalogo/${producto.id}`}
                   className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"

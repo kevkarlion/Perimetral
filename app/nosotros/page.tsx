@@ -7,7 +7,7 @@ export default function NosotrosPage() {
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[500px] w-full">
         <Image
-          src="/nosotros.webp"
+          src="/panoramica-completo.webp"
           alt="Fábrica de cercos perimetrales en Neuquén"
           fill
           className="object-cover"

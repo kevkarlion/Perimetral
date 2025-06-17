@@ -20,6 +20,7 @@ const newsItems = [
     excerpt: "Comparativa técnica entre mallas torsionadas, concertinas y alambres galvanizados.",  
     date: "15 Junio, 2025",
     image: "/panoramica-completo.webp",
+    category: "Comparativas Técnicas"
   },
    {
     id: 3,
@@ -27,15 +28,16 @@ const newsItems = [
     excerpt: "Aprende a evitar fallos comunes y maximiza la durabilidad de tu cerco.",  
     date: "22 Junio, 2025",
     image: "/Productos/puas/alambre-instalado.webp",
+    category: "Seguridad y Protección"
   },
- {
-    id: 4,
-    title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
-    excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
-    date: "15 Junio, 2025",
-    image: "/Productos/zapata/zapata-cemento.webp",
-    category: "Instalación Profesional"
-  }
+//  {
+//     id: 4,
+//     title: "Por Qué Usar Zapata en Instalaciones de Alambrado",
+//     excerpt: "Conocé el rol clave de la zapata en la durabilidad, estabilidad y seguridad de cercos de alta resistencia.",
+//     date: "15 Junio, 2025",
+//     image: "/Productos/zapata/zapata-cemento.webp",
+//     category: "Instalación Profesional"
+//   }
 ];
 
 export default function NewsMagazinePage() {

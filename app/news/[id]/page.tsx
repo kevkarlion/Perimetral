@@ -48,32 +48,43 @@ const newsItems = [
 }
 
 ,
-  {
+ {
   id: 2,
   title: "Innovaciones en Alambrados de Alta Resistencia para 2025",
-  excerpt: "Descubre los nuevos materiales y diseños que están revolucionando la seguridad perimetral.",
-  date: "15 Junio, 2025",
+  excerpt: "Descubrí las nuevas tecnologías aplicadas al cercado rural y urbano que marcan tendencia este año.",
+  date: "16 Junio, 2025",
   image: "/panoramica-completo.webp",
   content: `
-    <h3 class="text-xl font-bold mb-4">Tendencias clave en alambrados:</h3>
-    <p class="mb-4">Los cerramientos con alambre de acero galvanizado y recubrimiento de PVC están dominando el mercado por su durabilidad y bajo mantenimiento. Este año, destacan las <strong>mallas torsionadas con triple capa anticorrosiva</strong>.</p>
-    
-    <h3 class="text-xl font-bold mb-4">Comparativa técnica:</h3>
+    <h3 class="text-xl font-bold mb-4">Más allá del alambre: tecnología aplicada al campo</h3>
+    <p class="mb-4">El 2025 trae consigo avances significativos en materiales y técnicas de instalación para alambrados de alta resistencia. En PERIMETRAL estamos a la vanguardia, incorporando soluciones pensadas para maximizar la durabilidad, reducir el mantenimiento y mejorar la eficiencia de cada instalación.</p>
+
+    <h3 class="text-xl font-bold mb-4">¿Qué hay de nuevo este año?</h3>
     <ul class="list-disc pl-6 space-y-2 mb-6">
-      <li><strong>Alambre de púas tradicional:</strong> Económico pero requiere mayor mantenimiento (vida útil: 5-7 años).</li>
-      <li><strong>Alambre concertina:</strong> Ideal para seguridad extrema (altura recomendada: 2.5m).</li>
-      <li><strong>Mallas de alta resistencia:</strong> Combina acero de 12.5 gauge con recubrimiento UV (garantía: 15 años).</li>
+      <li><strong>Alambres con zinc-aluminio:</strong> Mayor resistencia a la corrosión en comparación con el galvanizado tradicional. Ideal para climas exigentes.</li>
+      <li><strong>Alta tensión sin deformación:</strong> Los nuevos tratamientos térmicos permiten que el alambre conserve su forma y tensión incluso ante cambios de temperatura y uso intensivo.</li>
+      <li><strong>Nudos reforzados:</strong> Mejor anclaje entre hilos para estructuras más sólidas y seguras, especialmente en terrenos irregulares.</li>
+      <li><strong>Bobinas más largas:</strong> Mayor rendimiento por unidad. Menos cortes, menos empalmes y más velocidad de instalación.</li>
     </ul>
-    
+
     <div class="bg-gray-100 p-4 rounded-lg mb-6">
-      <h4 class="font-bold text-brand mb-2">Dato técnico:</h4>
-      <p>Los alambrados con <strong>sistema de tensión automática</strong> reducen un 40% la deformación por impacto o clima.</p>
+      <h4 class="font-bold text-brand mb-2">Tip PERIMETRAL:</h4>
+      <p>Combiná alambre de alta resistencia con postes correctamente alineados y tensores modernos para lograr cercos firmes que duren más de 20 años sin mantenimiento mayor.</p>
     </div>
-    
-    <h3 class="text-xl font-bold mb-4">Recomendaciones de instalación:</h3>
-    <p>Para terrenos irregulares, opta por postes de acero cada 3m con hormigonado profundo (80cm mínimo).</p>
+
+    <h3 class="text-xl font-bold mb-4">Ventajas reales para tu propiedad</h3>
+    <ul class="list-disc pl-6 space-y-2 mb-6">
+      <li><strong>Menos mantenimiento:</strong> Alambres tratados que no se oxidan ni se aflojan con el tiempo.</li>
+      <li><strong>Mayor duración:</strong> Tecnología pensada para durar décadas, incluso en condiciones climáticas adversas.</li>
+      <li><strong>Ahorro a largo plazo:</strong> Invertís una vez, cercás para siempre.</li>
+    </ul>
+
+    <h3 class="text-xl font-bold mb-4">PERIMETRAL: siempre un paso adelante</h3>
+    <p class="mb-4">En PERIMETRAL no solo vendemos alambrados: ofrecemos soluciones técnicas y confiables que evolucionan con vos. Si buscás calidad, asesoramiento experto y productos que marcan tendencia, estás en el lugar indicado.</p>
+
+    <p class="mb-4">Contactanos hoy y conocé cómo las nuevas tecnologías pueden transformar tu campo o terreno urbano. Estamos listos para ayudarte a cercar con lo último en innovación y resistencia.</p>
   `,
 },
+
 {
   id: 3,
   title: "Cómo Maximizar la Seguridad con Alambre de Púas",
