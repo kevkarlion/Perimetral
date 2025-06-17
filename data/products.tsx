@@ -1,7 +1,7 @@
 export const productos = [
   {
     id: 1,
-    nombre: "Tejido romboidal calibre 14 2pulgadas Calidad Acindar",
+    nombre: 'Tejido romboidal calibre 14 - 2" Calidad Acinda',
     descripcionCorta: "Solución duradera para cerramientos de alta seguridad",
     descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas...",
     categoria: "Alambrados",
@@ -117,6 +117,12 @@ export const productos = [
     { src: '/Productos/pre/pre4.webp', alt: 'Postes esquineros' }
   ],
   precio: "Desde $27.500",
+   tieneVariaciones: true,
+    variaciones: [
+      { medida: "1.80 × 10 m", precio: "$65.000" },
+      { medida: "2.10 × 10 m", precio: "$72.000" },
+      { medida: "2.40 × 10 m", precio: "$78.000" }
+    ],
   destacado: true,
   especificaciones: [
     "Alturas disponibles: 1.8m, 2.1m, 2.4m",
