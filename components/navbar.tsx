@@ -1,95 +1,106 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Menu, X, ShoppingCart, User, Truck, HardHat, Phone, MapPin, Home, Box, Info, PhoneCall, Newspaper } from "lucide-react"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { 
+  Menu, 
+  X, 
+  ShoppingCart, 
+  User, 
+  Truck, 
+  HardHat, 
+  Phone, 
+  MapPin, 
+  Home, 
+  Box, 
+  Info, 
+  PhoneCall, 
+  Newspaper 
+} from "lucide-react";
+import { useCartStore } from "@/components/store/cartStore";
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Obtener items del carrito desde el store
+  const cartItems = useCartStore(state => state.items);
+  // Calcular cantidad total de items
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // Detectamos si es móvil al montar el componente y al cambiar tamaño
+  // Detectar si es móvil y manejar el scroll
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     
-    checkMobile() // Verificación inicial
-    window.addEventListener('resize', checkMobile)
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('scroll', handleScroll);
     
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
-  // Efecto para detectar scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Cierra el menú al cambiar tamaño de pantalla
+  // Cerrar menú al cambiar a desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMenuOpen(false)
-      }
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+      if (window.innerWidth >= 768) setIsMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  // Links del navbar (centralizado para fácil mantenimiento)
   const navLinks = [
-    { href: "/", label: "Inicio", icon: <Home size={18} /> , id: '#inicio'},
-    { href: "/catalogo", label: "Catálogo", icon: <Box size={18} /> , id: '#products'},
-    { href: "/nosotros", label: "Nosotros", icon: <Info size={18} /> , id: '#nosotros'},
-    { href: "/news", label: "Novedades", icon: <Newspaper  size={18} /> , id: '#novedades'},
-    { href: "/contacto", label: "Contacto", icon: <PhoneCall size={18} /> , id: '#contact'},
-  ]
+    { href: "/", label: "Inicio", icon: <Home size={18} />, id: '#inicio' },
+    { href: "/catalogo", label: "Catálogo", icon: <Box size={18} />, id: '#products' },
+    { href: "/nosotros", label: "Nosotros", icon: <Info size={18} />, id: '#nosotros' },
+    { href: "/news", label: "Novedades", icon: <Newspaper size={18} />, id: '#novedades' },
+    { href: "/contacto", label: "Contacto", icon: <PhoneCall size={18} />, id: '#contact' },
+  ];
 
   return (
     <header className={`sticky top-0 z-[100] bg-balckHero transition-shadow ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
       {/* Barra superior informativa */}
       <div className="bg-brand text-white py-1 px-4 text-xs sm:text-sm">
-      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-        <div className="flex items-center space-x-4">
-          <a 
-            href="https://wa.me/5492984392148" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hover:underline flex items-center"
-          >
-            <Phone size={14} className="mr-1" />
-            <span>298 - 4392148 (WhatsApp)</span>
-          </a>
-          <div className="hidden sm:flex items-center">
-            <MapPin size={14} className="mr-1" />
-            <span>General Roca - Cipolletti, Río Negro / Neuquén</span>
+        <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+          <div className="flex items-center space-x-4">
+            <a 
+              href="https://wa.me/5492984392148" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:underline flex items-center"
+            >
+              <Phone size={14} className="mr-1" />
+              <span>298 - 4392148 (WhatsApp)</span>
+            </a>
+            <div className="hidden sm:flex items-center">
+              <MapPin size={14} className="mr-1" />
+              <span>General Roca - Cipolletti, Río Negro / Neuquén</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Link href="/seguimiento" className="hover:underline flex items-center">
+              <Truck size={14} className="mr-1" />
+              <span className="hidden xs:inline">Envíos Gratis - Alto Valle y Neuquén</span>
+              <span className="xs:hidden">Envíos Gratis</span>
+            </Link>
+            <a 
+              href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20un%20presupuesto" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:underline flex items-center"
+            >
+              <HardHat size={14} className="mr-1" />
+              <span>Presupuesto</span>
+            </a>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-3">
-          <Link href="/seguimiento" className="hover:underline flex items-center">
-            <Truck size={14} className="mr-1" />
-            <span className="hidden xs:inline">Envíos Gratis - Alto Valle y Neuquén</span>
-            <span className="xs:hidden">Envíos Gratis</span>
-          </Link>
-          <a 
-            href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20un%20presupuesto" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hover:underline flex items-center"
-          >
-            <HardHat size={14} className="mr-1" />
-            <span>Presupuesto</span>
-          </a>
-        </div>
       </div>
-    </div>
 
       {/* Navbar principal */}
       <div className="container mx-auto px-4 py-3">
@@ -97,10 +108,10 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/">
-            <div className="relative h-16 w-32 md:h-20 md:w-52">
+              <div className="relative h-16 w-32 md:h-20 md:w-52">
                 {isMobile ? (
                   <Image
-                    src="/Logos/Logo-mobile.png" // Ruta de tu logo para móvil
+                    src="/Logos/Logo-mobile.png"
                     alt="Corralón Perimetral - Versión móvil"
                     fill
                     className="object-contain"
@@ -109,7 +120,7 @@ export default function Navbar() {
                   />
                 ) : (
                   <Image
-                    src="/Logos/logo-header-black.svg" // Ruta de tu logo para desktop
+                    src="/Logos/logo-header-black.svg"
                     alt="Corralón Perimetral - Versión completa"
                     fill
                     className="object-contain"
@@ -128,7 +139,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 id={link.id}
-                className="relative px-3  py-2 text-white font-medium transition-colors group"
+                className="relative px-3 py-2 text-white font-medium transition-colors group"
               >
                 {link.label}
                 <span className="absolute bottom-0 left-1/2 h-0.5 bg-white w-0 transition-all duration-300 group-hover:w-4/5 group-hover:left-[10%]" />
@@ -137,22 +148,28 @@ export default function Navbar() {
           </nav>
 
           {/* Iconos de acción */}
-          <div className="hidden md:flex items-center space-x-4 ml-6 invisible">
-            <button className="p-2 text-white transition-colors relative">
+          <div className="hidden md:flex items-center space-x-4 ml-6">
+            <Link 
+              href="/cart" 
+              className="p-2 text-white transition-colors relative hover:text-yellow-200"
+              aria-label="Carrito de compras"
+            >
               <ShoppingCart size={22} />
-              <span className="absolute -top-1 -right-1 border-2 bg-blackDeep text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
-            </button>
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 border-2 bg-blackDeep text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemsCount}
+                </span>
+              )}
+            </Link>
           </div>
 
           {/* Botón menú móvil */}
           <button
-            className="md:hidden p-2 text-white transition-colors"
+            className="md:hidden p-2 text-white transition-colors hover:text-yellow-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Menú"
+            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >
-            <Menu size={26} />
+            {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
         </div>
       </div>
@@ -197,7 +214,7 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              <div className="border-t border-gray-200 pt-4 mt-2 invisible">
+              <div className="border-t border-gray-200 pt-4 mt-2">
                 <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
                   <span className="text-blackHero">
                     <User size={18} />
@@ -205,20 +222,26 @@ export default function Navbar() {
                   <span className="font-medium">Mi cuenta</span>
                 </button>
 
-                {/* <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative">
+                <Link 
+                  href="/cart" 
+                  className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <span className="text-blackHero">
                     <ShoppingCart size={18} />
                   </span>
                   <span className="font-medium">Carrito</span>
-                  <span className="absolute right-4 top-3 bg-balckHero text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    3
-                  </span>
-                </button> */}
+                  {cartItemsCount > 0 && (
+                    <span className="absolute right-4 top-3 bg-balckHero text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </Link>
               </div>
             </div>
           </nav>
         </div>
       </div>
     </header>
-  )
+  );
 }

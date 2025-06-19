@@ -7,7 +7,7 @@ export default function WhatsAppCTA() {
   const message = "Hola, estoy interesado en cercos perimetrales. ¿Me pueden asesorar?";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-16 left-6 z-50">
       <Link
         href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`}
         target="_blank"

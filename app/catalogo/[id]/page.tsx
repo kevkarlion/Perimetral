@@ -3,24 +3,97 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ChevronRight, Check, Star, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Check, Star, ShoppingCart } from 'lucide-react'
 import { productos } from '@/data/products'
 import { notFound } from 'next/navigation'
+import { useCartStore } from '@/components/store/cartStore'
+import { Button } from '@/components/ui/button'
+import { CartSidebar } from '@/components/CartSideBar/CartSideBar'
+import { AddToCartNotification } from '@/components/AddToCartNotification/AddToCartNotification'
+
+interface ProductoVariacion {
+  medida: string;
+  precio: string;
+  stock?: number;
+}
+
+interface Producto {
+  id: number;
+  nombre: string;
+  descripcionCorta: string;
+  descripcionLarga?: string;
+  precio: string;
+  src: string;
+  imagenes?: Array<{ src: string; alt: string }>;
+  categoria?: string;
+  destacado?: boolean;
+  tieneVariaciones?: boolean;
+  variaciones?: ProductoVariacion[];
+  especificaciones?: string[];
+  caracteristicas?: string[];
+  aplicaciones?: string[];
+}
 
 export default function ProductoDetalle({ params }: { params: { id: string } }) {
   const [imagenPrincipal, setImagenPrincipal] = useState(0)
   const [variacionSeleccionada, setVariacionSeleccionada] = useState(0)
+  const [isAddedToCart, setIsAddedToCart] = useState(false)
+  const [showCartSidebar, setShowCartSidebar] = useState(false)
+  const [showNotification, setShowNotification] = useState(false)
+  
   const producto = productos.find((p) => p.id.toString() === params.id)
+  const addItem = useCartStore(state => state.addItem)
 
   if (!producto) {
     return notFound()
   }
 
-  const imagenes = producto.imagenes || [{ src: producto.src, alt: producto.nombre }]
-  const tieneVariaciones = producto.tieneVariaciones && producto.variaciones?.length > 0
+  const imagenes = producto.imagenes && producto.imagenes.length > 0
+    ? producto.imagenes
+    : [{ src: producto.src, alt: producto.nombre }]
+  const tieneVariaciones = !!producto.tieneVariaciones && !!producto.variaciones && producto.variaciones.length > 0
+
+ const handleAddToCart = () => {
+  const selectedVariant = tieneVariaciones 
+    ? producto.variaciones?.[variacionSeleccionada]
+    : null
+
+  addItem({
+    id: `${producto.id}-${selectedVariant?.medida || 'standard'}`,
+    name: `${producto.nombre}${selectedVariant ? ` - ${selectedVariant.medida}` : ''}`,
+    price: parseFloat(
+      (tieneVariaciones 
+        ? selectedVariant?.precio.replace('$', '').replace('.', '') 
+        : producto.precio.replace('$', '').replace('.', '')
+      ) || '0'
+    ),
+    image: imagenes[0].src,
+    medida: selectedVariant?.medida
+  })
+
+  setIsAddedToCart(true)
+  setShowNotification(true)
+  setShowCartSidebar(true)
+  
+  // Configura el timeout para ocultar la notificación
+  const notificationTimer = setTimeout(() => {
+    setShowNotification(false)
+  }, 3000)
+
+  // Configura el timeout para resetear el estado del botón
+  const buttonTimer = setTimeout(() => {
+    setIsAddedToCart(false)
+  }, 3000)
+
+  // Limpia los timeouts cuando el componente se desmonte
+  return () => {
+    clearTimeout(notificationTimer)
+    clearTimeout(buttonTimer)
+  }
+}
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8"> {/* Añadido padding-bottom para móviles */}
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
       {/* Botón de volver */}
       <div className="mb-6">
         <Link
@@ -32,7 +105,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
         </Link>
       </div>
 
-      {/* Encabezado móvil (arriba de la imagen) */}
+      {/* Encabezado móvil */}
       <div className="md:hidden space-y-3 mb-6">
         {producto.destacado && (
           <div className="inline-flex items-center bg-brand text-black text-xs font-bold px-3 py-1 rounded-full">
@@ -88,7 +161,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
 
         {/* Información del producto */}
         <div className="space-y-6">
-          {/* Encabezado desktop (oculto en móvil) */}
+          {/* Encabezado desktop */}
           <div className="hidden md:block space-y-3">
             {producto.destacado && (
               <div className="inline-flex items-center bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -108,7 +181,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
             <div className="flex items-baseline gap-2">
               <p className="text-2xl md:text-3xl font-bold text-brand">
                 {tieneVariaciones 
-                  ? producto.variaciones[variacionSeleccionada].precio
+                  ? producto.variaciones?.[variacionSeleccionada].precio
                   : producto.precio}
               </p>
               <span className="text-sm text-gray-500">+ IVA</span>
@@ -118,7 +191,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
               <div className="space-y-2">
                 <h3 className="text-lg font-medium text-gray-900">Medidas disponibles:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {producto.variaciones.map((variacion, index) => (
+                  {producto.variaciones?.map((variacion, index) => (
                     <button
                       key={index}
                       onClick={() => setVariacionSeleccionada(index)}
@@ -129,11 +202,29 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
                       }`}
                     >
                       {variacion.medida}
+                      <span className="block text-xs mt-1">{variacion.precio}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Botón de añadir al carrito */}
+            <Button
+              onClick={handleAddToCart}
+              className="w-full mt-4 bg-brand hover:bg-brand-dark"
+              disabled={isAddedToCart}
+            >
+              {isAddedToCart ? (
+                <>
+                  <Check className="h-5 w-5 mr-2" /> Añadido al carrito
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-5 w-5 mr-2" /> Añadir al carrito
+                </>
+              )}
+            </Button>
           </div>
 
           {/* Descripción */}
@@ -193,7 +284,7 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
           <div className="hidden md:block mt-8">
             <Link
               href={`/contacto?producto=${producto.nombre}${
-                tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
+                tieneVariaciones ? `&variante=${producto.variaciones?.[variacionSeleccionada].medida}` : ''
               }`}
               className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
             >
@@ -207,17 +298,30 @@ export default function ProductoDetalle({ params }: { params: { id: string } }) 
         </div>
       </div>
 
-      {/* CTA para móvil - Solución definitiva */}
-      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50">
-        <Link
-          href={`/contacto?producto=${producto.nombre}${
-            tieneVariaciones ? `&variante=${producto.variaciones[variacionSeleccionada].medida}` : ''
-          }`}
-          className="block bg-brand hover:bg-brand-dark text-white font-bold py-3 px-6 rounded-lg shadow-lg text-center transition-colors"
+      {/* CTA para móvil */}
+      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50 flex gap-2">
+        <Button
+          onClick={handleAddToCart}
+          className="flex-1 bg-brand hover:bg-brand-dark"
+          disabled={isAddedToCart}
         >
-          Consultar por este producto
-        </Link>
+          {isAddedToCart ? <Check className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
+          +
+        </Button>
+        <Button asChild className="flex-1">
+          <Link
+            href={`/contacto?producto=${producto.nombre}${
+              tieneVariaciones ? `&variante=${producto.variaciones?.[variacionSeleccionada].medida}` : ''
+            }`}
+          >
+            Consultar
+          </Link>
+        </Button>
       </div>
+
+      {/* Componentes de notificación y carrito */}
+      <CartSidebar isOpen={showCartSidebar} onClose={() => setShowCartSidebar(false)} />
+      <AddToCartNotification show={showNotification} />
     </div>
   )
 }
