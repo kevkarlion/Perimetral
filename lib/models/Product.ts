@@ -46,7 +46,7 @@ const ProductSchema = new Schema<IProduct>({
   categoria: { 
     type: String, 
     required: true, 
-    enum: ['Alambrados', 'Postes', 'Accesorios'] 
+    enum: ['Alambrados', 'Postes', 'Accesorios', 'Seguridad', 'Cerramientos', 'Estructuras', 'Accesorios para Cerramientos', 'Sistemas de Tensado'] 
   },
   imagen: { type: String, required: true },
   imagenes: [{

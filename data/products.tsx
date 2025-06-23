@@ -42,7 +42,7 @@ export const productos = [
     nombre: "Alambre de Púas Bagual",
     descripcionCorta: "Sistema de seguridad perimetral de alta disuasión",
     descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas...",
-    categoria: "Seguridad",
+    categoria: "Alambrados",
     imagen: "concertina.jpg",
     imagenes: [
       { src: '/Productos/puas/pua1.webp', alt: 'Alambrado vista frontal' },
