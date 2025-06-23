@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import Order from '@/lib/models/Order';
-import Product, { IProduct } from '@/lib/models/Product'; // Asegúrate de importar IProduct
+import { NextResponse } from 'next/server.js';
+import Order from '@/lib/models/Order.js';
+import Product, { IProduct } from '@/lib/models/Product.js'; // Asegúrate de importar IProduct
 
 export async function POST(request: Request) {
   try {
