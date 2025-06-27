@@ -1,43 +1,42 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose from 'mongoose';
 
-interface IOrderItem {
-  productId: string;
-  quantity: number;
-  price: number;
-  variation?: string; // Ej: "1.50 × 10m"
-}
-
-interface IOrder extends Document {
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  items: IOrderItem[];
-  total: number;
-  status: 'pending' | 'paid' | 'shipped' | 'cancelled';
-  paymentMethod: 'transferencia' | 'mercadoPago' | 'efectivo';
-  createdAt: Date;
-}
-
-const OrderSchema = new Schema<IOrder>({
+const orderSchema = new mongoose.Schema({
   customer: {
     name: { type: String, required: true },
     email: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true }
+    address: String,
+    phone: String
   },
   items: [{
     productId: { type: String, required: true },
-    quantity: { type: Number, required: true },
+    name: { type: String, required: true },
     price: { type: Number, required: true },
-    variation: { type: String }
+    quantity: { type: Number, required: true },
+    image: String,
+    variationId: String,
+    medida: String
   }],
   total: { type: Number, required: true },
-  status: { type: String, default: 'pending', enum: ['pending', 'paid', 'shipped', 'cancelled'] },
-  paymentMethod: { type: String, required: true, enum: ['transferencia', 'mercadoPago', 'efectivo'] },
-  createdAt: { type: Date, default: Date.now }
+  status: { 
+    type: String, 
+    required: true,
+    enum: ['pending', 'completed', 'cancelled'],
+    default: 'pending'
+  },
+  paymentMethod: { type: String, required: true },
+  paymentDetails: mongoose.Schema.Types.Mixed,
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
-export default model<IOrder>('Order', OrderSchema);
+export default mongoose.models.Order || mongoose.model('Order', orderSchema);

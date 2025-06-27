@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",        // ← Solo para scripts
+    "moduleResolution": "NodeNext" // ← Solo para scripts
+  },
+  "include": ["scripts/**/*.ts"]
+}

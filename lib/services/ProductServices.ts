@@ -1,25 +1,48 @@
-import Product, { IProduct } from '../models/Product';
+import  { Product, IProduct, IProductUpdate } from '@/lib/models/Product';
 import { IVariation } from '../types/productTypes';
 
-
-// Conversa directamente con la base de datos.
-
-// Aplica reglas de negocio (ej: calcular descuentos).
-
 export class ProductService {
-  // Crear producto
-  static async createProduct(productData: Omit<IProduct, '_id'>): Promise<IProduct> {
-    return await Product.create(productData);
-  }
-
   // Obtener todos los productos
   static async getProducts(): Promise<IProduct[]> {
-    return await Product.find();
+    return await Product.find().lean();
   }
 
   // Obtener producto por ID
   static async getProductById(id: string): Promise<IProduct | null> {
-    return await Product.findById(id);
+    return await Product.findById(id).lean();
+  }
+
+  // Crear nuevo producto
+  static async createProduct(productData: Omit<IProduct, '_id'>): Promise<IProduct> {
+    return await Product.create(productData);
+  }
+
+  // Actualizar stock de producto
+  static async updateProductStock(id: string, updateData: IProductUpdate): Promise<IProduct | null> {
+    const update: any = {};
+    
+    if (updateData.stock !== undefined) {
+      update.stock = updateData.stock;
+    }
+    
+    if (updateData.salesCount !== undefined) {
+      update.salesCount = updateData.salesCount;
+    }
+    
+    if (updateData.variaciones !== undefined) {
+      update.variaciones = updateData.variaciones;
+    }
+
+    return await Product.findByIdAndUpdate(
+      id,
+      { $set: update },
+      { new: true }
+    ).lean();
+  }
+
+  // Eliminar producto
+  static async deleteProduct(id: string): Promise<IProduct | null> {
+    return await Product.findByIdAndDelete(id).lean();
   }
 
   // Actualizar variaciones de precio
@@ -28,6 +51,6 @@ export class ProductService {
       productId,
       { $set: { variaciones: variations } },
       { new: true }
-    );
+    ).lean();
   }
 }

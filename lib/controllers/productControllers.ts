@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ProductService } from '../services/ProductServices';
-import { IProduct } from '../models/Product';
-
-// Recibe la petición.
-
-// Valida que todo esté en orden.
-
-// Delega el trabajo al servicio.
-
+import { IProduct, IProductUpdate } from '../models/Product';
 
 export class ProductController {
   // GET /api/products
@@ -23,6 +16,25 @@ export class ProductController {
     }
   }
 
+  // GET /api/products/:id
+  static async getProductById(request: Request, { params }: { params: { id: string } }) {
+    try {
+      const product = await ProductService.getProductById(params.id);
+      if (!product) {
+        return NextResponse.json(
+          { error: 'Producto no encontrado' },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(product);
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Error al obtener el producto' },
+        { status: 500 }
+      );
+    }
+  }
+
   // POST /api/products
   static async createProduct(request: Request) {
     try {
@@ -33,6 +45,49 @@ export class ProductController {
       return NextResponse.json(
         { error: 'Error al crear producto' },
         { status: 400 }
+      );
+    }
+  }
+
+  // PATCH /api/products/:id
+  static async updateProductStock(request: Request, { params }: { params: { id: string } }) {
+    try {
+      const updateData: IProductUpdate = await request.json();
+      const updatedProduct = await ProductService.updateProductStock(params.id, updateData);
+      
+      if (!updatedProduct) {
+        return NextResponse.json(
+          { error: 'Producto no encontrado' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(updatedProduct);
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Error al actualizar producto' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // DELETE /api/products/:id
+  static async deleteProduct(request: Request, { params }: { params: { id: string } }) {
+    try {
+      const deletedProduct = await ProductService.deleteProduct(params.id);
+      
+      if (!deletedProduct) {
+        return NextResponse.json(
+          { error: 'Producto no encontrado' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json({ message: 'Producto eliminado correctamente' });
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Error al eliminar producto' },
+        { status: 500 }
       );
     }
   }

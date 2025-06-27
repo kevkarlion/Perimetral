@@ -19,3 +19,9 @@ export interface CartStore {
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
+
+export interface IVariation {
+  medida: string;
+  price: number;
+  stock: number;
+}
