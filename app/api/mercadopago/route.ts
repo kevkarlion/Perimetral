@@ -51,9 +51,10 @@ export async function POST(request: Request) {
       }
     });
 
+    console.log('Preferencia creada:', response);
     return NextResponse.json({
       success: true,
-      checkoutUrl: response.sandbox_init_point || response.init_point
+      checkoutUrl: response.init_point
     });
 
   } catch (error: any) {

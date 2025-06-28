@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button";
-import { X, ChevronLeft, Plus, Minus } from "lucide-react";
+import { X, ChevronLeft, Plus, Minus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -53,10 +53,12 @@ export default function CartPage() {
     }));
   };
 
- const handleCheckout = async () => {
-  if (cartItems.length === 0) return;
+
   
-  // Validar datos del cliente
+const handleCheckout = async () => {
+  if (cartItems.length === 0) return;
+
+  // Validación básica de campos del cliente
   if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
     setError('Por favor complete todos los campos requeridos');
     return;
@@ -64,34 +66,20 @@ export default function CartPage() {
 
   setIsProcessing(true);
   setError(null);
-  
+
   try {
-    // Transformar los items del carrito al formato esperado por el backend
-    const formattedItems = cartItems.map(item => {
-      // Extraer el ID base y la variación (si existe)
-      const [baseProductId, variationId] = item.id.includes('-') 
-        ? item.id.split('-') 
-        : [item.id, null];
-
-      return {
-        productId: baseProductId,
-        variationId: variationId || undefined,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image || undefined
-      };
-    });
-
-
-    //realizo la petición al backend para crear la orden
     const response = await fetch('/api/orders', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        items: formattedItems, // Enviamos los items transformados
+        items: cartItems.map(item => ({
+          productId: item.id.split('-')[0], // ID base
+          variationId: item.id.includes('-') ? item.id.split('-')[1] : undefined,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || undefined
+        })),
         total,
         customerInfo
       }),
@@ -99,35 +87,19 @@ export default function CartPage() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Error al procesar la orden');
+      throw new Error(errorData.error || 'Error al procesar el pago');
     }
 
-    const { orderId, checkoutUrl } = await response.json();
-    
-    // Redirigir a Mercado Pago o página de éxito
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl;
-    } else {
-      router.push(`/checkout/success?orderId=${orderId}`);
-    }
-    
+    const { checkoutUrl } = await response.json();
+    window.location.assign(checkoutUrl); // Redirección inmediata
+
   } catch (err) {
-    console.error('Error en el checkout:', err);
-    
-    // Mostrar mensajes de error específicos
-    if (err instanceof Error) {
-      if (err.message.includes('Stock insuficiente')) {
-        setError('Algunos productos no tienen suficiente stock. Por favor ajusta tu carrito.');
-      } else {
-        setError(err.message || 'Ocurrió un error al procesar tu pago');
-      }
-    } else {
-      setError('Ocurrió un error desconocido');
-    }
-  } finally {
     setIsProcessing(false);
+    setError('Ocurrió un error al procesar tu pago. Por favor intenta nuevamente.');
+    console.error('Error en checkout:', err);
   }
 };
+
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
@@ -317,21 +289,26 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleCheckout}
                   disabled={isProcessing || cartItems.length === 0}
-                  className="w-full bg-brand hover:bg-brandHover text-white py-3"
+                  className="w-full bg-[#009ee3] hover:bg-[#0078b4] text-white py-3 flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Procesando...
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Redirigiendo a Mercado Pago...
                     </span>
                   ) : (
-                    'Finalizar compra'
+                    <>
+                      <Image 
+                        src="/payment-methods/mercado-pago.svg" 
+                        alt="Mercado Pago" 
+                        width={20} 
+                        height={20} 
+                      />
+                      Pagar con Mercado Pago
+                    </>
                   )}
                 </Button>
 
