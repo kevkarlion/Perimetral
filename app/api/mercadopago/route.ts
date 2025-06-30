@@ -1,4 +1,7 @@
-// app/api/mercadopago/route.ts
+// app/api/mercadopago/route.ts1
+//Crea la preferencia de pago con Mercado Pago
+
+
 import { NextResponse } from 'next/server';
 import MercadoPago, { Preference } from 'mercadopago';
 
