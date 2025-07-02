@@ -1,26 +1,41 @@
-export interface IProductImage {
-  src: string;
-  alt: string;
-}
-
+// lib/types/productTypes.ts
 export interface IVariation {
+  _id?: string;
+  codigo: string;
+  descripcion?: string;
   medida: string;
-  precio: string;
+  precio: number;
+  stock: number;
+  stockMinimo?: number;
+  atributos?: {
+    longitud?: number;
+    altura?: number;
+    calibre?: string;
+    material?: string;
+    color?: string;
+  };
+  imagenes?: string[];
+  activo?: boolean;
 }
 
-export interface IProduct extends Document {
-  id: number;
+export interface IProduct {
+  _id: string;
+  codigoPrincipal: string;
   nombre: string;
-  descripcionCorta: string;
-  descripcionLarga: string;
   categoria: string;
-  imagen: string;
-  imagenes: IProductImage[];
-  imagenesAdicionales?: string[]; // Opcional
-  precio: string;
+  descripcionCorta: string; // Añade este campo
+  descripcionLarga?: string;
+  precio?: number;
+  stock?: number;
+  stockMinimo?: number;
   tieneVariaciones: boolean;
-  variaciones?: IVariation[]; // Opcional
-  destacado: boolean;
-  especificaciones: string[];
-  caracteristicas: string[];
+  variaciones: IVariation[];
+  especificacionesTecnicas?: string[];
+  caracteristicas?: string[];
+  imagenesGenerales?: string[];
+  proveedor?: string;
+  destacado?: boolean;
+  activo?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

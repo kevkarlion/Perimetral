@@ -15,9 +15,17 @@ export async function GET() {
 
 // POST - Crear nuevo producto
 export async function POST(req: NextRequest) {
-  return createProduct(req);
+  try {
+    const body = await req.json();
+    console.log("POST /api/stock - Body recibido:", body);
+    return await createProduct(body); // <<-- Asegúrate de usar await
+  } catch (error) {
+    console.error("Error al parsear JSON:", error);
+    return new Response(JSON.stringify({ error: "Cuerpo de solicitud inválido" }), {
+      status: 400
+    });
+  }
 }
-
 // DELETE - Eliminar producto por ID (?id=)
 export async function DELETE(req: NextRequest) {
   return deleteProductById(req);

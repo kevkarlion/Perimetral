@@ -1,91 +1,247 @@
 // lib/controllers/productController.ts
+import { NextResponse } from 'next/server';
+import { Types } from 'mongoose';
 import productService from '@/lib/services/productService';
-import { v4 as uuidv4 } from 'uuid';
-// import { Product } from '@/lib/models/Product'; // Asegúrate de que esta importación sea correcta
+import { IProduct, IVariation } from '@/lib/types/productTypes';
 
-// Función para mapear campos antiguos a la nueva estructura
-function mapProductFields(productData: any) {
-  return {
-    id: productData.id || uuidv4(),
-    nombre: productData.name || productData.nombre,
-    descripcionCorta: productData.description || productData.descripcionCorta,
-    descripcionLarga: productData.descripcionLarga || '',
-    categoria: productData.category || productData.categoria,
-    imagen: productData.image || productData.imagen || '',
-    imagenes: productData.images || productData.imagenes || [],
-    imagenesAdicionales: productData.additionalImages || productData.imagenesAdicionales || [],
-    precio: productData.basePrice ? `$${productData.basePrice}` : productData.precio,
-    tieneVariaciones: productData.hasVariations || productData.tieneVariaciones || false,
-    destacado: productData.featured || productData.destacado || false,
-    stock: productData.stock || 0,
-    stockMinimo: productData.minStock || productData.stockMinimo || 0,
-    variaciones: productData.variations || productData.variaciones || [],
-    especificaciones: productData.specifications || productData.especificaciones || [],
-    caracteristicas: productData.features || productData.caracteristicas || []
-  };
-}
+// Tipos para respuestas
+type ApiError = {
+  error: string;
+  details?: string | Record<string, unknown> | any[];
+  field?: string;
+};
 
-export async function getAllProducts() {
+type ApiResponse<T> = NextResponse<T | ApiError>;
+type PromiseApiResponse<T> = Promise<ApiResponse<T>>;
+
+type ProductData = Omit<IProduct, '_id' | 'createdAt' | 'updatedAt'>;
+
+// Helper para respuestas de error
+const errorResponse = (error: ApiError, status: number): ApiResponse<never> => {
+  return NextResponse.json(error, { status });
+};
+
+// Validación de datos de producto
+const validateProductData = (data: Partial<IProduct>): ApiError | null => {
+  const requiredFields: Array<keyof IProduct> = [
+    'codigoPrincipal', 
+    'nombre', 
+    'categoria', 
+    'descripcionCorta'
+  ];
+
+  for (const field of requiredFields) {
+    const value = data[field];
+    if (!value || value.toString().trim().length === 0) {
+      console.error(`Campo ${field} vacío o inválido:`, value);
+      return { 
+        error: `${field === 'descripcionCorta' ? 'Descripción corta' : field} es requerido`,
+        field 
+      };
+    }
+  }
+
+  if (!data.tieneVariaciones) {
+    if (data.precio === undefined || data.precio <= 0) {
+      return { error: 'Precio válido es requerido', field: 'precio' };
+    }
+    if (data.stock === undefined || data.stock < 0) {
+      return { error: 'Stock válido es requerido', field: 'stock' };
+    }
+  }
+
+  return null;
+};
+
+// Validación de variaciones
+const validateVariations = (variations: IVariation[]): ApiError | null => {
+  if (!variations || variations.length === 0) {
+    return { error: 'Se requiere al menos una variación', field: 'variaciones' };
+  }
+
+  for (const [index, variation] of variations.entries()) {
+    if (!variation.medida?.trim()) {
+      return { 
+        error: 'Medida es requerida', 
+        field: `variaciones[${index}].medida` 
+      };
+    }
+    if (variation.precio <= 0) {
+      return { 
+        error: 'Precio debe ser mayor a 0', 
+        field: `variaciones[${index}].precio` 
+      };
+    }
+  }
+
+  return null;
+};
+
+export async function getAllProducts(): PromiseApiResponse<IProduct[]> {
   try {
     const products = await productService.getAllProducts();
-    return new Response(JSON.stringify(products), { status: 200 });
+    return NextResponse.json(products);
   } catch (error) {
     console.error('Error al obtener productos:', error);
-    return new Response('Error al obtener productos', { status: 500 });
+    return errorResponse(
+      { 
+        error: 'Error al obtener productos',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      500
+    );
   }
 }
 
-export async function createProduct(req: Request) {
+export async function createProduct(body: ProductData): PromiseApiResponse<IProduct> {
   try {
-    const body = await req.json();
-    const mappedProduct = mapProductFields(body);
-    const created = await productService.createProduct(mappedProduct);
-    return new Response(JSON.stringify(created), { status: 201 });
-  } catch (error) {
-    console.error('Error al crear producto:', error);
-    return new Response('Error al crear producto', { status: 500 });
-  }
-}
+    console.log('Datos recibidos en controlador:', {
+      ...body,
+      codigoPrincipal: body.codigoPrincipal,
+      codigoPrincipalTrimmed: body.codigoPrincipal?.trim(),
+      codigoPrincipalLength: body.codigoPrincipal?.length
+    });
 
-export async function deleteProductById(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) return new Response('ID requerido', { status: 400 });
-
-    await productService.deleteProduct(id);
-    return new Response('Producto eliminado', { status: 200 });
-  } catch (error) {
-    console.error('Error al eliminar producto:', error);
-    return new Response('Error al eliminar producto', { status: 500 });
-  }
-}
-
-export async function updateProduct(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    
-    if (!id) {
-      return new Response('ID del producto es requerido', { status: 400 });
+    // Validación mejorada
+    const productError = validateProductData(body);
+    if (productError) {
+      console.error('Error de validación:', productError);
+      return errorResponse(productError, 400);
     }
 
-    const body = await req.json();
-    const mappedProduct = mapProductFields(body);
-    
-    // Asegúrate de incluir el ID correcto en los datos a actualizar
-    const updateData = {
-      ...mappedProduct,
-      _id: id // Usamos el ID de la URL
+    if (body.tieneVariaciones) {
+      const variationError = validateVariations(body.variaciones || []);
+      if (variationError) return errorResponse(variationError, 400);
+    }
+
+    // Limpieza de datos antes de enviar al servicio
+    const cleanProductData = {
+      ...body,
+      codigoPrincipal: body.codigoPrincipal.trim(),
+      nombre: body.nombre.trim(),
+      categoria: body.categoria.trim(),
+      descripcionCorta: body.descripcionCorta.trim()
     };
 
-    const updated = await productService.updateProduct(id, updateData);
-    return new Response(JSON.stringify(updated), { status: 200 });
+    console.log('Datos limpios para creación:', cleanProductData);
+    const createdProduct = await productService.createProduct(cleanProductData);
+    return NextResponse.json(createdProduct, { status: 201 });
+
+  } catch (error) {
+    console.error('Error completo en createProduct:', error);
+    
+    if ((error as any).code === 11000) {
+      return errorResponse(
+        { error: 'El código principal ya existe', field: 'codigoPrincipal' },
+        400
+      );
+    }
+
+    if ((error as any).name === 'ValidationError') {
+      const errors = Object.values((error as any).errors).map((err: any) => ({
+        field: err.path,
+        message: err.message
+      }));
+      return errorResponse(
+        { error: 'Error de validación', details: errors },
+        400
+      );
+    }
+
+    return errorResponse(
+      { 
+        error: 'Error al crear producto',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      500
+    );
+  }
+}
+
+export async function deleteProductById(req: Request): PromiseApiResponse<{ message: string }> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    
+    if (!id || !Types.ObjectId.isValid(id)) {
+      return errorResponse({ error: 'ID de producto no válido' }, 400);
+    }
+
+    const deleted = await productService.deleteProduct(id);
+    if (!deleted) {
+      return errorResponse({ error: 'Producto no encontrado' }, 404);
+    }
+
+    return NextResponse.json({ message: 'Producto eliminado correctamente' });
+
+  } catch (error) {
+    console.error('Error al eliminar producto:', error);
+    return errorResponse(
+      { 
+        error: 'Error al eliminar producto',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      500
+    );
+  }
+}
+
+export async function updateProduct(req: Request): PromiseApiResponse<IProduct> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const action = searchParams.get('action');
+    const body = await req.json();
+
+    if (!id || !Types.ObjectId.isValid(id)) {
+      return errorResponse({ error: 'ID de producto no válido' }, 400);
+    }
+
+    // Actualización específica de variaciones
+    if (action === 'variations') {
+      if (!Array.isArray(body.variaciones)) {
+        return errorResponse({ error: 'Formato de variaciones inválido' }, 400);
+      }
+
+      const variationError = validateVariations(body.variaciones);
+      if (variationError) return errorResponse(variationError, 400);
+
+      const updatedProduct = await productService.updateProductVariations(id, body.variaciones);
+      return NextResponse.json(updatedProduct);
+    }
+
+    // Actualización general
+    const productError = validateProductData(body);
+    if (productError) return errorResponse(productError, 400);
+
+    // Limpieza de datos para actualización
+    const cleanUpdateData = {
+      ...body,
+      ...(body.codigoPrincipal && { codigoPrincipal: body.codigoPrincipal.trim() }),
+      ...(body.nombre && { nombre: body.nombre.trim() }),
+      ...(body.categoria && { categoria: body.categoria.trim() }),
+      ...(body.descripcionCorta && { descripcionCorta: body.descripcionCorta.trim() })
+    };
+
+    const updatedProduct = await productService.updateProduct(id, cleanUpdateData);
+    return NextResponse.json(updatedProduct);
+
   } catch (error) {
     console.error('Error al actualizar producto:', error);
-    return new Response(JSON.stringify({
-      error: 'Error al actualizar producto',
-      details: typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : String(error)
-    }), { status: 500 });
+    
+    if ((error as any).code === 11000) {
+      return errorResponse(
+        { error: 'El código principal ya existe', field: 'codigoPrincipal' },
+        400
+      );
+    }
+
+    return errorResponse(
+      { 
+        error: 'Error al actualizar producto',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      500
+    );
   }
 }

@@ -4,7 +4,6 @@ import Product from '../lib/models/Product.js';
 
 const products = [
   {
-    id: 1,
     nombre: 'Tejido Romboidal Calibre 14 - Rombo 2" - Calidad Acindar',
     descripcionCorta: "Solución duradera para cerramientos de alta seguridad",
     descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas...",
@@ -40,7 +39,6 @@ const products = [
     ]
   },
   {
-    id: 2,
     nombre: "Alambre de Púas Bagual",
     descripcionCorta: "Sistema de seguridad perimetral de alta disuasión",
     descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas...",
@@ -66,7 +64,6 @@ const products = [
     ]
   },
   {
-    id: 3,
     nombre: "Alambre de Alta Resistencia INVENCIBLE",
     descripcionCorta: "Solución perimetral de máxima durabilidad y tensión",
     descripcionLarga: "Alambre galvanizado de alta resistencia especialmente diseñado para cerramientos de larga duración, con protección contra corrosión y mayor capacidad de tensión que alambres convencionales.",
@@ -104,7 +101,6 @@ const products = [
     ]
   },
   {
-    id: 4,
     nombre: "Postes Premoldeados de Hormigón",
     descripcionCorta: "Estructuras de soporte de máxima durabilidad para cerramientos",
     descripcionLarga: "Postes fabricados en hormigón armado de alta resistencia, premoldeados bajo estrictos controles de calidad para garantizar durabilidad y estabilidad en todo tipo de terrenos y condiciones climáticas.",
@@ -158,7 +154,6 @@ const products = [
     ]
   },
   {
-    id: 5,
     nombre: "Ganchos J Galvanizados",
     descripcionCorta: "Sujeción profesional para cercos de alambre tensado",
     descripcionLarga: "Ganchos tipo J fabricados en acero de alta resistencia con triple capa de galvanizado para fijación segura de alambres en postes de hormigón, madera o metal. Diseño ergonómico que facilita la instalación.",
@@ -194,7 +189,6 @@ const products = [
     ]
   },
   {
-    id: 6,
     nombre: "Tensor Profesional",
     descripcionCorta: "Sistema de tensado para cercos de alta exigencia",
     descripcionLarga: "Tensor metálico profesional con mecanismo de rosca gruesa para tensado preciso de alambres en cercos perimetrales. Fabricado en acero carbono con protección anticorrosiva para uso en exteriores.",

@@ -1,59 +1,74 @@
 // lib/models/Product.ts
 import { Schema, model, models, Document } from 'mongoose';
+import type { IProduct as IProductType, IVariation as IVariationType } from '../types/productTypes';
+import { HydratedDocument } from 'mongoose';
 
-interface IVariation {
-  medida: string;
-  precio: number;  // Cambiado de 'price' a 'precio'
-  stock: number;
-  sku: string;
-}
+// Combinar tus interfaces con Document para los modelos
+type IVariationDoc = IVariationType & Document;
+type IProductDoc = IProductType & Document;
 
-interface IProduct extends Document {
-  id: string;
-  nombre: string;  // Cambiado de 'name' a 'nombre'
-  descripcionCorta: string;
-  descripcionLarga: string;
-  categoria: string;  // Cambiado de 'category' a 'categoria'
-  imagen: string;
-  imagenes: string[];
-  imagenesAdicionales: string[];
-  precio: string;  // Cambiado de 'basePrice' y tipo Number a String
-  tieneVariaciones: boolean;
-  destacado: boolean;
-  especificaciones: string[];
-  caracteristicas: string[];
-  stock: number;
-  stockMinimo: number;
-  variaciones: IVariation[];
-  historialStock: any[];
-}
-
-const VariationSchema = new Schema<IVariation>({
+const VariationSchema = new Schema<IVariationDoc>({
+  codigo: { type: String, required: true, unique: true, sparse: true },
+  descripcion: String,
   medida: { type: String, required: true },
-  precio: { type: Number, required: true },  // Cambiado de 'price' a 'precio'
-  stock: { type: Number, required: true, min: 0 },
-  sku: { type: String, required: true, unique: true }
-});
+  precio: { type: Number, required: true, min: 0 },
+  stock: { type: Number, required: true, min: 0, default: 0 },
+  stockMinimo: { type: Number, min: 0, default: 5 },
+  atributos: {
+    longitud: Number,
+    altura: Number,
+    calibre: String,
+    material: String,
+    color: String
+  },
+  imagenes: [String],
+  activo: { type: Boolean, default: true }
+}, { _id: true });
 
-const ProductSchema = new Schema<IProduct>({
-  id: { type: String, required: true, unique: true },
+const ProductSchema = new Schema<IProductDoc>({
+  codigoPrincipal: { type: String, required: true, unique: true },
   nombre: { type: String, required: true },
-  descripcionCorta: { type: String, required: true },
-  descripcionLarga: { type: String, required: true },
   categoria: { type: String, required: true },
-  imagen: { type: String },
-  imagenes: [{ type: String }],
-  imagenesAdicionales: [{ type: String }],
-  precio: { type: String, required: true },
-  tieneVariaciones: { type: Boolean, default: false },
-  destacado: { type: Boolean, default: false },
-  especificaciones: [{ type: String }],
-  caracteristicas: [{ type: String }],
-  stock: { type: Number, default: 0, min: 0 },
-  stockMinimo: { type: Number, default: 0 },
+
+  precio: { type: Number, min: 0, required: false },
+  stock: { type: Number, min: 0, default: 0, required: false },
+  stockMinimo: { type: Number, min: 0, default: 5, required: false },
+
+  tieneVariaciones: { type: Boolean, required: true, default: false },
   variaciones: { type: [VariationSchema], default: [] },
-  // historialStock: { type: Array, default: [] }
+
+  descripcionCorta: String,
+  descripcionLarga: String,
+  especificacionesTecnicas: [String],
+  caracteristicas: [String],
+  imagenesGenerales: [String],
+  proveedor: String,
+  destacado: { type: Boolean, default: false },
+  activo: { type: Boolean, default: true }
 }, { timestamps: true });
 
-const Product = models.Product || model<IProduct>('Product', ProductSchema);
+// Pre-save hook para validar y limpiar campos
+ProductSchema.pre('save', function (this: HydratedDocument<IProductDoc>, next) {
+  if (this.tieneVariaciones) {
+    // Eliminar propiedades innecesarias si tiene variaciones
+    this.set('precio', undefined, { strict: false });
+    this.set('stock', undefined, { strict: false });
+    this.set('stockMinimo', undefined, { strict: false });
+
+    if (!this.variaciones || this.variaciones.length === 0) {
+      return next(new Error('Productos con variaciones deben tener al menos una variación'));
+    }
+  } else {
+    if (this.precio === undefined || this.stock === undefined) {
+      return next(new Error('Productos sin variaciones requieren precio y stock'));
+    }
+    this.variaciones = [];
+  }
+
+  next();
+});
+
+// Exportar modelo usando el tipo combinado con Document
+const Product = models.Product || model<IProductDoc>('Product', ProductSchema);
+
 export default Product;
