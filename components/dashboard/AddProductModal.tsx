@@ -54,6 +54,7 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
     if (!formData.descripcionCorta.trim()) newErrors.descripcionCorta = 'Descripción corta es requerida';
     
     // Validación específica por tipo de producto
+    // 1. Validación para productos SIN variaciones
     if (!formData.tieneVariaciones) {
       if (formData.precio === undefined || formData.precio <= 0) {
         newErrors.precio = 'Precio válido es requerido';
@@ -61,8 +62,24 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
       if (formData.stock === undefined || formData.stock < 0) {
         newErrors.stock = 'Stock válido es requerido';
       }
-    } else if (formData.variaciones.length === 0) {
-      newErrors.variaciones = 'Debe agregar al menos una variación';
+    } 
+    // 2. Validación para productos CON variaciones (¡sin else!)
+    if (formData.tieneVariaciones) {
+      // 2a. Verificar que haya al menos una variación
+      if (formData.variaciones.length === 0) {
+        newErrors.variaciones = 'Debe agregar al menos una variación';
+      } 
+      // 2b. Validar campos de cada variación
+      else {
+        formData.variaciones.forEach((variation, index) => {
+          if (!variation.medida.trim()) {
+            newErrors[`variacion-${index}-medida`] = 'Medida es requerida';
+          }
+          if (variation.precio <= 0) {
+            newErrors[`variacion-${index}-precio`] = 'Precio debe ser mayor a 0';
+          }
+        });
+      }
     }
 
     setErrors(newErrors);
@@ -117,12 +134,15 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
     
     setFormData(prev => ({
       ...prev,
+      tieneVariaciones: true, // ← ESTA ES LA CLAVE
       variaciones: [
         ...prev.variaciones,
         {
           ...newVariation,
           codigo: codigoVariacion,
-          activo: true
+          activo: true,
+          precio: Number(newVariation.precio), // Conversión explícita
+          stock: Number(newVariation.stock)
         }
       ]
     }));
@@ -175,56 +195,96 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!validateForm()) return;
 
-    try {
-      // Preparar datos para enviar
-      const productToSend = {
-        ...formData,
-        // Filtrar arrays para eliminar valores vacíos
-        imagenesGenerales: formData.imagenesGenerales.filter(img => img.trim() !== ''),
-        especificacionesTecnicas: formData.especificacionesTecnicas.filter(esp => esp.trim() !== ''),
-        caracteristicas: formData.caracteristicas.filter(car => car.trim() !== ''),
-        // Limpiar campos según tipo de producto
-        ...(formData.tieneVariaciones 
-          ? { 
-              precio: undefined, 
-              stock: undefined,
-              stockMinimo: undefined 
-            }
-          : { 
-              variaciones: [] 
-            })
-      };
+  try {
+    // Preparar datos para enviar
+    const productToSend = {
+      ...formData,
+      // Filtrar arrays para eliminar valores vacíos
+      imagenesGenerales: (formData.imagenesGenerales || []).filter(img => img.trim() !== ''),
+      especificacionesTecnicas: (formData.especificacionesTecnicas || []).filter(esp => esp.trim() !== ''),
+      caracteristicas: (formData.caracteristicas || []).filter(car => car.trim() !== ''),
+      
+      // Limpiar campos según tipo de producto
+      ...(formData.tieneVariaciones 
+        ? { 
+            // Si TIENE variaciones, limpiamos los campos individuales
+            precio: undefined, 
+            stock: undefined,
+            stockMinimo: undefined,
+            // Mantenemos las variaciones existentes
+            variaciones: formData.variaciones.map(v => ({
+              ...v,
+              // Aseguramos que los valores numéricos sean correctos
+              precio: Number(v.precio) || 0,
+              stock: Number(v.stock) || 0,
+              stockMinimo: Number(v.stockMinimo) || 5
+            }))
+          }
+        : { 
+            // Si NO TIENE variaciones, limpiamos el array de variaciones
+            variaciones: [],
+            // Aseguramos que los valores numéricos sean correctos
+            precio: Number(formData.precio) || undefined,
+            stock: Number(formData.stock) || undefined,
+            stockMinimo: Number(formData.stockMinimo) || 5
+          })
+    };
 
-      console.log('Enviando datos del producto:', productToSend);
+    // Debug: Verificar datos antes de enviar
+    console.log('Datos a enviar:', {
+      ...productToSend,
+      variaciones: productToSend.variaciones,
+      tieneVariaciones: productToSend.tieneVariaciones
+    });
 
-      const response = await fetch('/api/stock', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productToSend),
-      });
+    const response = await fetch('/api/stock', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productToSend),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear el producto');
-      }
-
-      refreshProducts();
-      onClose();
-    } catch (error) {
-      console.error('Error al crear producto:', error);
-      setErrors(prev => ({
-        ...prev,
-        form: error instanceof Error ? error.message : 'Error al crear el producto'
-      }));
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al crear el producto');
     }
-  };
+
+    // Limpiar formulario después de éxito
+    setFormData({
+      codigoPrincipal: '',
+      nombre: '',
+      categoria: '',
+      descripcionCorta: '',
+      descripcionLarga: '',
+      imagenesGenerales: [''],
+      precio: undefined,
+      stock: undefined,
+      stockMinimo: 5,
+      tieneVariaciones: false,
+      variaciones: [],
+      destacado: false,
+      especificacionesTecnicas: [''],
+      caracteristicas: [''],
+      proveedor: '',
+      activo: true
+    });
+
+    refreshProducts();
+    onClose();
+  } catch (error) {
+    console.error('Error al crear producto:', error);
+    setErrors(prev => ({
+      ...prev,
+      form: error instanceof Error ? error.message : 'Error al crear el producto'
+    }));
+  }
+};
 
   const labelClass = "block font-semibold text-gray-700 mb-1";
   const inputClass = "border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400";
@@ -246,7 +306,7 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-4 gap-x-8 gap-y-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-4 gap-x-8 gap-y-6" noValidate >
           {/* Sección de identificación */}
           <div className="col-span-4 border-b pb-4 mb-4">
             <h3 className="text-lg font-semibold">Información básica</h3>

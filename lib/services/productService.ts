@@ -5,7 +5,7 @@ import { Types } from "mongoose";
 import { IProduct, IVariation } from "@/lib/types/productTypes";
 
 type ProductDocument = ReturnType<typeof Product.prototype.toObject>;
-type ProductCreateData = Omit<IProduct, '_id' | 'createdAt' | 'updatedAt'>;
+type ProductCreateData = Omit<IProduct, "_id" | "createdAt" | "updatedAt">;
 type ProductUpdateData = Partial<ProductCreateData>;
 
 // Función para transformar documentos Mongoose a IProduct
@@ -16,37 +16,39 @@ const toIProduct = (doc: ProductDocument): IProduct => {
     nombre: doc.nombre,
     categoria: doc.categoria,
     descripcionCorta: doc.descripcionCorta,
-    descripcionLarga: doc.descripcionLarga || '',
+    descripcionLarga: doc.descripcionLarga || "",
     precio: doc.precio,
     stock: doc.stock,
     stockMinimo: doc.stockMinimo ?? 5,
     tieneVariaciones: doc.tieneVariaciones ?? false,
-    variaciones: (doc.variaciones || []).map(v => ({
+    variaciones: (doc.variaciones || []).map((v) => ({
       _id: v._id?.toString(),
       codigo: v.codigo,
-      descripcion: v.descripcion || '',
+      descripcion: v.descripcion || "",
       medida: v.medida,
       precio: v.precio,
       stock: v.stock,
       stockMinimo: v.stockMinimo ?? 5,
-      atributos: v.atributos ? {
-        longitud: v.atributos.longitud,
-        altura: v.atributos.altura,
-        calibre: v.atributos.calibre || '',
-        material: v.atributos.material || '',
-        color: v.atributos.color || ''
-      } : undefined,
+      atributos: v.atributos
+        ? {
+            longitud: v.atributos.longitud,
+            altura: v.atributos.altura,
+            calibre: v.atributos.calibre || "",
+            material: v.atributos.material || "",
+            color: v.atributos.color || "",
+          }
+        : undefined,
       imagenes: v.imagenes || [],
-      activo: v.activo !== false
+      activo: v.activo !== false,
     })),
     especificacionesTecnicas: doc.especificacionesTecnicas || [],
     caracteristicas: doc.caracteristicas || [],
     imagenesGenerales: doc.imagenesGenerales || [],
-    proveedor: doc.proveedor || '',
+    proveedor: doc.proveedor || "",
     destacado: doc.destacado ?? false,
     activo: doc.activo !== false,
     createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt
+    updatedAt: doc.updatedAt,
   };
 };
 
@@ -58,7 +60,7 @@ const productService = {
   },
 
   async createProduct(data: ProductCreateData): Promise<IProduct> {
-    console.log('Creando producto desde servicio...');
+    console.log("Creando producto desde servicio...");
     await dbConnect();
     const product = new Product(data);
     await product.save();
@@ -67,45 +69,110 @@ const productService = {
 
   async deleteProduct(id: string): Promise<boolean> {
     await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error('ID inválido');
+    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
     const result = await Product.findByIdAndDelete(id);
     return !!result;
   },
 
-  async updateProduct(id: string, updateData: ProductUpdateData): Promise<IProduct> {
+  async updateProduct(
+    id: string,
+    updateData: ProductUpdateData
+  ): Promise<IProduct> {
     await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error('ID inválido');
-    
+    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
+
     const updated = await Product.findByIdAndUpdate(
       id,
       { $set: updateData },
       { new: true, runValidators: true }
     ).lean();
 
-    if (!updated) throw new Error('Producto no encontrado');
+    if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
   },
 
   async getProductById(id: string): Promise<IProduct | null> {
     await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error('ID inválido');
+    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
     const product = await Product.findById(id).lean();
     return product ? toIProduct(product) : null;
   },
 
-  async updateProductVariations(id: string, variations: IVariation[]): Promise<IProduct> {
+  async addProductVariation(
+    productId: string,
+    variation: Omit<IVariation, "_id">
+  ): Promise<IProduct> {
+    console.log("Agregando variación al producto desde servicio...");
     await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error('ID inválido');
-    
+
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new Error("ID de producto no válido");
+    }
+
     const updated = await Product.findByIdAndUpdate(
-      id,
-      { variaciones: variations },
+      productId,
+      {
+        $push: {
+          variaciones: {
+            ...variation,
+            // Campos requeridos con valores por defecto
+            stock: variation.stock || 0,
+            stockMinimo: variation.stockMinimo ?? 5,
+            activo: variation.activo !== false,
+            atributos: variation.atributos || {
+              longitud: 0,
+              altura: 0,
+              calibre: "",
+              material: "",
+              color: "",
+            },
+            imagenes: variation.imagenes || [],
+          },
+        },
+        $set: { tieneVariaciones: true },
+      },
       { new: true, runValidators: true }
     ).lean();
 
-    if (!updated) throw new Error('Producto no encontrado');
+    if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
-  }
+  },
+
+  /**
+   * Elimina UNA variación específica
+   * @param productId - ID del producto
+   * @param variationId - ID o código de la variación
+   */
+  async removeProductVariation(
+    productId: string,
+    variationId: string
+  ): Promise<IProduct> {
+    await dbConnect();
+
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new Error("ID de producto no válido");
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) throw new Error("Producto no encontrado");
+
+    // Filtramos buscando por _id o codigo (como en tu modal)
+    const initialLength = product.variaciones.length;
+    product.variaciones = product.variaciones.filter(
+      (v) =>
+        (v._id && v._id.toString() === variationId) || v.codigo === variationId
+    );
+
+    if (product.variaciones.length === initialLength) {
+      throw new Error("Variación no encontrada");
+    }
+
+    // Actualiza el flag si no quedan variaciones
+    product.tieneVariaciones = product.variaciones.length > 0;
+
+    const updated = await product.save();
+    return toIProduct(updated.toObject());
+  },
 };
 
 export default productService;

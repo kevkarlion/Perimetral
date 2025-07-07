@@ -1,4 +1,5 @@
 // lib/types/productTypes.ts
+
 export interface IVariation {
   _id?: string;
   codigo: string;

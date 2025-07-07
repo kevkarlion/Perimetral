@@ -229,7 +229,7 @@ export default function ProductTable() {
           productId={currentProduct._id}
           initialVariations={currentProduct.variaciones || []}
           onClose={closeVariationModal}
-          onUpdateVariations={updateProductVariations}
+         
         />
       )}
 

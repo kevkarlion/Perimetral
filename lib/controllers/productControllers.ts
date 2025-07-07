@@ -186,62 +186,126 @@ export async function deleteProductById(req: Request): PromiseApiResponse<{ mess
   }
 }
 
-export async function updateProduct(req: Request): PromiseApiResponse<IProduct> {
+export async function updateProduct(req: Request): Promise<NextResponse<IProduct | { error: string }>> {
+  console.log("CONTROLADOR - Inicio de updateProduct");
   try {
+    // 1. Parsear URL y body
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    const action = searchParams.get('action');
     const body = await req.json();
+    
+    // 2. Obtener productId de ambas fuentes (priorizando query params)
+    const queryProductId = searchParams.get('id');
+    const { productId: bodyProductId, action, variation, variationId } = body;
+    const productId = queryProductId || bodyProductId;
+    
+    console.log("Datos recibidos en controlador:", {
+      queryProductId,
+      bodyProductId,
+      productIdUsed: productId,
+      action,
+      variation: variation ? '...' : null,
+      variationId
+    });
 
-    if (!id || !Types.ObjectId.isValid(id)) {
+    // 3. Validación básica del ID del producto
+    if (!productId || !Types.ObjectId.isValid(productId)) {
+      console.error("ID de producto no válido:", productId);
       return errorResponse({ error: 'ID de producto no válido' }, 400);
     }
 
-    // Actualización específica de variaciones
-    if (action === 'variations') {
-      if (!Array.isArray(body.variaciones)) {
-        return errorResponse({ error: 'Formato de variaciones inválido' }, 400);
+    // 4. Validación de la acción requerida
+    if (!action || (action !== 'add-variation' && action !== 'remove-variation')) {
+      return errorResponse({ 
+        error: 'Acción no válida. Use "add-variation" o "remove-variation"' 
+      }, 400);
+    }
+
+    // 5. Lógica para AGREGAR variación
+    if (action === 'add-variation') {
+      // 5.1 Validar que exista la variación en el body
+      if (!variation) {
+        return errorResponse({ 
+          error: 'Datos de variación no proporcionados' 
+        }, 400);
       }
 
-      const variationError = validateVariations(body.variaciones);
-      if (variationError) return errorResponse(variationError, 400);
+      // 5.2 Validar campos obligatorios
+      if (!variation.medida?.trim()) {
+        return errorResponse({ 
+          error: 'El campo "medida" es requerido', 
+          field: 'medida' 
+        }, 400);
+      }
+      if (variation.precio <= 0) {
+        return errorResponse({ 
+          error: 'El precio debe ser mayor a 0', 
+          field: 'precio' 
+        }, 400);
+      }
 
-      const updatedProduct = await productService.updateProductVariations(id, body.variaciones);
+      // 5.3 Construir objeto completo de variación
+      const fullVariation: IVariation = {
+        ...variation,
+        medida: variation.medida.trim(),
+        codigo: variation.codigo || `${productId}-${variation.medida.trim().toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+        stock: variation.stock || 0,
+        stockMinimo: variation.stockMinimo ?? 5,
+        atributos: {
+          longitud: variation.atributos?.longitud || 0,
+          altura: variation.atributos?.altura || 0,
+          calibre: variation.atributos?.calibre || '',
+          material: variation.atributos?.material || '',
+          color: variation.atributos?.color || ''
+        },
+        imagenes: variation.imagenes || [],
+        activo: variation.activo !== false
+      };
+
+      console.log('Variación completa a enviar al servicio:', fullVariation);
+      
+      // 5.4 Llamar al servicio
+      const updatedProduct = await productService.addProductVariation(productId, fullVariation);
       return NextResponse.json(updatedProduct);
     }
 
-    // Actualización general
-    const productError = validateProductData(body);
-    if (productError) return errorResponse(productError, 400);
+    // 6. Lógica para ELIMINAR variación
+    if (action === 'remove-variation') {
+      // 6.1 Validar ID de variación
+      if (!variationId) {
+        return errorResponse({ 
+          error: 'ID de variación no proporcionado' 
+        }, 400);
+      }
 
-    // Limpieza de datos para actualización
-    const cleanUpdateData = {
-      ...body,
-      ...(body.codigoPrincipal && { codigoPrincipal: body.codigoPrincipal.trim() }),
-      ...(body.nombre && { nombre: body.nombre.trim() }),
-      ...(body.categoria && { categoria: body.categoria.trim() }),
-      ...(body.descripcionCorta && { descripcionCorta: body.descripcionCorta.trim() })
-    };
-
-    const updatedProduct = await productService.updateProduct(id, cleanUpdateData);
-    return NextResponse.json(updatedProduct);
-
-  } catch (error) {
-    console.error('Error al actualizar producto:', error);
-    
-    if ((error as any).code === 11000) {
-      return errorResponse(
-        { error: 'El código principal ya existe', field: 'codigoPrincipal' },
-        400
-      );
+      console.log('Eliminando variación:', variationId);
+      
+      // 6.2 Llamar al servicio
+      const updatedProduct = await productService.removeProductVariation(productId, variationId);
+      return NextResponse.json(updatedProduct);
     }
 
+  } catch (error) {
+    console.error('Error completo en controlador:', error);
+    
+    // 7. Manejo específico de errores de MongoDB
+    if ((error as any).code === 11000) {
+      return errorResponse({ 
+        error: 'El código de variación ya existe' 
+      }, 409);
+    }
+
+    // 8. Error genérico
     return errorResponse(
       { 
-        error: 'Error al actualizar producto',
+        error: 'Error al procesar la solicitud',
         details: error instanceof Error ? error.message : 'Error desconocido'
       },
       500
     );
   }
+  
+  // 9. Retorno por defecto (no debería alcanzarse)
+  return errorResponse({ 
+    error: 'Acción no reconocida o datos insuficientes' 
+  }, 400);
 }
