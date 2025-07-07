@@ -224,15 +224,16 @@ export default function ProductTable() {
         />
       )}
 
-      {showVariationModal && currentProduct && (
-        <AddVariationModal
-          productId={currentProduct._id}
-          initialVariations={currentProduct.variaciones || []}
-          onClose={closeVariationModal}
-         
-        />
-      )}
-
+     {showVariationModal && currentProduct && (
+      <AddVariationModal
+        productId={currentProduct._id}
+        initialVariations={currentProduct.variaciones || []}
+        onClose={() => {
+          closeVariationModal();
+          fetchProducts(); // Actualiza la lista de productos al cerrar el modal
+        }}
+      />
+    )}
       {showDetailsModal && selectedProduct && (
         <DetailsProductModal
           product={selectedProduct}
