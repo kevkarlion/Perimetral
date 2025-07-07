@@ -59,13 +59,21 @@ const productService = {
     return products.map(toIProduct);
   },
 
+
+
+
   async createProduct(data: ProductCreateData): Promise<IProduct> {
     console.log("Creando producto desde servicio...");
     await dbConnect();
     const product = new Product(data);
     await product.save();
+    console.log("Producto creado en servicio:", product);
     return toIProduct(product.toObject());
   },
+
+
+
+
 
   async deleteProduct(id: string): Promise<boolean> {
     await dbConnect();
@@ -98,15 +106,23 @@ const productService = {
     return product ? toIProduct(product) : null;
   },
 
-  async addProductVariation(
-    productId: string,
-    variation: Omit<IVariation, "_id">
-  ): Promise<IProduct> {
+
+
+
+
+async addProductVariation(
+  productId: string,
+  variation: Omit<IVariation, "_id">
+): Promise<{ success: boolean; product?: IProduct; variations?: IVariation[]; error?: string }> {
+  try {
     console.log("Agregando variación al producto desde servicio...");
     await dbConnect();
 
     if (!Types.ObjectId.isValid(productId)) {
-      throw new Error("ID de producto no válido");
+      return {
+        success: false,
+        error: "ID de producto no válido"
+      };
     }
 
     const updated = await Product.findByIdAndUpdate(
@@ -115,7 +131,6 @@ const productService = {
         $push: {
           variaciones: {
             ...variation,
-            // Campos requeridos con valores por defecto
             stock: variation.stock || 0,
             stockMinimo: variation.stockMinimo ?? 5,
             activo: variation.activo !== false,
@@ -134,15 +149,38 @@ const productService = {
       { new: true, runValidators: true }
     ).lean();
 
-    if (!updated) throw new Error("Producto no encontrado");
-    return toIProduct(updated);
-  },
+    if (!updated) {
+      return {
+        success: false,
+        error: "Producto no encontrado"
+      };
+    }
+
+    const product = toIProduct(updated);
+    console.log("Variación agregada correctamente:", product);
+
+    return {
+      success: true,
+      product,
+      variations: product.variaciones // Asegúrate de que toIProduct mantiene las variaciones
+    };
+  } catch (error) {
+    console.error("Error en addProductVariation:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al agregar variación"
+    };
+  }
+},
 
   /**
    * Elimina UNA variación específica
    * @param productId - ID del producto
    * @param variationId - ID o código de la variación
    */
+
+
+
   async removeProductVariation(
     productId: string,
     variationId: string

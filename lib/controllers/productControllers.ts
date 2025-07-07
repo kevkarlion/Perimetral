@@ -186,126 +186,129 @@ export async function deleteProductById(req: Request): PromiseApiResponse<{ mess
   }
 }
 
-export async function updateProduct(req: Request): Promise<NextResponse<IProduct | { error: string }>> {
+export async function updateProduct(req: Request): Promise<NextResponse> {
   console.log("CONTROLADOR - Inicio de updateProduct");
   try {
-    // 1. Parsear URL y body
     const { searchParams } = new URL(req.url);
     const body = await req.json();
     
-    // 2. Obtener productId de ambas fuentes (priorizando query params)
-    const queryProductId = searchParams.get('id');
-    const { productId: bodyProductId, action, variation, variationId } = body;
-    const productId = queryProductId || bodyProductId;
-    
-    console.log("Datos recibidos en controlador:", {
-      queryProductId,
-      bodyProductId,
-      productIdUsed: productId,
+    // Obtener productId de query params o body
+    const productId = searchParams.get('id') || body.productId;
+    const { action, variation, variationId } = body;
+
+    console.log("Datos recibidos:", {
+      productId,
       action,
       variation: variation ? '...' : null,
       variationId
     });
 
-    // 3. Validación básica del ID del producto
+    // Validación básica del ID del producto
     if (!productId || !Types.ObjectId.isValid(productId)) {
-      console.error("ID de producto no válido:", productId);
-      return errorResponse({ error: 'ID de producto no válido' }, 400);
+      return NextResponse.json(
+        { success: false, error: 'ID de producto no válido' },
+        { status: 400 }
+      );
     }
 
-    // 4. Validación de la acción requerida
+    // Validación de la acción requerida
     if (!action || (action !== 'add-variation' && action !== 'remove-variation')) {
-      return errorResponse({ 
-        error: 'Acción no válida. Use "add-variation" o "remove-variation"' 
-      }, 400);
+      return NextResponse.json(
+        { success: false, error: 'Acción no válida. Use "add-variation" o "remove-variation"' },
+        { status: 400 }
+      );
     }
 
-    // 5. Lógica para AGREGAR variación
+    // Lógica para AGREGAR variación
     if (action === 'add-variation') {
-      // 5.1 Validar que exista la variación en el body
       if (!variation) {
-        return errorResponse({ 
-          error: 'Datos de variación no proporcionados' 
-        }, 400);
+        return NextResponse.json(
+          { success: false, error: 'Datos de variación no proporcionados' },
+          { status: 400 }
+        );
       }
 
-      // 5.2 Validar campos obligatorios
       if (!variation.medida?.trim()) {
-        return errorResponse({ 
-          error: 'El campo "medida" es requerido', 
-          field: 'medida' 
-        }, 400);
-      }
-      if (variation.precio <= 0) {
-        return errorResponse({ 
-          error: 'El precio debe ser mayor a 0', 
-          field: 'precio' 
-        }, 400);
+        return NextResponse.json(
+          { success: false, error: 'El campo "medida" es requerido', field: 'medida' },
+          { status: 400 }
+        );
       }
 
-      // 5.3 Construir objeto completo de variación
+      if (variation.precio <= 0) {
+        return NextResponse.json(
+          { success: false, error: 'El precio debe ser mayor a 0', field: 'precio' },
+          { status: 400 }
+        );
+      }
+
       const fullVariation: IVariation = {
         ...variation,
         medida: variation.medida.trim(),
         codigo: variation.codigo || `${productId}-${variation.medida.trim().toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
         stock: variation.stock || 0,
         stockMinimo: variation.stockMinimo ?? 5,
-        atributos: {
-          longitud: variation.atributos?.longitud || 0,
-          altura: variation.atributos?.altura || 0,
-          calibre: variation.atributos?.calibre || '',
-          material: variation.atributos?.material || '',
-          color: variation.atributos?.color || ''
+        atributos: variation.atributos || {
+          longitud: 0,
+          altura: 0,
+          calibre: '',
+          material: '',
+          color: ''
         },
         imagenes: variation.imagenes || [],
         activo: variation.activo !== false
       };
 
-      console.log('Variación completa a enviar al servicio:', fullVariation);
-      
-      // 5.4 Llamar al servicio
       const updatedProduct = await productService.addProductVariation(productId, fullVariation);
-      return NextResponse.json(updatedProduct);
+      
+      return NextResponse.json({
+        success: true,
+        product: updatedProduct,
+        variations: updatedProduct.variations
+      });
     }
 
-    // 6. Lógica para ELIMINAR variación
+    // Lógica para ELIMINAR variación
     if (action === 'remove-variation') {
-      // 6.1 Validar ID de variación
       if (!variationId) {
-        return errorResponse({ 
-          error: 'ID de variación no proporcionado' 
-        }, 400);
+        return NextResponse.json(
+          { success: false, error: 'ID de variación no proporcionado' },
+          { status: 400 }
+        );
       }
 
-      console.log('Eliminando variación:', variationId);
-      
-      // 6.2 Llamar al servicio
       const updatedProduct = await productService.removeProductVariation(productId, variationId);
-      return NextResponse.json(updatedProduct);
+      
+      return NextResponse.json({
+        success: true,
+        product: updatedProduct,
+        variations: updatedProduct.variaciones
+      });
     }
 
   } catch (error) {
-    console.error('Error completo en controlador:', error);
+    console.error('Error en controlador:', error);
     
-    // 7. Manejo específico de errores de MongoDB
     if ((error as any).code === 11000) {
-      return errorResponse({ 
-        error: 'El código de variación ya existe' 
-      }, 409);
+      return NextResponse.json(
+        { success: false, error: 'El código de variación ya existe' },
+        { status: 409 }
+      );
     }
 
-    // 8. Error genérico
-    return errorResponse(
+    return NextResponse.json(
       { 
+        success: false,
         error: 'Error al procesar la solicitud',
         details: error instanceof Error ? error.message : 'Error desconocido'
       },
-      500
+      { status: 500 }
     );
   }
   
-  // 9. Retorno por defecto (no debería alcanzarse)
-  return errorResponse({ 
-    error: 'Acción no reconocida o datos insuficientes' 
-  }, 400);
+  // Retorno por defecto (no debería alcanzarse)
+  return NextResponse.json(
+    { success: false, error: 'Acción no reconocida' },
+    { status: 400 }
+  );
 }

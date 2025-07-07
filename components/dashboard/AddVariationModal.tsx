@@ -84,18 +84,18 @@ const sendToStockRoute = async (action: string, payload: any) => {
         ...payload
       })
     });
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Error en la respuesta del servidor: ${response.status} - ${errorText}`);
     }
     
     const result: ApiResponse = await response.json();
-    
     if (!result.success) {
       throw new Error(result.error || 'Error al procesar la solicitud');
     }
-
+    console.log('Respuesta del servidor en el modal:', result);
+    
     console.log('Respuesta exitosa:', result);
     return result.variations;
   } catch (err) {

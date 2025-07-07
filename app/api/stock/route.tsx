@@ -1,4 +1,5 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { IVariation } from "@/types/cart";
 
 import {
   getAllProducts,
@@ -36,71 +37,41 @@ export async function DELETE(req: NextRequest) {
 
 
 export async function PUT(req: NextRequest) {
-  console.log("PUT /api/stock - Actualizando producto o variación");
   try {
-    const { searchParams } = new URL(req.url);
-    const productId = searchParams.get('id');
-    const { action, variation, variationId } = await req.json();
-    console.log("Datos recibidos a route:", { productId, action, variation, variationId });
+    console.log('PUT /api/stock - Inicio');
+    const body = await req.json();
+    console.log('Body recibido:', JSON.stringify(body, null, 2));
+
+    const { productId, action, variation } = body;
     
-    if (!productId) {
+    if (!productId || !action) {
+      console.error('Faltan parámetros requeridos');
       return new Response(
-        JSON.stringify({ error: "Se requiere productId" }),
+        JSON.stringify({ 
+          success: false,
+          error: "Faltan parámetros requeridos (productId o action)" 
+        }),
         { status: 400 }
       );
     }
 
-    if (action === "add-variation") {
-      if (!variation?.medida) {
-        return new Response(
-          JSON.stringify({ error: "La variación debe incluir medida" }),
-          { status: 400 }
-        );
-      }
-      
-      return await updateProduct(
-        new NextRequest(req.url, {
-          body: JSON.stringify({
-            productId,
-            action: "add-variation",
-            variation: {
-              ...variation,
-              codigo: variation.codigo || `${productId}-${variation.medida.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
-            }
-          }),
-          method: "PUT",
-          headers: req.headers
-        })
-      );
-    }
+    console.log('Pasando al controlador...');
+    const response = await updateProduct(
+      new NextRequest(req.url, {
+        body: JSON.stringify(body),
+        method: "PUT",
+        headers: req.headers
+      })
+    );
 
-    if (action === "remove-variation") {
-      if (!variationId) {
-        return new Response(
-          JSON.stringify({ error: "Se requiere variationId" }),
-          { status: 400 }
-        );
-      }
-
-      return await updateProduct(
-        new NextRequest(req.url, {
-          body: JSON.stringify({
-            productId,
-            action: "remove-variation",
-            variationId
-          }),
-          method: "PUT",
-          headers: req.headers
-        })
-      );
-    }
-
-    return updateProduct(req);
-
+    console.log('Respuesta del controlador:', response);
+    return response;
+    
   } catch (error) {
-    console.error("Error en PUT /api/stock:", error);
+    console.error("Error completo en PUT /api/stock:", error);
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: "Error al procesar la solicitud",
         details: error instanceof Error ? error.message : String(error)
       }),
