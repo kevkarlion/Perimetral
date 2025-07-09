@@ -197,8 +197,7 @@ async addProductVariation(
     // Filtramos buscando por _id o codigo (como en tu modal)
     const initialLength = product.variaciones.length;
     product.variaciones = product.variaciones.filter(
-      (v) =>
-        (v._id && v._id.toString() === variationId) || v.codigo === variationId
+      (v: any) => v._id?.toString() !== variationId && v.codigo !== variationId
     );
 
     if (product.variaciones.length === initialLength) {

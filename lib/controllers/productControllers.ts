@@ -277,8 +277,9 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
         );
       }
 
-      const updatedProduct = await productService.removeProductVariation(productId, variationId);
       
+      console.log('Datos enviados a removeProductVariation:', productId, variationId);
+      const updatedProduct = await productService.removeProductVariation(productId, variationId);
       return NextResponse.json({
         success: true,
         product: updatedProduct,
