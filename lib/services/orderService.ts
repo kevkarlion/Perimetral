@@ -1,21 +1,12 @@
-import Order from '@/lib/models/Order';
-import { dbConnect } from '@/lib/dbConnect/dbConnect';
+import Order from '@/lib/models/Order'
+import { IOrder } from '@/lib/types/orderTypes'
 
-const orderService = {
-  async getAllOrders() {
-    await dbConnect();
-    return Order.find().sort({ createdAt: -1 }); // órdenes recientes primero
-  },
-
-  async createOrder(orderData: any) {
-    await dbConnect();
-    return Order.create(orderData);
-  },
-
-  async deleteOrder(id: string) {
-    await dbConnect();
-    return Order.findByIdAndDelete(id);
+export const getOrdersService = async (): Promise<IOrder[]> => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 })
+    return orders
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    throw error
   }
-};
-
-export default orderService;
+}
