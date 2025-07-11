@@ -10,10 +10,17 @@ import {
 
 // GET - Obtener todos los productos
 export async function GET() {
-  console.log("GET /api/stock - Fetching all products");
-  return getAllProducts();
+  try {
+    const products = await getAllProducts(); // Usamos el controlador
+    console.log("GET /api/stock - Productos obtenidos:", products);
+    return (products);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Error al obtener productos" },
+      { status: 500 }
+    );
+  }
 }
-
 // POST - Crear nuevo producto
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +34,8 @@ export async function POST(req: NextRequest) {
     });
   }
 }
+
+
 // DELETE - Eliminar producto por ID (?id=)
 export async function DELETE(req: NextRequest) {
   return deleteProductById(req);

@@ -21,7 +21,7 @@ const toIProduct = (doc: ProductDocument): IProduct => {
     stock: doc.stock,
     stockMinimo: doc.stockMinimo ?? 5,
     tieneVariaciones: doc.tieneVariaciones ?? false,
-    variaciones: (doc.variaciones || []).map((v) => ({
+    variaciones: (doc.variaciones || []).map((v: any) => ({
       _id: v._id?.toString(),
       codigo: v.codigo,
       descripcion: v.descripcion || "",

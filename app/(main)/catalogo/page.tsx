@@ -1,15 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { Star, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import Slider from 'react-slick'
+import Image from 'next/image'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
-import { productos } from '@/data/products'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { IProduct } from '@/lib/types/productTypes'
+import { ProductCardSkeleton } from '@/components/ProductCardSkeleton/ProductCardSkeleton'
 
-// Componente de flechas personalizado
 type CustomArrowProps = {
   direction: 'next' | 'prev'
   onClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -34,6 +35,11 @@ const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
 }
 
 export default function ProductosPage() {
+  const [products, setProducts] = useState<IProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -49,136 +55,79 @@ export default function ProductosPage() {
     arrows: true,
   }
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/stock')
+        if (!response.ok) {
+          throw new Error('Error al cargar los productos')
+        }
+        const data = await response.json()
+        setProducts(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  const handleViewDetails = (producto: IProduct) => {
+    // Almacenar el producto en sessionStorage para acceso inmediato
+    sessionStorage.setItem('currentProduct', JSON.stringify(producto))
+    // Navegar a la página de detalle
+    router.push(`/catalogo/${producto._id}`)
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Error al cargar productos</h1>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            {error}
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      {/* Encabezado mejorado */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Catálogo de Productos</h1>
         <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-          Soluciones profesionales para cerramientos y seguridad perimetral
+          {loading ? 'Cargando productos...' : 'Soluciones profesionales para cerramientos y seguridad perimetral'}
         </p>
       </div>
 
-      {/* Grid de productos con carrusel */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
-        {productos.map((producto) => (
-          <div 
-            key={producto.id}
-            className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white"
-          >
-            {/* Carrusel de imágenes - Versión corregida */}
-            <div className="relative h-96 bg-gray-100">
-              {producto.imagenes?.length > 0 ? (
-                producto.imagenes.length > 1 ? (
-                  <Slider {...sliderSettings} className="h-full">
-                    {producto.imagenes.map((imagen, index) => (
-                      <div key={index} className="relative h-96 w-full">
-                        <Link href={`/catalogo/${producto.id}`} className="block h-full">
-                          <Image
-                            src={imagen.src}
-                            alt={imagen.alt || producto.nombre}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            priority={index === 0}
-                          />
-                        </Link>
-                      </div>
-                    ))}
-                  </Slider>
-                ) : (
-                  <div className="relative h-96 w-full">
-                    <Link href={`/catalogo/${producto.id}`} className="block h-full">
-                      <Image
-                        src={producto.imagenes[0].src}
-                        alt={producto.imagenes[0].alt || producto.nombre}
-                        fill
-                        className="object-cover hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        priority
-                      />
-                    </Link>
-                  </div>
-                )
-              ) : producto.imagen ? (
-                <div className="relative h-96 w-full">
-                  <Link href={`/catalogo/${producto.id}`} className="block h-full">
-                    <Image
-                      src={producto.imagen}
-                      alt={producto.nombre}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      priority
-                    />
-                  </Link>
-                </div>
-              ) : (
-                <div className="relative h-96 w-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Imagen no disponible</span>
-                </div>
-              )}
-              {producto.destacado && (
-                <div className="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center shadow-md z-10">
-                  <Star className="h-4 w-4 mr-1.5" /> DESTACADO
-                </div>
-              )}
-            </div>
-
-            {/* Contenido de la card */}
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <Link href={`/catalogo/${producto.id}`} className="group">
-                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-brandHover transition-colors line-clamp-2">
-                    {producto.nombre}
-                  </h2>
-                </Link>
-                {producto.categoria && (
-                  <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full font-medium whitespace-nowrap ml-3">
-                    {producto.categoria}
-                  </span>
-                )}
-              </div>
-
-              {producto.descripcionCorta && (
-                <p className="text-gray-600 text-base mb-5 line-clamp-3">
-                  {producto.descripcionCorta}
-                </p>
-              )}
-
-              {/* Especificaciones principales */}
-              {producto.especificaciones && (
-                <ul className="space-y-2.5 mb-6">
-                  {producto.especificaciones.slice(0, 3).map((espec, index) => (
-                    <li key={index} className="flex items-start text-base">
-                      <Check className="h-5 w-5 text-green-500 mr-2.5 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{espec}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
-                {/* <div>
-                  <p className="text-sm text-gray-500 mb-1">Precio desde </p>
-                  <p className="text-2xl font-bold text-brand">
-                    {producto.precio} <span className="text-xs text-gray-500"> + IVA</span>
-                  </p>
-                </div> */}
-                <Link 
-                  href={`/catalogo/${producto.id}`}
-                  className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"
-                >
-                  Ver detalles
-                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        ))}
+        {loading ? (
+          <>
+            {[...Array(6)].map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </>
+        ) : (
+          products.map((producto) => (
+            <ProductCard 
+              key={producto._id} 
+              producto={producto} 
+              sliderSettings={sliderSettings}
+              onViewDetails={handleViewDetails}
+            />
+          ))
+        )}
       </div>
 
-      {/* CTA al final */}
       <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
         <div className="bg-white rounded-xl p-8 text-center">
           <h3 className="text-2xl font-bold text-gray-900 mb-3">¿Necesitas más información?</h3>
@@ -194,6 +143,118 @@ export default function ProductosPage() {
             <FaWhatsapp className="w-5 h-5" />
             Contactar por WhatsApp
           </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface ProductCardProps {
+  producto: IProduct
+  sliderSettings: any
+  onViewDetails: (producto: IProduct) => void
+}
+
+const ProductCard = ({ 
+  producto, 
+  sliderSettings,
+  onViewDetails
+}: ProductCardProps) => {
+  return (
+    <div className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white">
+      <div className="relative h-96 bg-gray-100">
+        {Array.isArray(producto.imagenesGenerales) && producto.imagenesGenerales.length > 0 ? (
+          producto.imagenesGenerales.length > 1 ? (
+            <Slider {...sliderSettings} className="h-full">
+              {producto.imagenesGenerales.map((imagen, index) => (
+                <div key={index} className="relative h-96 w-full">
+                  <button 
+                    onClick={() => onViewDetails(producto)}
+                    className="block h-full w-full"
+                  >
+                    <Image
+                      src={imagen}
+                      alt={producto.nombre}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority={index === 0}
+                    />
+                  </button>
+                </div>
+              ))}
+            </Slider>
+          ) : (
+            <div className="relative h-96 w-full">
+              <button 
+                onClick={() => onViewDetails(producto)}
+                className="block h-full w-full"
+              >
+                <Image
+                  src={producto.imagenesGenerales[0]}
+                  alt={producto.nombre}
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                />
+              </button>
+            </div>
+          )
+        ) : (
+          <div className="relative h-96 w-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400">Imagen no disponible</span>
+          </div>
+        )}
+        {producto.destacado && (
+          <div className="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center shadow-md z-10">
+            <Star className="h-4 w-4 mr-1.5" /> DESTACADO
+          </div>
+        )}
+      </div>
+
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <button 
+            onClick={() => onViewDetails(producto)}
+            className="group text-left"
+          >
+            <h2 className="text-lg font-bold text-gray-900 group-hover:text-brandHover transition-colors line-clamp-2">
+              {producto.nombre}
+            </h2>
+          </button>
+          {producto.categoria && (
+            <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full font-medium whitespace-nowrap ml-3">
+              {producto.categoria}
+            </span>
+          )}
+        </div>
+
+        {producto.descripcionCorta && (
+          <p className="text-gray-600 text-base mb-5 line-clamp-3">
+            {producto.descripcionCorta}
+          </p>
+        )}
+
+        {producto.especificacionesTecnicas && (
+          <ul className="space-y-2.5 mb-6">
+            {producto.especificacionesTecnicas.slice(0, 3).map((espec, index) => (
+              <li key={index} className="flex items-start text-base">
+                <Check className="h-5 w-5 text-green-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-700">{espec}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
+          <button 
+            onClick={() => onViewDetails(producto)}
+            className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"
+          >
+            Ver detalles
+            <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </div>
     </div>
