@@ -306,10 +306,78 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
       { status: 500 }
     );
   }
-  
+
   // Retorno por defecto (no debería alcanzarse)
   return NextResponse.json(
     { success: false, error: 'Acción no reconocida' },
     { status: 400 }
   );
+  
+}
+
+// Añade estos métodos al controlador existente
+
+export async function updateStock(req: Request): Promise<NextResponse> {
+  try {
+    const { productId, variationId, stock, action } = await req.json();
+
+    if (!productId || !Types.ObjectId.isValid(productId)) {
+      return NextResponse.json(
+        { success: false, error: 'ID de producto no válido' },
+        { status: 400 }
+      );
+    }
+
+    if (action !== 'set' && action !== 'increment') {
+      return NextResponse.json(
+        { success: false, error: 'Acción no válida. Use "set" o "increment"' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'set' && (stock === undefined || stock < 0)) {
+      return NextResponse.json(
+        { success: false, error: 'Stock no válido' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'increment' && !Number.isInteger(Number(stock))) {
+      return NextResponse.json(
+        { success: false, error: 'Cantidad no válida' },
+        { status: 400 }
+      );
+    }
+
+    let updatedProduct: IProduct;
+    if (action === 'set') {
+      updatedProduct = await productService.updateProductStock(
+        productId,
+        Number(stock),
+        variationId
+      );
+    } else {
+      updatedProduct = await productService.incrementProductStock(
+        productId,
+        Number(stock),
+        variationId
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      product: updatedProduct
+    });
+
+  } catch (error) {
+    console.error('Error en updateStock:', error);
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Error al actualizar stock',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      { status: 500 }
+    );
+  }
 }

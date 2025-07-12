@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IVariation } from "@/types/cart";
+
 
 import {
   getAllProducts,
   createProduct,
   deleteProductById,
   updateProduct,
+  updateStock
 } from "@/lib/controllers/productControllers";
 
 // GET - Obtener todos los productos
@@ -47,34 +48,64 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    console.log('PUT /api/stock - Inicio');
     const body = await req.json();
     console.log('Body recibido:', JSON.stringify(body, null, 2));
 
-    const { productId, action, variation } = body;
+    const { productId, action, variation, stock, variationId } = body;
     
-    if (!productId || !action) {
+    if (!productId) {
       console.error('Faltan parámetros requeridos');
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Faltan parámetros requeridos (productId o action)" 
+          error: "Faltan parámetros requeridos (productId)" 
         }),
         { status: 400 }
       );
     }
 
-    console.log('Pasando al controlador...');
-    const response = await updateProduct(
-      new NextRequest(req.url, {
-        body: JSON.stringify(body),
-        method: "PUT",
-        headers: req.headers
-      })
-    );
+    // Lógica existente para manejo de variaciones
+    if (variation || action === 'update-variation') {
+      console.log('Ejecutando actualización de variación...');
+      const response = await updateProduct(
+        new NextRequest(req.url, {
+          body: JSON.stringify(body),
+          method: "PUT",
+          headers: req.headers
+        })
+      );
+      return response;
+    }
+    // Nueva lógica para manejo de stock (usando las mismas variables)
+    else if (stock !== undefined) {
+      console.log('Ejecutando actualización de stock...');
+      
+      const updateData = {
+        productId,
+        stock: Number(stock),
+        variationId: variationId || null,
+        action: action || 'set' // Por defecto 'set' si no se especifica
+      };
 
-    console.log('Respuesta del controlador:', response);
-    return response;
+      const response = await updateStock(
+        new NextRequest(req.url, {
+          body: JSON.stringify(updateData),
+          method: "PUT",
+          headers: req.headers
+        })
+      );
+      return response;
+    }
+    else {
+      console.error('Acción no reconocida');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Acción no reconocida. Proporcione 'variation' o 'stock' en el body" 
+        }),
+        { status: 400 }
+      );
+    }
     
   } catch (error) {
     console.error("Error completo en PUT /api/stock:", error);
@@ -87,4 +118,5 @@ export async function PUT(req: NextRequest) {
       { status: 500 }
     );
   }
+
 }
