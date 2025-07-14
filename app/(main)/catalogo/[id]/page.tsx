@@ -5,27 +5,17 @@ import { IProduct } from '@/lib/types/productTypes';
 
 interface PageProps {
   params: { id: string };
+  searchParams: { product?: string };
 }
 
-export default async function Page({ params }: PageProps) {
-  // Obtener el producto desde la API (SSR)
-  // Esto se ejecuta en el servidor, por lo que no tenemos acceso a sessionStorage aquí
-  let product: IProduct | null = null;
-  
-  // try {
-  //   product = await getProductById(params.id);
-  // } catch (error) {
-  //   console.error('Error fetching product:', error);
-  //   // Puedes manejar el error de diferentes maneras:
-  //   // 1. Redirigir a una página 404
-  //   // 2. Mostrar un mensaje de error
-  //   // 3. Devolver null y dejar que el componente cliente maneje la carga
-  // }
+export default async function Page({ params, searchParams }: PageProps) {
+  // 1. Intenta obtener el producto de los searchParams primero
+  const searchParamsObj = await searchParams;
+  const productFromParams = searchParamsObj.product
+  ? JSON.parse(decodeURIComponent(searchParamsObj.product))
+  : null;
+  // 2. Si no está en los params, haz fetch
+  const product = productFromParams;
 
-  return (
-    <ProductId 
-      product={product || undefined} // Pasamos undefined si es null para que el componente cliente lo maneje
-      id={params.id} // Pasamos el ID para búsqueda en cliente si es necesario
-    />
-  );
+  return <ProductId product={product} />;
 }

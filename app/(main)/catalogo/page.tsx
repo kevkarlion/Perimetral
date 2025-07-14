@@ -1,3 +1,4 @@
+// app/(main)/catalogo/page.tsx
 'use client'
 
 import { Star, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
