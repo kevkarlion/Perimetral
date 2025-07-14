@@ -17,10 +17,12 @@ export default function OrdersTable() {
     const fetchOrders = async () => {
       try {
         const response = await fetch('/api/orders')
+        console.log('Response status:', response)
         if (!response.ok) {
           throw new Error('Error al cargar las órdenes')
         }
         const data = await response.json()
+        console.log('Orders data:', data)
         setOrders(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido')
@@ -121,7 +123,7 @@ export default function OrdersTable() {
               <>
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.id.slice(0, 8)}...
+                    {order._id.slice(0, 8)}...
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">

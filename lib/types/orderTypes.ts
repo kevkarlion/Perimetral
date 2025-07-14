@@ -18,6 +18,7 @@ export interface ICustomerData {
 }
 
 export interface IOrder extends Document {
+  _id: string;  // Mongoose usa _id por defecto
   customer: ICustomerData;
   items: IOrderItem[];
   total: number;
