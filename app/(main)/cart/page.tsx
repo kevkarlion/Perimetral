@@ -54,13 +54,13 @@ export default function CartPage() {
   };
 
 
-  
+// Actualiza tu handleCheckout
 const handleCheckout = async () => {
   if (cartItems.length === 0) return;
 
-  // Validación básica de campos del cliente
+  // Validación mejorada
   if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-    setError('Por favor complete todos los campos requeridos');
+    setError('Por favor complete nombre, email y teléfono');
     return;
   }
 
@@ -73,30 +73,47 @@ const handleCheckout = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: cartItems.map(item => ({
-          productId: item.id.split('-')[0], // ID base
+          productId: item.id.split('-')[0],
           variationId: item.id.includes('-') ? item.id.split('-')[1] : undefined,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          image: item.image || undefined
+          image: item.image || undefined,
+          medida: item.medida // Asegúrate de incluir la medida si existe
         })),
-        total,
-        customerInfo
+        total, // Envía el total con IVA incluido
+        customer: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          phone: customerInfo.phone,
+          address: customerInfo.address || ''
+        },
+        paymentMethod: 'mercadopago'
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Error al procesar el pago');
+      throw new Error(errorData.error || errorData.message || 'Error al procesar el pago');
     }
 
-    const { checkoutUrl } = await response.json();
-    window.location.assign(checkoutUrl); // Redirección inmediata
+    const orderData = await response.json();
+    console.log('Order created:', orderData);
+    console.log('Payment URL:', orderData.paymentUrl);
+    debugger
+    // Redirigir a Mercado Pago si existe paymentUrl
+    if (orderData.paymentUrl) {
+      window.location.href = orderData.paymentUrl;
+    } else {
+      // Redirigir a página de confirmación si es otro método
+      router.push(`/order/${orderData._id}`);
+    }
 
-  } catch (err) {
+  } catch (err: any) {
+    setError(err.message || 'Error al procesar tu pago. Intenta nuevamente.');
+    console.error('Checkout error:', err);
+  } finally {
     setIsProcessing(false);
-    setError('Ocurrió un error al procesar tu pago. Por favor intenta nuevamente.');
-    console.error('Error en checkout:', err);
   }
 };
 

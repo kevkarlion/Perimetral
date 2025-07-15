@@ -1,17 +1,13 @@
-import { MercadoPagoConfig, Payment } from 'mercadopago';
+// lib/mercadoPago.ts
+import { MercadoPagoConfig } from 'mercadopago';
 
+// Configura el cliente reutilizable
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN!,
-  options: { timeout: 5000 }
+  options: {
+    timeout: 5000,
+    idempotencyKey: 'unique-idempotency-key'
+  }
 });
 
-export async function verifyPayment(paymentId: string) {
-  try {
-    const payment = new Payment(client);
-    const result = await payment.get({ id: paymentId });
-    return result;
-  } catch (error) {
-    console.error('Error verifying payment:', error);
-    throw new Error('Error al verificar el pago');
-  }
-}
+export { client };

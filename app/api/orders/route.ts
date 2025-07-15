@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     });
 
     // 4. Retornar respuesta exitosa
+    console.log('new order', newOrder);
     return NextResponse.json(newOrder, { status: 201 });
-
   } catch (error: any) {
     // Manejo de errores específicos
     const status = error.message.includes('validación') ? 400 : 500;

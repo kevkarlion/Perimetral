@@ -1,5 +1,8 @@
 // lib/types/productTypes.ts
 
+import { Types } from 'mongoose';
+
+
 export interface IVariation {
   _id?: string;
   codigo: string;
@@ -18,6 +21,19 @@ export interface IVariation {
   imagenes?: string[];
   activo?: boolean;
 }
+
+interface DBProduct {
+  _id: Types.ObjectId;
+  name: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+  images?: string[];
+  sku?: string;
+  // Agrega aquí otros campos que necesites
+}
+
+
 
 export interface IProduct {
   _id: string;
