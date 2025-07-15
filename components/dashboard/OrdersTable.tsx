@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import React from 'react';
 import { IOrder } from '@/lib/types/orderTypes'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -120,8 +121,8 @@ export default function OrdersTable() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {orders.map((order) => (
-              <>
-                <tr key={order.id} className="hover:bg-gray-50">
+              <React.Fragment key={order._id}>
+                <tr className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {order._id.slice(0, 8)}...
                   </td>
@@ -138,10 +139,10 @@ export default function OrdersTable() {
                       {order.customer.phone || 'Sin teléfono'}
                       {order.customer.phone && (
                         <button 
-                          onClick={() => copyToClipboard(order.customer.phone || '', `phone-${order.id}`)}
+                          onClick={() => copyToClipboard(order.customer.phone || '', `phone-${order._id}`)}
                           className="text-gray-400 hover:text-brand"
                         >
-                          {copiedFields[`phone-${order.id}`] ? (
+                          {copiedFields[`phone-${order._id}`] ? (
                             <ClipboardCheck className="h-4 w-4" />
                           ) : (
                             <Clipboard className="h-4 w-4" />
@@ -173,10 +174,10 @@ export default function OrdersTable() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => toggleExpand(order.id)}
+                      onClick={() => toggleExpand(order._id)}
                       className="text-brand hover:text-brand-dark"
                     >
-                      {expandedOrder === order.id ? (
+                      {expandedOrder === order._id ? (
                         <ChevronUp className="h-5 w-5" />
                       ) : (
                         <ChevronDown className="h-5 w-5" />
@@ -184,7 +185,7 @@ export default function OrdersTable() {
                     </button>
                   </td>
                 </tr>
-                {expandedOrder === order.id && (
+                {expandedOrder === order._id && (
                   <tr className="bg-gray-50">
                     <td colSpan={8} className="px-6 py-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,10 +201,10 @@ export default function OrdersTable() {
                               <span className="text-sm font-medium flex items-center gap-1">
                                 {order.customer.email}
                                 <button 
-                                  onClick={() => copyToClipboard(order.customer.email, `email-${order.id}`)}
+                                  onClick={() => copyToClipboard(order.customer.email, `email-${order._id}`)}
                                   className="text-gray-400 hover:text-brand"
                                 >
-                                  {copiedFields[`email-${order.id}`] ? (
+                                  {copiedFields[`email-${order._id}`] ? (
                                     <ClipboardCheck className="h-4 w-4" />
                                   ) : (
                                     <Clipboard className="h-4 w-4" />
@@ -217,10 +218,10 @@ export default function OrdersTable() {
                                 {order.customer.phone || 'No proporcionado'}
                                 {order.customer.phone && (
                                   <button 
-                                    onClick={() => copyToClipboard(order.customer.phone || '', `phone-${order.id}`)}
+                                    onClick={() => copyToClipboard(order.customer.phone || '', `phone-${order._id}`)}
                                     className="text-gray-400 hover:text-brand"
                                   >
-                                    {copiedFields[`phone-${order.id}`] ? (
+                                    {copiedFields[`phone-${order._id}`] ? (
                                       <ClipboardCheck className="h-4 w-4" />
                                     ) : (
                                       <Clipboard className="h-4 w-4" />
@@ -235,10 +236,10 @@ export default function OrdersTable() {
                                 {order.customer.address || 'No proporcionada'}
                                 {order.customer.address && (
                                   <button 
-                                    onClick={() => copyToClipboard(order.customer.address || '', `address-${order.id}`)}
+                                    onClick={() => copyToClipboard(order.customer.address || '', `address-${order._id}`)}
                                     className="text-gray-400 hover:text-brand"
                                   >
-                                    {copiedFields[`address-${order.id}`] ? (
+                                    {copiedFields[`address-${order._id}`] ? (
                                       <ClipboardCheck className="h-4 w-4" />
                                     ) : (
                                       <Clipboard className="h-4 w-4" />
@@ -276,7 +277,7 @@ export default function OrdersTable() {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
