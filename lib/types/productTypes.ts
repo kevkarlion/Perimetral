@@ -22,7 +22,7 @@ export interface IVariation {
   activo?: boolean;
 }
 
-interface DBProduct {
+export interface DBProduct {
   _id: Types.ObjectId;
   name: string;
   price: number;
