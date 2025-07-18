@@ -1,3 +1,4 @@
+//lib/models/Order.ts
 import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema({
@@ -20,7 +21,7 @@ const orderSchema = new mongoose.Schema({
   status: { 
     type: String, 
     required: true,
-    enum: ['pending', 'completed', 'cancelled'],
+    enum: ['pending', 'processing', 'completed', 'payment_failed', 'cancelled'],
     default: 'pending'
   },
   paymentMethod: { type: String, required: true },

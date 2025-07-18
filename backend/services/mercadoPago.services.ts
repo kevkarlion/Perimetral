@@ -1,4 +1,3 @@
-// services/mercadoPago.service.ts
 import { Preference } from 'mercadopago';
 import { client } from '@/lib/mercadopago';
 
@@ -7,58 +6,39 @@ export class MercadoPagoService {
     try {
       const preference = new Preference(client);
       
+      // Mapeo básico de items (manteniendo tu estructura)
       const items = order.items.map((item: any) => ({
-        id: item.productId,
-        title: `${item.name}${item.medida ? ` - ${item.medida}` : ''}`,
-        unit_price: item.price,
-        quantity: item.quantity,
-        picture_url: item.image,
-        description: item.medida || undefined,
-        currency_id: 'ARS'
+        title: item.name, // Solo el campo obligatorio
+        unit_price: Number(item.price), // Convertido a número
+        quantity: Number(item.quantity), // Convertido a número
+        currency_id: 'ARS' // Moneda obligatoria
       }));
 
+      // Configuración MÍNIMA con tus datos
       const response = await preference.create({
         body: {
-          items,
-          external_reference: order._id.toString(),
-          notification_url: `${process.env.NEXTAUTH_URL}/api/mercado-pago/webhook`,
-          back_urls: {
-            success: `${process.env.NEXTAUTH_URL}/order/${order._id}?status=approved`,
-            pending: `${process.env.NEXTAUTH_URL}/order/${order._id}?status=pending`,
-            failure: `${process.env.NEXTAUTH_URL}/order/${order._id}?status=rejected`,
-          },
-          auto_return: 'approved',
-          payment_methods: {
-            excluded_payment_types: [{ id: 'atm' }],
-            installments: 12 // Máximo de cuotas
-          },
+          items: items,
           payer: {
-            name: order.customer.name,
-            email: order.customer.email,
-            phone: {
-              area_code: '',
-              number: order.customer.phone || ''
-            },
-            address: {
-              street_name: order.customer.address || '',
-              zip_code: ''
-            }
+            email: order.customer.email // Email obligatorio
           },
-          metadata: {
-            order_id: order._id.toString(),
-            customer_email: order.customer.email
-          }
+          // back_urls básicas (puedes comentarlas inicialmente)
+          // back_urls: {
+          //   success: 'http://localhost:3000/payment/success',
+          //   failure: 'http://localhost:3000/payment/failure'
+          // }
         }
       });
 
       return {
         id: response.id,
-        init_point: response.init_point,
-        sandbox_init_point: response.sandbox_init_point
+        init_point: response.init_point || (response as any).sandbox_init_point
       };
     } catch (error: any) {
-      console.error('MercadoPago Error:', error);
-      throw new Error(`Error al crear preferencia: ${error.message}`);
+      console.error('Error básico MercadoPago:', {
+        status: error.status,
+        message: error.message
+      });
+      throw error;
     }
   }
 }

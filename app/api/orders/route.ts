@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       total: orderData.total
     });
 
+    console.log('[POST /orders] Datos del carrito validados:', JSON.stringify(validatedCart, null, 2));
     // 3. Crear la orden con datos validados
     const newOrder = await createOrder({
       ...orderData,

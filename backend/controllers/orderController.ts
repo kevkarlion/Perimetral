@@ -8,6 +8,8 @@ export async function getOrders() {
     .lean();
 }
 
+
+
 export async function createOrder(orderData: {
   items: Array<{
     productId: string;
@@ -27,5 +29,7 @@ export async function createOrder(orderData: {
   };
   paymentMethod: string;
 }) {
+  console.log('orderController loaded', JSON.stringify(orderData, null, 2));
+
   return await OrderService.createValidatedOrder(orderData);
 }
