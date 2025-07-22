@@ -9,6 +9,7 @@ type ApiError = {
   error: string;
   details?: string | Record<string, unknown> | any[];
   field?: string;
+  
 };
 
 type ApiResponse<T> = NextResponse<T | ApiError>;
@@ -77,18 +78,41 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
   return null;
 };
 
-export async function getAllProducts(): PromiseApiResponse<IProduct[]> {
+// En tu controlador
+export async function getAllProducts(): Promise<NextResponse> {
   try {
-    const products = await productService.getAllProducts();
-    return NextResponse.json(products);
-  } catch (error) {
-    console.error('Error al obtener productos:', error);
-    return errorResponse(
-      { 
-        error: 'Error al obtener productos',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+    console.log('Obteniendo productos desde controlador');
+    const serviceResponse = await productService.getAllProducts();
+    
+    if (!serviceResponse.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: serviceResponse.error || 'Error al obtener productos',
+          details: serviceResponse.details
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: serviceResponse.data
       },
-      500
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error en controlador:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Error interno del servidor',
+        details: process.env.NODE_ENV === 'development' 
+          ? error instanceof Error ? error.message : String(error)
+          : undefined
+      },
+      { status: 500 }
     );
   }
 }
@@ -314,6 +338,42 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
   );
   
 }
+
+
+export async function getProductById(id: string): Promise<NextResponse> {
+  try {
+    const serviceResponse = await productService.getProductById(id)
+    
+    if (!serviceResponse) {
+      return NextResponse.json(
+        { success: false, error: 'Producto no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: serviceResponse
+      },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Error en controlador:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Error interno del servidor',
+        details: process.env.NODE_ENV === 'development' 
+          ? error instanceof Error ? error.message : String(error)
+          : undefined
+      },
+      { status: 500 }
+    )
+  }
+}
+
+
 
 // Añade estos métodos al controlador existente
 

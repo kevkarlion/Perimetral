@@ -1,3 +1,4 @@
+//api/stock/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -9,19 +10,31 @@ import {
   updateStock
 } from "@/lib/controllers/productControllers";
 
+
+
 // GET - Obtener todos los productos
 export async function GET() {
   try {
-    const products = await getAllProducts(); // Usamos el controlador
-    console.log("GET /api/stock - Productos obtenidos:", products);
-    return (products);
+    console.log('GET /api/stock');
+    const response = await getAllProducts();
+    console.log("Productos obtenidos:", response);
+    
+    // Devuelve directamente la respuesta del controlador
+    return response;
   } catch (error) {
+    console.error("Error en GET /api/stock:", error);
     return NextResponse.json(
-      { error: "Error al obtener productos" },
+      { 
+        success: false, 
+        error: "Error al obtener productos",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
 }
+
+
 // POST - Crear nuevo producto
 export async function POST(req: NextRequest) {
   try {
@@ -120,3 +133,4 @@ export async function PUT(req: NextRequest) {
   }
 
 }
+

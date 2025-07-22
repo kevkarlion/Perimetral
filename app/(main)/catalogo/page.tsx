@@ -60,13 +60,22 @@ export default function ProductosPage() {
     const fetchProducts = async () => {
       try {
         const response = await fetch('/api/stock')
+        
         if (!response.ok) {
-          throw new Error('Error al cargar los productos')
+          throw new Error(`Error HTTP: ${response.status}`)
         }
-        const data = await response.json()
-        setProducts(data)
+
+        const result = await response.json()
+        
+        // Asegúrate de que la respuesta tenga la estructura esperada
+        if (result && result.success && result.data) {
+          setProducts(result.data)
+        } else {
+          throw new Error(result.error || 'Formato de respuesta inválido')
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido')
+        setProducts([])
       } finally {
         setLoading(false)
       }
@@ -76,9 +85,7 @@ export default function ProductosPage() {
   }, [])
 
   const handleViewDetails = (producto: IProduct) => {
-    // Almacenar el producto en sessionStorage para acceso inmediato
     sessionStorage.setItem('currentProduct', JSON.stringify(producto))
-    // Navegar a la página de detalle
     router.push(`/catalogo/${producto._id}`)
   }
 
@@ -117,7 +124,7 @@ export default function ProductosPage() {
               <ProductCardSkeleton key={index} />
             ))}
           </>
-        ) : (
+        ) : products.length > 0 ? (
           products.map((producto) => (
             <ProductCard 
               key={producto._id} 
@@ -126,6 +133,10 @@ export default function ProductosPage() {
               onViewDetails={handleViewDetails}
             />
           ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500 text-lg">No se encontraron productos</p>
+          </div>
         )}
       </div>
 
@@ -164,7 +175,7 @@ const ProductCard = ({
   return (
     <div className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white">
       <div className="relative h-96 bg-gray-100">
-        {Array.isArray(producto.imagenesGenerales) && producto.imagenesGenerales.length > 0 ? (
+        {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
           producto.imagenesGenerales.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
               {producto.imagenesGenerales.map((imagen, index) => (

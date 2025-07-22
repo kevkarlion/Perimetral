@@ -1,4 +1,5 @@
 // lib/models/Product.ts
+
 import { Schema, model, models, Document } from 'mongoose';
 import type { IProduct as IProductType, IVariation as IVariationType } from '../types/productTypes';
 import { HydratedDocument } from 'mongoose';

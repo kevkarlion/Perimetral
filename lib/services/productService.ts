@@ -2,7 +2,7 @@
 import Product from "@/lib/models/Product";
 import { dbConnect } from "@/lib/dbConnect/dbConnect";
 import { Types } from "mongoose";
-import { IProduct, IVariation } from "@/lib/types/productTypes";
+import { IProduct, IVariation, ServiceResponse } from "@/lib/types/productTypes";
 
 type ProductDocument = ReturnType<typeof Product.prototype.toObject>;
 type ProductCreateData = Omit<IProduct, "_id" | "createdAt" | "updatedAt">;
@@ -53,13 +53,38 @@ const toIProduct = (doc: ProductDocument): IProduct => {
 };
 
 const productService = {
-  async getAllProducts(): Promise<IProduct[]> {
-    await dbConnect();
-    const products = await Product.find({}).lean();
-    return products.map(toIProduct);
+   async getAllProducts(): Promise<ServiceResponse<IProduct[]>> {
+    try {
+      console.log('estoy en servicio')
+      await dbConnect();
+      const products = await Product.find({}).lean();
+      console.log('productos desde servicio', products)
+      return {
+        success: true,
+        data: products.map(toIProduct)
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Error al obtener productos',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      };
+    }
   },
 
 
+  async getProductById(id: string): Promise<IProduct | null> {
+  try {
+    await dbConnect()
+    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido")
+    
+    const product = await Product.findById(id).lean()
+    return product ? toIProduct(product) : null
+  } catch (error) {
+    console.error('Error en getProductById:', error)
+    throw error
+  }
+},
 
 
   async createProduct(data: ProductCreateData): Promise<IProduct> {
@@ -97,13 +122,6 @@ const productService = {
 
     if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
-  },
-
-  async getProductById(id: string): Promise<IProduct | null> {
-    await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
-    const product = await Product.findById(id).lean();
-    return product ? toIProduct(product) : null;
   },
 
 

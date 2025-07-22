@@ -3,6 +3,16 @@
 import { Types } from 'mongoose';
 
 
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  details?: string;
+}
+
+
+
+
 export interface IVariation {
   _id?: string;
   codigo: string;
