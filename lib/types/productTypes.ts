@@ -11,8 +11,6 @@ export interface ServiceResponse<T> {
 }
 
 
-
-
 export interface IVariation {
   _id?: string;
   codigo: string;
@@ -42,7 +40,6 @@ export interface DBProduct {
   sku?: string;
   // Agrega aquí otros campos que necesites
 }
-
 
 
 export interface IProduct {

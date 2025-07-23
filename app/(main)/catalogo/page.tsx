@@ -7,10 +7,10 @@ import Slider from 'react-slick'
 import Image from 'next/image'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { IProduct } from '@/lib/types/productTypes'
+import { useProductStore } from '@/components/store/product-store'
 import { CatalogLoading } from '@/components/ProductCardSkeleton/CatalogLoading'
+import { IProduct } from '@/lib/types/productTypes'
 
 type CustomArrowProps = {
   direction: 'next' | 'prev'
@@ -36,10 +36,15 @@ const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
 }
 
 export default function ProductosPage() {
-  const [products, setProducts] = useState<IProduct[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const {
+    products,
+    loading,
+    error,
+    initialized,
+    setError,
+    initializeProducts
+  } = useProductStore()
 
   const sliderSettings = {
     dots: false,
@@ -55,33 +60,6 @@ export default function ProductosPage() {
     pauseOnHover: true,
     arrows: true,
   }
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/stock')
-        
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`)
-        }
-
-        const result = await response.json()
-        
-        if (result && result.success && result.data) {
-          setProducts(result.data)
-        } else {
-          throw new Error(result.error || 'Formato de respuesta inválido')
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido')
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [])
 
   const handleViewDetails = (producto: IProduct) => {
     sessionStorage.setItem('currentProduct', JSON.stringify(producto))
@@ -107,7 +85,7 @@ export default function ProductosPage() {
     )
   }
 
-  if (loading) {
+  if (!initialized || loading) {
     return <CatalogLoading />
   }
 
@@ -158,6 +136,7 @@ export default function ProductosPage() {
   )
 }
 
+// El componente ProductCard permanece exactamente igual
 interface ProductCardProps {
   producto: IProduct
   sliderSettings: any

@@ -1,47 +1,44 @@
 // components/products/ProductSection.tsx
 'use client'
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import ProductGrid from "./ProductGridMain"
 import { ProductsLoading } from "@/components/ProductLoading"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { IProduct } from "@/lib/types/productTypes"
+import { useProductStore } from "@/components/store/product-store"
 
 export default function ProductSection() {
-  const [products, setProducts] = useState<IProduct[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { products, loading, error, setProducts, setLoading, setError } = useProductStore()
 
   useEffect(() => {
     const loadProducts = async () => {
-  try {
-    const response = await fetch('/api/stock');
-    
-    console.log('Response status:', response.status);
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+      setLoading(true)
+      try {
+        const response = await fetch('/api/stock')
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`)
+        }
+
+        const result = await response.json()
+        
+        if (result && result.data) {
+          setProducts(result.data)
+        } else {
+          throw new Error('La respuesta no contiene datos válidos')
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido')
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const result = await response.json();
-    console.log('Parsed response:', result);
-
-    if (result && result.data) {
-      setProducts(result.data);
-    } else {
-      throw new Error('La respuesta no contiene datos válidos');
-    }
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Error desconocido');
-    setProducts([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
-    loadProducts();
-  }, []);
+    loadProducts()
+  }, [setProducts, setLoading, setError])
 
   if (loading) return <ProductsLoading />
 

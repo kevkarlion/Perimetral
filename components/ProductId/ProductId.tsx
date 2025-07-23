@@ -1,4 +1,3 @@
-// components/ProductId/ProductId.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -7,19 +6,20 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, ChevronRight, Check, Star, ShoppingCart } from 'lucide-react'
 import { useCartStore } from '@/components/store/cartStore'
+import { useProductStore } from '@/components/store/product-store'
 import { Button } from '@/components/ui/button'
 import { CartSidebar } from '@/components/CartSideBar/CartSideBar'
 import { AddToCartNotification } from '@/components/AddToCartNotification/AddToCartNotification'
 import { IProduct, IVariation } from '@/lib/types/productTypes'
 import { ProductIdSkeleton } from '@/components/ProductId/ProductIdSkeleton'
-import { ProductsLoading } from '@/components/ProductLoading'
 
 interface ProductImage {
   src: string
   alt: string
 }
+
 interface ProductIdProps {
-  initialProduct?: IProduct  // Producto precargado (opcional)
+  initialProduct?: IProduct // Producto precargado desde SSR
 }
 
 const defaultProduct: IProduct = {
@@ -40,13 +40,23 @@ const defaultProduct: IProduct = {
   proveedor: '',
   destacado: false,
   activo: true,
-  
 }
 
 export default function ProductId({ initialProduct }: ProductIdProps) {
   const { id } = useParams()
-  const [product, setProduct] = useState<IProduct | null>(initialProduct || null)
-  const [loading, setLoading] = useState(!initialProduct) // Si no hay initialProduct, carga
+  const {
+    currentProduct,
+    getProductById,
+    setCurrentProduct,
+    products
+  } = useProductStore()
+  
+  // Estado local del producto (combina SSR, store y fetch)
+  const [product, setProduct] = useState<IProduct | null>(
+    initialProduct || 
+    (currentProduct?._id === id ? currentProduct : null)
+  )
+  const [loading, setLoading] = useState(!initialProduct)
   const [error, setError] = useState<string | null>(null)
   
   // Estados de UI
@@ -59,7 +69,7 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
   // Carrito
   const addItem = useCartStore(state => state.addItem)
 
-  // Función segura para obtener imágenes
+  // Función para obtener imágenes seguras
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
     if (!product) {
       return [{ src: '/placeholder-product.jpg', alt: 'Producto no disponible' }]
@@ -75,7 +85,7 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
       : [{ src: '/placeholder-product.jpg', alt: product.nombre || 'Producto sin imágenes' }]
   }
 
-  // Función segura para formatear precio
+  // Formatear precio
   const formatPrice = (price?: number) => {
     return price?.toLocaleString('es-AR', { 
       style: 'currency', 
@@ -85,14 +95,26 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
   }
 
   useEffect(() => {
+    // 1. Primero intentar obtener del store global
+    const storedProduct = getProductById(id as string)
+    if (storedProduct) {
+      setProduct(storedProduct)
+      setCurrentProduct(storedProduct)
+      return
+    }
+
+    // 2. Si no está en el store pero tenemos initialProduct (SSR)
+    if (initialProduct) {
+      setProduct(initialProduct)
+      setCurrentProduct(initialProduct)
+      return
+    }
+
+    // 3. Si no hay datos, hacer fetch
     const fetchProduct = async () => {
       try {
         setLoading(true)
         setError(null)
-
-        if (!id) {
-          throw new Error('ID de producto no proporcionado')
-        }
 
         const response = await fetch(`/api/stock/${id}`)
         
@@ -102,8 +124,9 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
 
         const result = await response.json()
         
-        if (result?.success) {
-          setProduct(result.data || null)
+        if (result?.success && result.data) {
+          setProduct(result.data)
+          setCurrentProduct(result.data)
         } else {
           throw new Error(result?.error || 'Datos de producto no válidos')
         }
@@ -117,12 +140,12 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
     }
 
     fetchProduct()
-  }, [id])
+  }, [id, initialProduct, getProductById, setCurrentProduct])
 
   const handleAddToCart = () => {
     if (!product) return
 
-    const selectedVariant = product.tieneVariaciones ? product.variaciones?.[variacionSeleccionada] ?? null: null
+    const selectedVariant = product.tieneVariaciones ? product.variaciones?.[variacionSeleccionada] ?? null : null
     const imagenes = getSafeImages(product)
 
     addItem({
