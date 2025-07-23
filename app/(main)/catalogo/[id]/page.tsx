@@ -1,11 +1,15 @@
 // app/catalogo/[id]/page.tsx
 import ProductId from '@/components/ProductId/ProductId'
-import { IProduct } from '@/lib/types/productTypes'
 
-interface PageProps {
-  product: IProduct; // Recibe el producto directamente
-}
+export default async function Page({ params }: { params: { id: string } }) {
+  // 1. Obtener el producto en el servidor
+  const res = await fetch(`http://localhost:3000/api/stock/${params.id}`)
+  const { data: product } = await res.json()
 
-export default function Page({ product }: PageProps) {
-  return <ProductId  />
+  if (!product) {
+    return <div>Producto no encontrado</div>
+  }
+
+  // 2. Pasar el producto ya obtenido al componente
+  return <ProductId initialProduct={product} />
 }

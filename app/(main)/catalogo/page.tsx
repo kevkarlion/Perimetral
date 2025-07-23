@@ -10,7 +10,7 @@ import 'slick-carousel/slick/slick-theme.css'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { IProduct } from '@/lib/types/productTypes'
-import { ProductCardSkeleton } from '@/components/ProductCardSkeleton/ProductCardSkeleton'
+import { CatalogLoading } from '@/components/ProductCardSkeleton/CatalogLoading'
 
 type CustomArrowProps = {
   direction: 'next' | 'prev'
@@ -67,7 +67,6 @@ export default function ProductosPage() {
 
         const result = await response.json()
         
-        // Asegúrate de que la respuesta tenga la estructura esperada
         if (result && result.success && result.data) {
           setProducts(result.data)
         } else {
@@ -108,23 +107,21 @@ export default function ProductosPage() {
     )
   }
 
+  if (loading) {
+    return <CatalogLoading />
+  }
+
   return (
     <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Catálogo de Productos</h1>
         <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-          {loading ? 'Cargando productos...' : 'Soluciones profesionales para cerramientos y seguridad perimetral'}
+          Soluciones profesionales para cerramientos y seguridad perimetral
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
-        {loading ? (
-          <>
-            {[...Array(6)].map((_, index) => (
-              <ProductCardSkeleton key={index} />
-            ))}
-          </>
-        ) : products.length > 0 ? (
+        {products.length > 0 ? (
           products.map((producto) => (
             <ProductCard 
               key={producto._id} 

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { CartSidebar } from '@/components/CartSideBar/CartSideBar'
 import { AddToCartNotification } from '@/components/AddToCartNotification/AddToCartNotification'
 import { IProduct, IVariation } from '@/lib/types/productTypes'
+import { ProductIdSkeleton } from '@/components/ProductId/ProductIdSkeleton'
 import { ProductsLoading } from '@/components/ProductLoading'
 
 interface ProductImage {
@@ -148,12 +149,7 @@ export default function ProductId({ initialProduct }: ProductIdProps) {
   const tieneVariaciones = safeProduct.tieneVariaciones && safeProduct.variaciones?.length > 0
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <ProductsLoading />
-        <p className="text-center mt-4 text-gray-600">Cargando detalles del producto...</p>
-      </div>
-    )
+    return <ProductIdSkeleton />
   }
 
   if (error) {
