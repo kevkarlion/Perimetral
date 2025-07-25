@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getProductById } from '@/lib/controllers/productControllers'
+import { getProductById } from '@/backend/lib/controllers/productControllers'
 
 export async function GET(
   request: Request,

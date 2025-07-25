@@ -8,7 +8,7 @@ import {
   deleteProductById,
   updateProduct,
   updateStock
-} from "@/lib/controllers/productControllers";
+} from "@/backend/lib/controllers/productControllers";
 
 
 

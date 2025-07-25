@@ -1,7 +1,7 @@
-import { ProductController } from '@/lib/controllers/productControllers';
+// import { ProductController } from '@/lib/controllers/productControllers';
 
-// GET /api/products
-export const GET = ProductController.getAllProducts;
+// // GET /api/products
+// export const GET = ProductController.getAllProducts;
 
-// POST /api/products
-export const POST = ProductController.createProduct;
+// // POST /api/products
+// export const POST = ProductController.createProduct;

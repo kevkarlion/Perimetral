@@ -8,9 +8,9 @@ import Image from 'next/image'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import { useRouter } from 'next/navigation'
-import { useProductStore } from '@/components/store/product-store'
-import { CatalogLoading } from '@/components/ProductCardSkeleton/CatalogLoading'
-import { IProduct } from '@/lib/types/productTypes'
+import { useProductStore } from '@/app/components/store/product-store'
+import { CatalogLoading } from '@/app/components/ProductCardSkeleton/CatalogLoading'
+import { IProduct } from '@/types/productTypes'
 
 type CustomArrowProps = {
   direction: 'next' | 'prev'

@@ -1,9 +1,9 @@
-import Hero from "@/components/hero"
-import SocialBanner from "@/components/SocialBanner"
-import InfoBanner from "@/components/info-banner"
-import ProductsSection from "@/components/products-section"
-import Novedades from "@/components/novedades"
-import Faq from "@/components/faq"
+import Hero from "@/app/components/hero"
+import SocialBanner from "@/app/components/SocialBanner"
+import InfoBanner from "@/app/components/info-banner"
+import ProductsSection from "@/app/components/products-section"
+import Novedades from "@/app/components/novedades"
+import Faq from "@/app/components/faq"
 
 
 export default function Home() {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { X, ChevronLeft, Plus, Minus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Link from "next/link";
 //componente de persistencia de datos
 //es un objeto que contiene los datos del carrito
 //y los metodos para manipularlos
-import { useCartStore } from "@/components/store/cartStore";
+import { useCartStore } from "@/app/components/store/cartStore";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";

@@ -3,7 +3,7 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
-import { dbConnect } from '@/lib/dbConnect/dbConnect';
+import { dbConnect } from '@/backend/lib/dbConnect/dbConnect';
 
 type WebhookBody = {
   action: string;

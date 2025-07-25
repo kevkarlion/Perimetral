@@ -1,12 +1,12 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import  WhatsAppCTA  from "@/components/WhatsAppCTA"
+import  WhatsAppCTA  from "@/app/components/WhatsAppCTA"
 import "../globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar"
-import  Footer  from "@/components/footer"
-import { ProductInitializer } from "@/components/ProductInit"
+import { ThemeProvider } from "@/app/components/theme-provider"
+import Navbar from "@/app/components/navbar"
+import  Footer  from "@/app/components/footer"
+import { ProductInitializer } from '@/app/components/ProductInit'
 
 const inter = Inter({ subsets: ["latin"] })
 

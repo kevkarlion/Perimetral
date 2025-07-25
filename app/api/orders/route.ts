@@ -1,7 +1,7 @@
 // app/api/orders/route.ts
 import { NextResponse } from 'next/server';
-import { getOrders, createOrder } from '@/backend/controllers/orderController';
-import { validateCart } from '@/backend/services/validate.cart.services';
+import { getOrders, createOrder } from '@/backend/lib/controllers/orderController';
+import { validateCart } from '@/backend/lib/services/validate.cart.services';
 
 export async function GET() {
   try {

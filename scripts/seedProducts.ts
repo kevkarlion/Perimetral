@@ -1,5 +1,5 @@
 import 'dotenv/config'; // ✅ Esto carga automáticamente el archivo .env
-import { dbConnect } from '../lib/dbConnect/dbConnect.js';
+import { dbConnect } from '../backend/lib/dbConnect/dbConnect.js';
 import Product from '../lib/models/Product.js';
 
 const products = [
