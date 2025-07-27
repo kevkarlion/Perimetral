@@ -11,7 +11,7 @@ interface ProductStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   initializeProducts: (products: IProduct[]) => void;
-
+  isVariant: boolean; // ← Añade esta propiedad
   currentProduct: IProduct | null;
   setCurrentProduct: (product: IProduct) => void;
   getProductById: (id: string) => IProduct | undefined;
@@ -23,7 +23,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   loading: true,
   error: null,
   initialized: false,
-
+  isVariant: false, // ← Inicializa esta propiedad
   setCurrentProduct: (product) => set({ currentProduct: product }),
 
   setProducts: (products) => set({ products }),

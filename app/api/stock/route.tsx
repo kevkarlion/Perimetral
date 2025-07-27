@@ -15,7 +15,7 @@ import {
 // GET - Obtener todos los productos
 export async function GET() {
   try {
-    console.log('GET /api/stock');
+   
     const response = await getAllProducts();
     console.log("Productos obtenidos:", response);
     

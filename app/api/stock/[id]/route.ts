@@ -1,3 +1,4 @@
+// app/api/stock/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { getProductById } from '@/backend/lib/controllers/productControllers'
 

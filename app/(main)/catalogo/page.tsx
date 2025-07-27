@@ -62,9 +62,20 @@ export default function ProductosPage() {
   }
 
   const handleViewDetails = (producto: IProduct) => {
-    sessionStorage.setItem('currentProduct', JSON.stringify(producto))
+  // Usamos el nombre del producto para crear un slug amigable para URLs
+  const variants = producto.nombre
+    .toLowerCase()
+    .replace(/[^\w\s]/gi, '')
+    .replace(/\s+/g, '-')
+  
+  // Si el producto tiene variaciones, vamos a la página de variantes
+  if (producto.tieneVariaciones) {
+    router.push(`/catalogo/variants?productId=${producto._id}&productName=${encodeURIComponent(producto.nombre)}`)
+  } else {
+    // Si no tiene variaciones, vamos directamente al detalle
     router.push(`/catalogo/${producto._id}`)
   }
+}
 
   if (error) {
     return (
@@ -137,6 +148,13 @@ export default function ProductosPage() {
 }
 
 // El componente ProductCard permanece exactamente igual
+interface ProductCardProps {
+  producto: IProduct
+  sliderSettings: any
+  onViewDetails: (producto: IProduct) => void
+}
+
+// El componente ProductCard actualizado
 interface ProductCardProps {
   producto: IProduct
   sliderSettings: any
@@ -217,6 +235,23 @@ const ProductCard = ({
             </span>
           )}
         </div>
+
+        {/* Mostrar medidas si tiene variaciones */}
+        {producto.tieneVariaciones && producto.variaciones && producto.variaciones.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-500 mb-2">Medidas disponibles</h4>
+            <div className="flex flex-wrap gap-2">
+              {producto.variaciones.map((variacion, index) => (
+                <span 
+                  key={index} 
+                  className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full"
+                >
+                  {variacion.medida}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {producto.descripcionCorta && (
           <p className="text-gray-600 text-base mb-5 line-clamp-3">
