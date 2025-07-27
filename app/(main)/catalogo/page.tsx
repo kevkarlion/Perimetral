@@ -1,50 +1,56 @@
 // app/(main)/catalogo/page.tsx
-'use client'
+"use client";
 
-import { Star, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { FaWhatsapp } from 'react-icons/fa'
-import Slider from 'react-slick'
-import Image from 'next/image'
-import 'slick-carousel/slick/slick.css'
-import 'slick-carousel/slick/slick-theme.css'
-import { useRouter } from 'next/navigation'
-import { useProductStore } from '@/app/components/store/product-store'
-import { CatalogLoading } from '@/app/components/ProductCardSkeleton/CatalogLoading'
-import { IProduct } from '@/types/productTypes'
+import {
+  Star,
+  Check,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import Slider from "react-slick";
+import Image from "next/image";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { useRouter } from "next/navigation";
+import { useProductStore } from "@/app/components/store/product-store";
+import { CatalogLoading } from "@/app/components/ProductCardSkeleton/CatalogLoading";
+import { IProduct } from "@/types/productTypes";
 
 type CustomArrowProps = {
-  direction: 'next' | 'prev'
-  onClick?: React.MouseEventHandler<HTMLButtonElement>
-}
+  direction: "next" | "prev";
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+};
 
 const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
-  const Icon = direction === 'next' ? ChevronRight : ChevronLeft
+  const Icon = direction === "next" ? ChevronRight : ChevronLeft;
   return (
     <button
       type="button"
       className={`absolute top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none ${
-        direction === 'next' ? 'right-2' : 'left-2'
+        direction === "next" ? "right-2" : "left-2"
       }`}
       onClick={onClick}
-      aria-label={`${direction === 'next' ? 'Next' : 'Previous'} image`}
+      aria-label={`${direction === "next" ? "Next" : "Previous"} image`}
     >
       <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
         <Icon className="h-5 w-5 text-white" />
       </div>
     </button>
-  )
-}
+  );
+};
 
 export default function ProductosPage() {
-  const router = useRouter()
+  const router = useRouter();
   const {
     products,
     loading,
     error,
     initialized,
     setError,
-    initializeProducts
-  } = useProductStore()
+    initializeProducts,
+  } = useProductStore();
 
   const sliderSettings = {
     dots: false,
@@ -59,33 +65,39 @@ export default function ProductosPage() {
     autoplaySpeed: 5000,
     pauseOnHover: true,
     arrows: true,
-  }
+  };
 
   const handleViewDetails = (producto: IProduct) => {
-  // Usamos el nombre del producto para crear un slug amigable para URLs
-  const variants = producto.nombre
-    .toLowerCase()
-    .replace(/[^\w\s]/gi, '')
-    .replace(/\s+/g, '-')
-  
-  // Si el producto tiene variaciones, vamos a la página de variantes
-  if (producto.tieneVariaciones) {
-    router.push(`/catalogo/variants?productId=${producto._id}&productName=${encodeURIComponent(producto.nombre)}`)
-  } else {
-    // Si no tiene variaciones, vamos directamente al detalle
-    router.push(`/catalogo/${producto._id}`)
-  }
-}
+    // Usamos el nombre del producto para crear un slug amigable para URLs
+    const variants = producto.nombre
+      .toLowerCase()
+      .replace(/[^\w\s]/gi, "")
+      .replace(/\s+/g, "-");
+
+    // Si el producto tiene variaciones, vamos a la página de variantes
+    if (producto.tieneVariaciones) {
+      router.push(
+        `/catalogo/variants?productId=${
+          producto._id
+        }&productName=${encodeURIComponent(producto.nombre)}`
+      );
+    } else {
+      // Si no tiene variaciones, vamos directamente al detalle
+      router.push(`/catalogo/${producto._id}`);
+    }
+  };
 
   if (error) {
     return (
       <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Error al cargar productos</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Error al cargar productos
+          </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
             {error}
           </p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-4 bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded"
           >
@@ -93,17 +105,19 @@ export default function ProductosPage() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (!initialized || loading) {
-    return <CatalogLoading />
+    return <CatalogLoading />;
   }
 
   return (
     <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Catálogo de Productos</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          Catálogo de Productos
+        </h1>
         <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
           Soluciones profesionales para cerramientos y seguridad perimetral
         </p>
@@ -112,9 +126,9 @@ export default function ProductosPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
         {products.length > 0 ? (
           products.map((producto) => (
-            <ProductCard 
-              key={producto._id} 
-              producto={producto} 
+            <ProductCard
+              key={producto._id}
+              producto={producto}
               sliderSettings={sliderSettings}
               onViewDetails={handleViewDetails}
             />
@@ -128,9 +142,12 @@ export default function ProductosPage() {
 
       <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
         <div className="bg-white rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">¿Necesitas más información?</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            ¿Necesitas más información?
+          </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Nuestros especialistas están disponibles para responder todas tus consultas.
+            Nuestros especialistas están disponibles para responder todas tus
+            consultas.
           </p>
           <a
             href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
@@ -144,27 +161,27 @@ export default function ProductosPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // El componente ProductCard permanece exactamente igual
 interface ProductCardProps {
-  producto: IProduct
-  sliderSettings: any
-  onViewDetails: (producto: IProduct) => void
+  producto: IProduct;
+  sliderSettings: any;
+  onViewDetails: (producto: IProduct) => void;
 }
 
 // El componente ProductCard actualizado
 interface ProductCardProps {
-  producto: IProduct
-  sliderSettings: any
-  onViewDetails: (producto: IProduct) => void
+  producto: IProduct;
+  sliderSettings: any;
+  onViewDetails: (producto: IProduct) => void;
 }
 
-const ProductCard = ({ 
-  producto, 
+const ProductCard = ({
+  producto,
   sliderSettings,
-  onViewDetails
+  onViewDetails,
 }: ProductCardProps) => {
   return (
     <div className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white">
@@ -174,7 +191,7 @@ const ProductCard = ({
             <Slider {...sliderSettings} className="h-full">
               {producto.imagenesGenerales.map((imagen, index) => (
                 <div key={index} className="relative h-96 w-full">
-                  <button 
+                  <button
                     onClick={() => onViewDetails(producto)}
                     className="block h-full w-full"
                   >
@@ -192,7 +209,7 @@ const ProductCard = ({
             </Slider>
           ) : (
             <div className="relative h-96 w-full">
-              <button 
+              <button
                 onClick={() => onViewDetails(producto)}
                 className="block h-full w-full"
               >
@@ -221,7 +238,7 @@ const ProductCard = ({
 
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <button 
+          <button
             onClick={() => onViewDetails(producto)}
             className="group text-left"
           >
@@ -237,21 +254,25 @@ const ProductCard = ({
         </div>
 
         {/* Mostrar medidas si tiene variaciones */}
-        {producto.tieneVariaciones && producto.variaciones && producto.variaciones.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-500 mb-2">Medidas disponibles</h4>
-            <div className="flex flex-wrap gap-2">
-              {producto.variaciones.map((variacion, index) => (
-                <span 
-                  key={index} 
-                  className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full"
-                >
-                  {variacion.medida}
-                </span>
-              ))}
+        {producto.tieneVariaciones &&
+          producto.variaciones &&
+          producto.variaciones.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-gray-500 mb-2">
+                Medidas disponibles
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {producto.variaciones.map((variacion, index) => (
+                  <span
+                    key={index}
+                    className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full"
+                  >
+                    {variacion.medida}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {producto.descripcionCorta && (
           <p className="text-gray-600 text-base mb-5 line-clamp-3">
@@ -261,17 +282,19 @@ const ProductCard = ({
 
         {producto.especificacionesTecnicas && (
           <ul className="space-y-2.5 mb-6">
-            {producto.especificacionesTecnicas.slice(0, 3).map((espec, index) => (
-              <li key={index} className="flex items-start text-base">
-                <Check className="h-5 w-5 text-green-500 mr-2.5 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700">{espec}</span>
-              </li>
-            ))}
+            {producto.especificacionesTecnicas
+              .slice(0, 3)
+              .map((espec, index) => (
+                <li key={index} className="flex items-start text-base">
+                  <Check className="h-5 w-5 text-green-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">{espec}</span>
+                </li>
+              ))}
           </ul>
         )}
 
         <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
-          <button 
+          <button
             onClick={() => onViewDetails(producto)}
             className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"
           >
@@ -281,5 +304,5 @@ const ProductCard = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
