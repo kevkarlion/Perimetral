@@ -32,6 +32,7 @@ export interface IPaymentDetails {
 }
 
 export interface IOrder extends Document {
+  _id: string;
   customer: ICustomerData;
   items: IOrderItem[];
   subtotal: number;      // Nuevo campo: suma de precios SIN IVA

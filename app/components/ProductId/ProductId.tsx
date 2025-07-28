@@ -197,33 +197,27 @@ export default function ProductId({
   }
 
   if (error) {
-    return (
-      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Error al cargar el producto
-          </h1>
-          <p className="text-lg text-gray-600 mb-6">{error}</p>
-          <Button asChild>
-            <Link href="/catalogo" className="text-white">
-              Volver al catálogo
-            </Link>
-          </Button>
-        </div>
+  return (
+    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="text-center mb-16">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          Error al cargar el producto
+        </h1>
+        <p className="text-lg text-gray-600 mb-6">{error}</p>
+        <Button onClick={() => window.history.back()}>
+          Volver 
+        </Button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
       <div className="mb-6">
-        <Link
-          href="/catalogo"
-          className="inline-flex items-center text-brand hover:text-brandHover transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Volver al catálogo
-        </Link>
+        <Button onClick={() => window.history.back()}>
+          Volver atrás
+        </Button>
       </div>
 
       <div className="md:hidden space-y-3 mb-6">

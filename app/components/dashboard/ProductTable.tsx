@@ -1,4 +1,3 @@
-//app/components/dashboard/ProductTable.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,23 +17,19 @@ export default function ProductTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStockManager, setShowStockManager] = useState(false);
-  const [selectedProductForStock, setSelectedProductForStock] =
-    useState<IProduct | null>(null);
+  const [selectedProductForStock, setSelectedProductForStock] = useState<IProduct | null>(null);
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/stock");
-      // console.log("GET /api/stock - Response:", response);
       if (!response.ok) {
-        const errorData = await response.json(); // Intenta obtener más detalles del error
+        const errorData = await response.json();
         throw new Error(errorData.error || "Error al obtener productos");
       }
       const result = await response.json();
-      // console.log("GET /api/stock - Data:", result);
-      // Aquí está el cambio clave - usa result.data en lugar de result
       if (result.success && Array.isArray(result.data)) {
-        setProducts(result.data); // <-- Extrae el array de productos
+        setProducts(result.data);
         setError(null);
       } else {
         throw new Error("Formato de respuesta inválido");
@@ -122,7 +117,7 @@ export default function ProductTable() {
         </div>
       )}
 
-      {/* Versión para desktop (pantallas grandes) */}
+      {/* Versión Desktop */}
       <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -314,7 +309,7 @@ export default function ProductTable() {
         </div>
       </div>
 
-      {/* Versión para móviles y tablets */}
+      {/* Versión Mobile Mejorada */}
       <div className="lg:hidden space-y-4">
         {products.map((product) => (
           <div
@@ -322,13 +317,19 @@ export default function ProductTable() {
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-gray-900">{product.nombre}</h3>
-                <p className="text-sm text-gray-500">
-                  {product.codigoPrincipal || "N/D"}
-                </p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-gray-900 truncate">{product.nombre}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>{product.codigoPrincipal || "N/D"}</span>
+                  {product.categoria && (
+                    <>
+                      <span>•</span>
+                      <span>{product.categoria}</span>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 ml-2">
                 <button
                   onClick={() => openVariationModal(product)}
                   className="text-blue-600 hover:text-blue-900"
@@ -368,72 +369,54 @@ export default function ProductTable() {
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <p className="text-gray-500">Categoría</p>
-                <p>{product.categoria || "N/D"}</p>
-              </div>
-
-              {product.tieneVariaciones ? (
-                <>
-                  <div>
-                    <p className="text-gray-500">Variaciones</p>
-                    <div className="space-y-1">
-                      {product.variaciones?.map((variation, index) => (
-                        <div key={index} className="flex items-center">
-                          <span className="mr-1">•</span>
-                          <span>{variation.medida || "Sin medida"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500">Stock</p>
-                    <div className="space-y-1">
-                      {product.variaciones?.map((variation, index) => (
-                        <div
-                          key={index}
-                          className={variation.stock <= 0 ? "text-red-500" : ""}
-                        >
-                          {variation.stock ?? 0}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500">Precio</p>
-                    <div className="space-y-1">
-                      {product.variaciones?.map((variation, index) => (
-                        <div key={index}>
-                          ${variation.precio?.toFixed(2) || "0.00"}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-gray-500">Stock</p>
-                    <p
-                      className={
-                        (product.stock ?? 0) <= 0 ? "text-red-500" : ""
-                      }
+            {product.tieneVariaciones ? (
+              <div className="mt-3 space-y-3">
+                <h4 className="text-sm font-medium text-gray-500">Variaciones:</h4>
+                <div className="space-y-2">
+                  {product.variaciones?.map((variation, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex justify-between items-center p-2 rounded ${
+                        variation.stock <= 0 ? "bg-red-50" : "bg-gray-50"
+                      }`}
                     >
-                      {product.stock ?? 0}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Precio</p>
-                    <p>${product.precio?.toFixed(2) || "0.00"}</p>
-                  </div>
-                </>
-              )}
-            </div>
+                      <span className="text-sm font-medium">
+                        {variation.medida || "Sin medida"}
+                      </span>
+                      <div className="flex items-center gap-4">
+                        <span className={`text-sm ${
+                          variation.stock <= 0 ? "text-red-600 font-bold" : "text-gray-700"
+                        }`}>
+                          Stock: {variation.stock ?? 0}
+                        </span>
+                        <span className="text-sm font-bold text-gray-900">
+                          ${variation.precio?.toFixed(2) || "0.00"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Stock</p>
+                  <p className={`text-sm font-medium ${
+                    (product.stock ?? 0) <= 0 ? "text-red-600" : "text-gray-900"
+                  }`}>
+                    {product.stock ?? 0}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Precio</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    ${product.precio?.toFixed(2) || "0.00"}
+                  </p>
+                </div>
+              </div>
+            )}
 
-            <div className="mt-3 flex justify-between">
+            <div className="mt-4 flex justify-between border-t pt-3">
               <button
                 onClick={() => openDetailsModal(product)}
                 className="text-green-600 hover:text-green-900 flex items-center text-sm"
@@ -469,7 +452,7 @@ export default function ProductTable() {
                     clipRule="evenodd"
                   />
                 </svg>
-                Stock
+                Gestionar Stock
               </button>
             </div>
           </div>
@@ -498,6 +481,7 @@ export default function ProductTable() {
           onClose={closeDetailsModal}
         />
       )}
+
       {showStockManager && selectedProductForStock && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 mx-4">
