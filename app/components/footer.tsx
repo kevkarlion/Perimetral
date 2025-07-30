@@ -5,139 +5,102 @@ import { FaWhatsapp } from "react-icons/fa"
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-white">
-      <div className="bg-black py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Company Info */}
-            <div className="flex flex-col items-center">
-              <div className="mb-6">
-                <Image
-                  src="/Logos/Logo-mobile.webp"
-                  alt="Corralón Logo"
-                  width={160}
-                  height={48}
-                  className="object-containp-2 rounded-md"
-                />
-              </div>
-              <p className="text-gray-400 mb-6">
-                Especialistas en materiales de alta calidad para la construcción y seguridad perimetral.
-              </p>
+    <footer className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          {/* Logo y Descripción */}
+          <div className="space-y-4">
+            <div className="w-32">
+              <Image
+                src="/Logos/Logo-mobile.webp"
+                alt="Corralón Logo"
+                width={160}
+                height={48}
+                className="w-full h-auto"
+              />
             </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Especialistas en materiales de alta calidad para construcción y seguridad perimetral.
+            </p>
+          </div>
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Navegación</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/"
-                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Inicio
+          {/* Navegación */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 text-white">Navegación</h3>
+            <ul className="space-y-2">
+              {[
+                { href: "/", label: "Inicio" },
+                { href: "/catalogo", label: "Catálogo" },
+                { href: "/nosotros", label: "Nosotros" },
+                { href: "/news", label: "Novedades" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="text-gray-400 hover:text-brand text-sm transition-colors flex items-center">
+                    <span className="mr-1">›</span> {item.label}
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/catalogo"
-                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Catálogo
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/nosotros"
-                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Nosotros
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/news"
-                    className="text-gray-400 hover:text-brand transition-colors flex items-center"
-                  >
-                    <span className="mr-2">›</span> Novedades y consejos
-                  </Link>
-                </li>
-              
-              </ul>
-            </div>
+              ))}
+            </ul>
+          </div>
 
-            {/* Contact Info */}
-            <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Contacto</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <MapPin className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>Cacique Catriel 850, Stefenelli, General Roca, Río Negro</span>
-                </li>
-                <li className="flex items-start">
-                  <Phone className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>+54 298 - 4392148</span>
-                </li>
-                <li className="flex items-start">
-                  <Mail className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>perimetral.info@gmail.com</span>
-                </li>
-                <li className="flex items-start">
-                  <Clock className="h-5 w-5 text-brand mr-3 mt-1 flex-shrink-0" />
-                  <span>
-                    Lun-Vie: 8:00 - 19:00
-                    <br />
-                    Sáb: 8:00 - 13:00
-                  </span>
-                </li>
-              </ul>
-            </div>
+          {/* Contacto */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 text-white">Contacto</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <MapPin className="h-4 w-4 text-brand mr-2 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-400 text-sm">Cacique Catriel 850, Stefenelli, Roca</span>
+              </li>
+              <li className="flex items-center">
+                <Phone className="h-4 w-4 text-brand mr-2 flex-shrink-0" />
+                <span className="text-gray-400 text-sm">+54 298 - 4392148</span>
+              </li>
+              <li className="flex items-center">
+                <Mail className="h-4 w-4 text-brand mr-2 flex-shrink-0" />
+                <span className="text-gray-400 text-sm">perimetral.info@gmail.com</span>
+              </li>
+              <li className="flex items-start">
+                <Clock className="h-4 w-4 text-brand mr-2 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-400 text-sm">
+                  Lun-Vie: 8:00 - 19:00<br />
+                  Sáb: 8:00 - 13:00
+                </span>
+              </li>
+            </ul>
+          </div>
 
-            {/* Redes Sociales */}
-            <div>
-              <h3 className="text-lg font-bold mb-6 border-b border-brand pb-2">Nuestras Redes</h3>
-              <div className="space-y-4">
+          {/* Redes Sociales */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 text-white">Redes Sociales</h3>
+            <div className="space-y-3">
+              {[
+                { icon: <Facebook size={16} />, href: "https://www.facebook.com/perimetralroca", label: "Facebook" },
+                { icon: <Instagram size={16} />, href: "https://www.instagram.com/perimetralroca/", label: "Instagram" },
+                { icon: <FaWhatsapp size={16} />, href: "https://wa.me/542984392148", label: "WhatsApp" },
+              ].map((social) => (
                 <a
-                  href="https://www.facebook.com/perimetralroca"
+                  key={social.label}
+                  href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
+                  className="flex items-center text-gray-400 hover:text-brand transition-colors text-sm"
                 >
-                  <div className="bg-brand text-black p-2 rounded-full mr-3">
-                    <Facebook size={18} />
+                  <div className="bg-brand text-black p-1.5 rounded-full mr-3">
+                    {social.icon}
                   </div>
-                  <span>Facebook</span>
+                  <span>{social.label}</span>
                 </a>
-                <a
-                  href="https://www.instagram.com/perimetralroca/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
-                >
-                  <div className="bg-brand text-black p-2 rounded-full mr-3">
-                    <Instagram size={18} />
-                  </div>
-                  <span>Instagram</span>
-                </a>
-                <a
-                  href="https://wa.me/542984392148"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-brand transition-colors"
-                >
-                  <div className="bg-brand text-black p-2 rounded-full mr-3">
-                    <FaWhatsapp size={18} />
-                  </div>
-                  <span>WhatsApp</span>
-                </a>
-              </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="bg-gray-900 py-4 text-center text-gray-400">
-        <div className="container mx-auto px-4">
+        {/* Divider */}
+        <div className="border-t border-gray-800 my-6"></div>
+
+        {/* Copyright */}
+        <div className="text-center text-gray-500 text-xs">
           <p>© {new Date().getFullYear()} PERIMETRAL. Todos los derechos reservados.</p>
         </div>
       </div>
