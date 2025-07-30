@@ -25,7 +25,7 @@ const newsItems = [
     title: "Instalación Profesional de Alambre de Púas",  
     excerpt: "Aprende a evitar fallos comunes y maximiza la durabilidad de tu cerco.",  
     date: "22 Junio, 2025",
-    image: "/Productos/puas/alambre-instalado.webp",
+    image: "/Productos/puas/pua3.webp",
   },
   // {
   //   id: 4,

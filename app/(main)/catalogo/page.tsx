@@ -1,4 +1,3 @@
-// app/(main)/catalogo/page.tsx
 "use client";
 
 import {
@@ -29,13 +28,13 @@ const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
     <button
       type="button"
       className={`absolute top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none ${
-        direction === "next" ? "right-2" : "left-2"
+        direction === "next" ? "right-1" : "left-1"
       }`}
       onClick={onClick}
       aria-label={`${direction === "next" ? "Next" : "Previous"} image`}
     >
-      <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
-        <Icon className="h-5 w-5 text-white" />
+      <div className="bg-brand hover:bg-brandHover rounded-full p-1 transition-colors shadow-md">
+        <Icon className="h-4 w-4 text-white" />
       </div>
     </button>
   );
@@ -68,13 +67,11 @@ export default function ProductosPage() {
   };
 
   const handleViewDetails = (producto: IProduct) => {
-    // Usamos el nombre del producto para crear un slug amigable para URLs
     const variants = producto.nombre
       .toLowerCase()
       .replace(/[^\w\s]/gi, "")
       .replace(/\s+/g, "-");
 
-    // Si el producto tiene variaciones, vamos a la página de variantes
     if (producto.tieneVariaciones) {
       router.push(
         `/catalogo/variants?productId=${
@@ -82,24 +79,23 @@ export default function ProductosPage() {
         }&productName=${encodeURIComponent(producto.nombre)}`
       );
     } else {
-      // Si no tiene variaciones, vamos directamente al detalle
       router.push(`/catalogo/${producto._id}`);
     }
   };
 
   if (error) {
     return (
-      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Error al cargar productos
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
             {error}
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded"
+            className="mt-4 bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded text-sm"
           >
             Reintentar
           </button>
@@ -113,17 +109,17 @@ export default function ProductosPage() {
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           Catálogo de Productos
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
           Soluciones profesionales para cerramientos y seguridad perimetral
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {products.length > 0 ? (
           products.map((producto) => (
             <ProductCard
@@ -134,18 +130,18 @@ export default function ProductosPage() {
             />
           ))
         ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 text-lg">No se encontraron productos</p>
+          <div className="col-span-full text-center py-8">
+            <p className="text-gray-500 text-md">No se encontraron productos</p>
           </div>
         )}
       </div>
 
-      <div className="mt-16 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-xl shadow-lg">
-        <div className="bg-white rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+      <div className="mt-8 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-lg shadow-md">
+        <div className="bg-white rounded-lg p-6 text-center">
+          <h3 className="text-lg font-bold text-gray-900 mb-2">
             ¿Necesitas más información?
           </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-4 max-w-2xl mx-auto text-sm">
             Nuestros especialistas están disponibles para responder todas tus
             consultas.
           </p>
@@ -153,9 +149,9 @@ export default function ProductosPage() {
             href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-bold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md"
+            className="inline-flex items-center justify-center gap-1 bg-brand hover:bg-brandHover text-white font-bold py-2 px-6 rounded-md transition-all shadow-sm hover:shadow-md text-sm"
           >
-            <FaWhatsapp className="w-5 h-5" />
+            <FaWhatsapp className="w-4 h-4" />
             Contactar por WhatsApp
           </a>
         </div>
@@ -164,14 +160,6 @@ export default function ProductosPage() {
   );
 }
 
-// El componente ProductCard permanece exactamente igual
-interface ProductCardProps {
-  producto: IProduct;
-  sliderSettings: any;
-  onViewDetails: (producto: IProduct) => void;
-}
-
-// El componente ProductCard actualizado
 interface ProductCardProps {
   producto: IProduct;
   sliderSettings: any;
@@ -183,14 +171,22 @@ const ProductCard = ({
   sliderSettings,
   onViewDetails,
 }: ProductCardProps) => {
+  // Función para formatear el precio
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(price);
+  };
+
   return (
-    <div className="group border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/20 bg-white">
-      <div className="relative h-96 bg-gray-100">
-        {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
+    <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
+      <div className="relative h-48 bg-gray-100">
+          {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
           producto.imagenesGenerales.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
               {producto.imagenesGenerales.map((imagen, index) => (
-                <div key={index} className="relative h-96 w-full">
+                <div key={index} className="relative h-48 w-full">
                   <button
                     onClick={() => onViewDetails(producto)}
                     className="block h-full w-full"
@@ -208,7 +204,7 @@ const ProductCard = ({
               ))}
             </Slider>
           ) : (
-            <div className="relative h-96 w-full">
+            <div className="relative h-48 w-full">
               <button
                 onClick={() => onViewDetails(producto)}
                 className="block h-full w-full"
@@ -225,84 +221,97 @@ const ProductCard = ({
             </div>
           )
         ) : (
-          <div className="relative h-96 w-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400">Imagen no disponible</span>
+          <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
         )}
         {producto.destacado && (
-          <div className="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center shadow-md z-10">
-            <Star className="h-4 w-4 mr-1.5" /> DESTACADO
+          <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm z-10">
+            <Star className="h-3 w-3 mr-1" /> DESTACADO
           </div>
         )}
       </div>
 
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
+      <div className="p-3 flex-grow flex flex-col">
+        <div className="flex justify-between items-start mb-2">
           <button
             onClick={() => onViewDetails(producto)}
-            className="group text-left"
+            className="group text-left flex-grow"
           >
-            <h2 className="text-lg font-bold text-gray-900 group-hover:text-brandHover transition-colors line-clamp-2">
+            <h2 className="text-sm font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
               {producto.nombre}
             </h2>
+            {producto.descripcionCorta && (
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                {producto.descripcionCorta}
+              </p>
+            )}
           </button>
           {producto.categoria && (
-            <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full font-medium whitespace-nowrap ml-3">
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
               {producto.categoria}
             </span>
           )}
         </div>
 
-        {/* Mostrar medidas si tiene variaciones */}
-        {producto.tieneVariaciones &&
-          producto.variaciones &&
-          producto.variaciones.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">
-                Medidas disponibles
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {producto.variaciones.map((variacion, index) => (
+        {/* Sección de medidas y precios */}
+        <div className="mt-2 mb-3">
+          {producto.tieneVariaciones ? (
+            <>
+              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
+              <div className="flex flex-wrap gap-1">
+                {producto.variaciones.slice(0, 3).map((variacion, index) => (
                   <span
                     key={index}
-                    className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full"
+                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
                   >
                     {variacion.medida}
                   </span>
                 ))}
+                {producto.variaciones.length > 3 && (
+                  <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    +{producto.variaciones.length - 3}
+                  </span>
+                )}
               </div>
-            </div>
+            </>
+          ) : (
+            producto.precio && (
+              <div className="flex flex-col mt-2">
+                <span className="text-xs text-gray-500">Precio</span>
+                <span className="text-lg font-bold text-brand mt-1">
+                  {formatPrice(producto.precio)}
+                </span>
+              </div>
+            )
           )}
+        </div>
 
-        {producto.descripcionCorta && (
-          <p className="text-gray-600 text-base mb-5 line-clamp-3">
-            {producto.descripcionCorta}
-          </p>
-        )}
-
-        {producto.especificacionesTecnicas && (
-          <ul className="space-y-2.5 mb-6">
-            {producto.especificacionesTecnicas
-              .slice(0, 3)
-              .map((espec, index) => (
-                <li key={index} className="flex items-start text-base">
-                  <Check className="h-5 w-5 text-green-500 mr-2.5 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">{espec}</span>
-                </li>
-              ))}
+        {/* Especificaciones técnicas (mostrar máximo 2) */}
+        {producto.especificacionesTecnicas && producto.especificacionesTecnicas.length > 0 && (
+          <ul className="space-y-1.5 mb-3">
+            {producto.especificacionesTecnicas.slice(0, 2).map((espec, index) => (
+              <li key={index} className="flex items-start text-xs">
+                <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-700">{espec}</span>
+              </li>
+            ))}
           </ul>
         )}
 
-        <div className="flex items-end justify-between mt-6 pt-6 border-t border-gray-200">
+        <div className="mt-auto pt-3 border-t border-gray-100">
           <button
             onClick={() => onViewDetails(producto)}
-            className="flex items-center text-base font-medium text-brand hover:text-brandHover transition-colors group"
+            className="flex items-center justify-between w-full text-xs font-medium text-brand hover:text-brandHover transition-colors group"
           >
-            Ver detalles
-            <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            <span>Ver detalles completos</span>
+            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>
     </div>
   );
 };
+
+
+

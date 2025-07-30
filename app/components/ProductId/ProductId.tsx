@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ChevronRight,
@@ -43,6 +43,7 @@ export default function ProductId({
   initialProduct,
   initialVariationId,
 }: ProductIdProps) {
+  const router = useRouter();
   const { id } = useParams();
   const searchParams = useSearchParams();
   const variationId = searchParams.get("variation") || initialVariationId;
@@ -204,9 +205,13 @@ export default function ProductId({
           Error al cargar el producto
         </h1>
         <p className="text-lg text-gray-600 mb-6">{error}</p>
-        <Button onClick={() => window.history.back()}>
-          Volver 
-        </Button>
+         <button
+            onClick={() => router.back()} // Aquí es donde ocurre la magia
+            className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
+      >
+            <ArrowLeft size={16} className="mr-2" />
+            Volver
+      </button>
       </div>
     </div>
   );
@@ -215,9 +220,13 @@ export default function ProductId({
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
       <div className="mb-6">
-        <Button onClick={() => window.history.back()}>
-          Volver atrás
-        </Button>
+         <button
+            onClick={() => router.back()} // Aquí es donde ocurre la magia
+            className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
+      >
+            <ArrowLeft size={16} className="mr-2" />
+            Volver
+      </button>
       </div>
 
       <div className="md:hidden space-y-3 mb-6">

@@ -8,8 +8,6 @@ export async function getOrders() {
     .lean();
 }
 
-
-
 export async function createOrder(orderData: {
   items: Array<{
     productId: string;

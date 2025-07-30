@@ -252,7 +252,7 @@ const handleCheckout = async () => {
                     name="name"
                     value={customerInfo.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     required
                   />
                 </div>
@@ -263,7 +263,7 @@ const handleCheckout = async () => {
                     name="email"
                     value={customerInfo.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     required
                   />
                 </div>
@@ -274,7 +274,7 @@ const handleCheckout = async () => {
                     name="phone"
                     value={customerInfo.phone}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     required
                   />
                 </div>
@@ -285,7 +285,7 @@ const handleCheckout = async () => {
                     name="address"
                     value={customerInfo.address}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   />
                 </div>
               </div>
@@ -337,22 +337,6 @@ const handleCheckout = async () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Métodos de pago</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {['visa', 'mastercard', 'amex', 'mercado-pago', 'transferencia', 'efectivo'].map((method) => (
-                  <div key={method} className="p-2 border border-gray-200 rounded-md flex items-center justify-center bg-gray-50">
-                    <Image
-                      src={`/payment-methods/${method}.svg`}
-                      alt={method}
-                      width={40}
-                      height={30}
-                      className="h-6 w-auto object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
       </div>

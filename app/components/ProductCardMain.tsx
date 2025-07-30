@@ -1,169 +1,199 @@
 import Image from "next/image"
-import { ArrowRight, Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowRight, Star, ChevronLeft, ChevronRight, Check } from "lucide-react"
 import Slider from "react-slick"
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
 import { IProduct } from "@/types/productTypes"
 import Link from "next/link"
 
-const SampleNextArrow = ({ onClick }: { onClick?: () => void }) => (
-  <button
-    type="button"
-    className="absolute top-1/2 -translate-y-1/2 right-2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
-    onClick={onClick}
-    aria-label="Next image"
-  >
-    <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
-      <ChevronRight className="h-5 w-5 text-white" />
-    </div>
-  </button>
-)
-
-const SamplePrevArrow = ({ onClick }: { onClick?: () => void }) => (
-  <button
-    type="button"
-    className="absolute top-1/2 -translate-y-1/2 left-2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none"
-    onClick={onClick}
-    aria-label="Previous image"
-  >
-    <div className="bg-brand hover:bg-brandHover rounded-full p-2 transition-colors shadow-md">
-      <ChevronLeft className="h-5 w-5 text-white" />
-    </div>
-  </button>
-)
+const CustomArrow = ({ direction, onClick }: { direction: 'next' | 'prev', onClick?: () => void }) => {
+  const Icon = direction === 'next' ? ChevronRight : ChevronLeft
+  return (
+    <button
+      type="button"
+      className={`absolute top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none ${
+        direction === 'next' ? 'right-1' : 'left-1'
+      }`}
+      onClick={onClick}
+      aria-label={`${direction === 'next' ? 'Next' : 'Previous'} image`}
+    >
+      <div className="bg-brand hover:bg-brandHover rounded-full p-1 transition-colors shadow-md">
+        <Icon className="h-4 w-4 text-white" />
+      </div>
+    </button>
+  )
+}
 
 interface ProductCardProps {
   product: IProduct
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCardMain({ product }: ProductCardProps) {
   const {
     imagenesGenerales = [],
-    especificacionesTecnicas = [],
     _id,
     nombre,
     descripcionCorta,
     precio,
     destacado,
     tieneVariaciones,
-    variaciones = []
+    variaciones = [],
+    categoria,
+    especificacionesTecnicas = []
   } = product
 
   const sliderSettings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true,
-    prevArrow: <SamplePrevArrow />,
-    nextArrow: <SampleNextArrow />,
+    nextArrow: <CustomArrow direction="next" />,
+    prevArrow: <CustomArrow direction="prev" />,
     adaptiveHeight: true,
+    autoplay: false,
     autoplaySpeed: 5000,
     pauseOnHover: true,
+    arrows: true,
   }
 
-  // Determinar la URL basada en si tiene variaciones
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(price)
+  }
+
   const productUrl = tieneVariaciones
     ? `/catalogo/variants?productId=${_id}&productName=${encodeURIComponent(nombre)}`
     : `/catalogo/${_id}`
 
   return (
-    <Link href={productUrl} passHref>
-      <div className={`group relative flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg ${
-        destacado ? "ring-2 ring-brand" : ""
-      }`}>
-        <div className="flex flex-col h-full">
-          {destacado && (
-            <div className="absolute top-3 right-3 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center">
-              <Star className="h-3 w-3 mr-1" /> DESTACADO
-            </div>
-          )}
-
-          {tieneVariaciones && (
-            <div className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
-              VARIANTES
-            </div>
-          )}
-
-          <div className="relative w-full h-80 bg-white overflow-hidden">
-            {imagenesGenerales.length > 0 ? (
-              imagenesGenerales.length > 1 ? (
-                <Slider {...sliderSettings} className="h-full">
-                  {imagenesGenerales.map((imagen, index) => (
-                    <div key={index} className="relative h-80 w-full">
-                      <Image
-                        src={imagen}
-                        alt={`${nombre} - Imagen ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        priority={index === 0}
-                      />
-                    </div>
-                  ))}
-                </Slider>
-              ) : (
-                <div className="relative h-80 w-full">
-                  <Image
-                    src={imagenesGenerales[0]}
-                    alt={nombre}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    priority
-                  />
+    <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
+      {/* Contenedor de imagen - Igual que en ProductCard */}
+      <div className="relative h-48 bg-gray-100">
+        {imagenesGenerales.length > 0 ? (
+          imagenesGenerales.length > 1 ? (
+            <Slider {...sliderSettings} className="h-full">
+              {imagenesGenerales.map((imagen, index) => (
+                <div key={index} className="relative h-48 w-full">
+                  <Link href={productUrl} className="block h-full w-full">
+                    <Image
+                      src={imagen}
+                      alt={`${nombre} - Imagen ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority={index === 0}
+                    />
+                  </Link>
                 </div>
-              )
-            ) : (
-              <div className="bg-gray-100 h-full flex items-center justify-center">
-                <span className="text-gray-400">Sin imagen</span>
-              </div>
-            )}
+              ))}
+            </Slider>
+          ) : (
+            <div className="relative h-48 w-full">
+              <Link href={productUrl} className="block h-full w-full">
+                <Image
+                  src={imagenesGenerales[0]}
+                  alt={nombre}
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                />
+              </Link>
+            </div>
+          )
+        ) : (
+          <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
+        )}
+        {destacado && (
+          <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm z-10">
+            <Star className="h-3 w-3 mr-1" /> DESTACADO
+          </div>
+        )}
+        {tieneVariaciones && (
+          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+            VARIANTES
+          </div>
+        )}
+      </div>
 
-          <div className="p-4 flex-grow flex flex-col">
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
+      {/* Contenido de la card - Igual que en ProductCard */}
+      <div className="p-3 flex-grow flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <Link href={productUrl} className="group text-left flex-grow">
+            <h2 className="text-sm font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
               {nombre}
-            </h3>
-
-            {/* Mostrar medidas si tiene variaciones */}
-            {tieneVariaciones && variaciones.length > 0 && (
-              <div className="mb-2 mt-1">
-                <h4 className="text-sm font-medium text-gray-500 mb-1">
-                  Medidas disponibles
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {variaciones.map((variacion, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full"
-                    >
-                      {variacion.medida}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <p className="text-sm text-gray-600 mt-1">
-              {descripcionCorta}
-            </p>
-
-         
-            {precio && (
-              <p className="text-lg mt-2 font-bold text-gray-900">
-                ${precio.toLocaleString("es-AR")}
+            </h2>
+            {descripcionCorta && (
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                {descripcionCorta}
               </p>
             )}
+          </Link>
+          {categoria && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+              {categoria}
+            </span>
+          )}
+        </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-sm text-brand font-medium">
-              Ver detalles
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          </div>
+        <div className="mt-2 mb-3">
+          {tieneVariaciones ? (
+            <>
+              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
+              <div className="flex flex-wrap gap-1">
+                {variaciones.slice(0, 3).map((variacion, index) => (
+                  <span
+                    key={index}
+                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                  >
+                    {variacion.medida}
+                  </span>
+                ))}
+                {variaciones.length > 3 && (
+                  <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    +{variaciones.length - 3}
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            precio && (
+              <div className="flex flex-col mt-2">
+                <span className="text-xs text-gray-500">Precio</span>
+                <span className="text-lg font-bold text-brand mt-1">
+                  {formatPrice(precio)}
+                </span>
+              </div>
+            )
+          )}
+        </div>
+
+        {especificacionesTecnicas.length > 0 && (
+          <ul className="space-y-1.5 mb-3">
+            {especificacionesTecnicas.slice(0, 2).map((espec, index) => (
+              <li key={index} className="flex items-start text-xs">
+                <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-700">{espec}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-auto pt-3 border-t border-gray-100">
+          <Link
+            href={productUrl}
+            className="flex items-center justify-between w-full text-xs font-medium text-brand hover:text-brandHover transition-colors group"
+          >
+            <span>Ver detalles completos</span>
+            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

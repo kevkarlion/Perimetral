@@ -95,7 +95,7 @@ export class OrderService {
 
   static async updateOrderStatus(orderId: string, status: string, paymentDetails: any = {}) {
     try {
-      const validStatuses = ['pending', 'processing', 'completed', 'payment_failed', 'cancelled'];
+      const validStatuses = ['pending', 'processing', 'completed', 'payment_failed', 'cancelled', 'rejected'];
       
       if (!validStatuses.includes(status)) {
         throw new Error(`Estado '${status}' no válido`);

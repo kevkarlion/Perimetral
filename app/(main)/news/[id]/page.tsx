@@ -90,7 +90,7 @@ const newsItems = [
   title: "Cómo Maximizar la Seguridad con Alambre de Púas",
   excerpt: "Errores comunes y soluciones profesionales en instalaciones de cercos punzantes.",
   date: "22 Junio, 2025",
-  image: "/Productos/puas/alambre-instalado.webp",
+  image: "/Productos/puas/pua3.webp",
   content: `
     <h3 class="text-xl font-bold mb-4">Tipos de alambre de púas:</h3>
     <p class="mb-4">No todos los alambres punzantes son iguales. Los más usados en Argentina son:</p>

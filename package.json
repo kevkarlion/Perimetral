@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && tsc server.ts",
+    "start": "ts-node server.ts",
     "lint": "next lint",
     "seed": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/seedProducts.ts"
   },
@@ -47,7 +47,7 @@
     "cmdk": "1.0.4",
     "cors": "^2.8.5",
     "date-fns": "2.29.3",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "embla-carousel-react": "8.5.1",
     "express": "^5.1.0",
     "express-mongo-sanitize": "^2.2.0",
@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.97",
-    "@types/node": "^22.15.32",
+    "@types/node": "^22.16.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/react-slick": "^0.23.13",
