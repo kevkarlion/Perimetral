@@ -4,16 +4,18 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/app/components/ui/button'
-import { Truck, HardHat, Phone, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { Truck, HardHat, ChevronLeft, ChevronRight } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useSwipeable } from 'react-swipeable'
 
-const images = [
-  '/cerco1.webp',
-  '/cerco10.webp',
-  '/cerco2.webp',
-]
+// ✅ IMPORT ESTÁTICO DE IMÁGENES
+import cerco1 from '@/public/cerco1.webp'
+import cerco2 from '@/public/cerco2.webp'
+import cerco10 from '@/public/cerco10.webp'
+
+// ✅ Array de imágenes como objetos
+const images = [cerco1, cerco10, cerco2]
 
 export default function HeroCarousel() {
   const [[index, direction], setIndex] = useState([0, 0])
@@ -40,14 +42,14 @@ export default function HeroCarousel() {
 
   return (
     <section
-      className="relative h-[80vh] md:h-[60vh] md:min-h-[600px] min-h-[750px] w-full overflow-hidden border-b-8 border-brand"
+      className="relative h-[80vh] md:h-[60vh] md:min-h-[600px] min-h-[750px] w-full overflow-hidden border-b-8 border-brand "
       {...swipeHandlers}
     >
       {/* Carousel Images */}
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={index}
-          className="absolute inset-0"
+          className="absolute inset-0 bg-black"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -59,6 +61,7 @@ export default function HeroCarousel() {
             fill
             className="object-cover brightness-75"
             priority={index === 0}
+            placeholder="blur" // ✅ Esto ahora sí funciona
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
         </motion.div>
@@ -87,18 +90,18 @@ export default function HeroCarousel() {
             Fabricamos e instalamos cercos perimetrales
           </div>
           <h1 className="text-center lg:text-left text-4xl md:text-5xl lg:text-5xl font-bold tracking-tighter mb-4 leading-tight">
-            Cercos <br /> Perimetrales  a Medida <br /> Instalación Profesional
+            Cercos <br /> Perimetrales a Medida <br /> Instalación Profesional
           </h1>
           <h2 className="text-lg md:text-xl mb-8 text-gray-200 tracking-tighter">
             <span className="text-center lg:text-left block text-brand mt-2 tracking-tighter">
-              Protección y Seguridad <br /> Cercos de Alta Calidad <span className='text-white'> para Empresas y Hogares </span> 
-            </span>{' '}
-            
+              Protección y Seguridad <br /> Cercos de Alta Calidad{' '}
+              <span className="text-white">para Empresas y Hogares</span>
+            </span>
           </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button size="lg" className="bg-blackCharcoal hover:bg-blackDeep text-white font-bold">
-              <Link href="/catalogo" className="flex items-center gap-2 ">
-               Explorar cercos 
+              <Link href="/catalogo" className="flex items-center gap-2">
+                Explorar cercos
               </Link>
             </Button>
             <Button
@@ -107,7 +110,7 @@ export default function HeroCarousel() {
               className="text-blackCharcoal border-white hover:bg-white/10 font-bold"
               asChild
             >
-              <a 
+              <a
                 href="https://wa.me/5492984392148?text=Hola,%20me%20interesa%20solicitar%20un%20presupuesto%20de%20cercos%20perimetrales"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -133,12 +136,11 @@ export default function HeroCarousel() {
               </div>
               <span className="text-sm">Asesoramiento técnico</span>
             </div>
-          
           </div>
         </div>
       </div>
 
-      {/* Indicators - Moved outside content div and adjusted position */}
+      {/* Indicators */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-[98]">
         {images.map((_, i) => (
           <button

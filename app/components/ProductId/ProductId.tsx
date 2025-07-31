@@ -198,65 +198,64 @@ export default function ProductId({
   }
 
   if (error) {
-  return (
-    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Error al cargar el producto
-        </h1>
-        <p className="text-lg text-gray-600 mb-6">{error}</p>
-         <button
-            onClick={() => router.back()} // Aquí es donde ocurre la magia
+    return (
+      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Error al cargar el producto
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => router.back()}
             className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
-      >
+          >
             <ArrowLeft size={16} className="mr-2" />
             Volver
-      </button>
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
       <div className="mb-6">
-         <button
-            onClick={() => router.back()} // Aquí es donde ocurre la magia
-            className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
-      >
-            <ArrowLeft size={16} className="mr-2" />
-            Volver
-      </button>
+        <button
+          onClick={() => router.back()}
+          className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Volver
+        </button>
       </div>
 
-      <div className="md:hidden space-y-3 mb-6">
+      <div className="md:hidden space-y-4 mb-6">
         {safeProduct.destacado && (
-          <div className="inline-flex items-center bg-brand text-black text-xs font-bold px-3 py-1 rounded-full">
-            <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
+          <div className="inline-flex items-center bg-brand/10 text-brand text-sm font-semibold px-3 py-1 rounded-full border border-brand/20">
+            <Star className="h-4 w-4 mr-1.5" /> DESTACADO
           </div>
         )}
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           {safeProduct.nombre}
           {selectedVariation && ` - ${selectedVariation.medida}`}
         </h1>
         {safeProduct.categoria && (
-          <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+          <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
             {safeProduct.categoria}
           </span>
         )}
       </div>
 
       <div className="flex flex-col md:grid md:grid-cols-2 gap-8 lg:gap-12">
+        {/* Sección de imágenes */}
         <div className="flex flex-col lg:flex-row-reverse gap-4 lg:sticky lg:top-32 lg:self-start">
           <div className="w-full">
-            <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
               <Image
-                src={
-                  imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"
-                }
+                src={imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"}
                 alt={imagenes[imagenPrincipal]?.alt || "Imagen del producto"}
                 fill
-                className="object-contain p-2"
+                className="object-contain p-4"
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
@@ -268,7 +267,7 @@ export default function ProductId({
               <button
                 key={index}
                 onClick={() => setImagenPrincipal(index)}
-                className={`flex-shrink-0 w-14 h-14 md:w-16 md:h-16 relative rounded-md overflow-hidden border-2 transition-all ${
+                className={`flex-shrink-0 w-14 h-14 md:w-16 md:h-16 relative rounded-md overflow-hidden border transition-all ${
                   imagenPrincipal === index
                     ? "border-brand scale-105"
                     : "border-gray-200 hover:border-gray-300"
@@ -286,26 +285,29 @@ export default function ProductId({
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="hidden md:block space-y-3">
+        {/* Sección de detalles */}
+        <div className="space-y-8">
+          <div className="hidden md:block space-y-4">
             {safeProduct.destacado && (
-              <div className="inline-flex items-center bg-brand text-white text-xs font-bold px-3 py-1 rounded-full">
-                <Star className="h-3.5 w-3.5 mr-1.5" /> DESTACADO
+              <div className="inline-flex items-center bg-brand/10 text-brand text-sm font-semibold px-3 py-1 rounded-full border border-brand/20">
+                <Star className="h-4 w-4 mr-1.5" /> DESTACADO
               </div>
             )}
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               {safeProduct.nombre}
               {selectedVariation && ` - ${selectedVariation.medida}`}
             </h1>
             {safeProduct.categoria && (
-              <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
                 {safeProduct.categoria}
               </span>
             )}
           </div>
-          <div className="space-y-4">
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl md:text-3xl font-bold text-brand">
+
+          {/* Precio y botón */}
+          <div className="space-y-6">
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-brand">
                 {formatPrice(
                   selectedVariation
                     ? selectedVariation.precio
@@ -317,7 +319,7 @@ export default function ProductId({
 
             <Button
               onClick={handleAddToCart}
-              className="w-full mt-4 bg-brand hover:bg-brand-dark"
+              className="w-full h-12 text-base font-medium"
               disabled={isAddedToCart || !product}
             >
               {isAddedToCart ? (
@@ -331,8 +333,10 @@ export default function ProductId({
               )}
             </Button>
           </div>
+
+          {/* Descripción */}
           <div className="prose max-w-none text-gray-700">
-            <p className="text-lg">
+            <p className="text-gray-600 leading-relaxed">
               {selectedVariation?.descripcion ||
                 safeProduct.descripcionLarga ||
                 safeProduct.descripcionCorta ||
@@ -340,81 +344,61 @@ export default function ProductId({
             </p>
           </div>
 
-          {/* Sección de Especificaciones Técnicas */}
+          {/* Especificaciones técnicas */}
           {(specsToShow.length > 0 || Object.keys(variationAttributes).length > 0) && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-900">
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
                 Especificaciones técnicas
               </h3>
               
-              {/* Mostrar medida seleccionada */}
               {selectedVariation?.medida && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Medida: {selectedVariation.medida}
+                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                    <span className="text-gray-700 font-medium">
+                      Medida: <span className="text-brand">{selectedVariation.medida}</span>
                     </span>
                   </div>
                 </div>
               )}
 
-
-                {/* Agregar aca el abertura */}
-                {/* {selectedVariation?.medida && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Medida: {selectedVariation.abertura}
-                    </span>
-                  </div>
-                </div>
-              )} */}
-
-              {/* Atributos específicos de la variación */}
+              {/* Atributos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* {variationAttributes.longitud && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Longitud: {variationAttributes.longitud} mm
-                    </span>
-                  </div>
-                )} */}
                 {variationAttributes.altura && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Altura: {variationAttributes.altura} mm
+                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                    <span className="text-gray-700 font-medium">
+                      Altura: <span className="text-brand">{variationAttributes.altura} mm</span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.calibre && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Calibre: {variationAttributes.calibre}
+                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                    <span className="text-gray-700 font-medium">
+                      Calibre: <span className="text-brand">{variationAttributes.calibre}</span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.material && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Material: {variationAttributes.material}
+                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                    <span className="text-gray-700 font-medium">
+                      Material: <span className="text-brand">{variationAttributes.material}</span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.color && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="text-gray-700">
-                      Color: {variationAttributes.color}
+                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                    <span className="text-gray-700 font-medium">
+                      Color: <span className="text-brand">{variationAttributes.color}</span>
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Especificaciones técnicas del producto */}
+              {/* Especificaciones */}
               {specsToShow.length > 0 && (
-                <ul className="space-y-3 mt-4">
+                <ul className="space-y-3">
                   {specsToShow.map((espec, index) => (
                     <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <Check className="h-5 w-5 text-brand mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-700">{espec}</span>
                     </li>
                   ))}
@@ -425,17 +409,17 @@ export default function ProductId({
 
           {/* Características principales */}
           {(safeProduct.caracteristicas?.length ?? 0) > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-900">
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
                 Características principales
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {safeProduct.caracteristicas?.map((caract, index) => (
                   <div
                     key={`${caract}-${index}`}
-                    className="flex items-center bg-gray-50 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100"
+                    className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100"
                   >
-                    <Check className="h-5 w-5 text-brand mr-2 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-brand mr-3 flex-shrink-0" />
                     <span className="text-gray-700">{caract}</span>
                   </div>
                 ))}
@@ -443,6 +427,7 @@ export default function ProductId({
             </div>
           )}
 
+          {/* Contacto (desktop) */}
           <div className="hidden md:block mt-8">
             <Link
               href={`/contacto?producto=${encodeURIComponent(
@@ -451,10 +436,10 @@ export default function ProductId({
               )}&codigo=${
                 selectedVariation?.codigo || safeProduct.codigoPrincipal
               }`}
-              className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all text-sm w-full group"
+              className="inline-flex items-center justify-between bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-lg transition-all w-full group"
             >
-              <span>¿Interesado en este producto?</span>
-              <span className="flex items-center bg-brand rounded px-3 py-1 ml-3 group-hover:bg-brand-dark">
+              <span className="text-sm">¿Interesado en este producto?</span>
+              <span className="flex items-center bg-brand rounded px-3 py-1.5 ml-3 group-hover:bg-brand-dark text-sm">
                 Contactar
                 <ChevronRight className="h-4 w-4 ml-1" />
               </span>
@@ -463,10 +448,11 @@ export default function ProductId({
         </div>
       </div>
 
-      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50 flex gap-2">
+      {/* Botones móviles */}
+      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50 flex gap-3">
         <Button
           onClick={handleAddToCart}
-          className="flex-1 bg-brand hover:bg-brand-dark"
+          className="flex-1 h-12"
           disabled={isAddedToCart || !product}
         >
           {isAddedToCart ? (
@@ -474,9 +460,9 @@ export default function ProductId({
           ) : (
             <ShoppingCart className="h-5 w-5" />
           )}
-          {isAddedToCart ? "Añadido" : "Comprar"}
+          <span className="ml-2">{isAddedToCart ? "Añadido" : "Comprar"}</span>
         </Button>
-        <Button asChild className="flex-1">
+        <Button asChild variant="outline" className="flex-1 h-12">
           <Link
             href={`/contacto?producto=${encodeURIComponent(
               safeProduct.nombre +

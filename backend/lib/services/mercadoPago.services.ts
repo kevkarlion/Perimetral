@@ -2,7 +2,9 @@ import { Preference } from 'mercadopago';
 import { client } from '@/lib/mercadopago';
 
 
+const urlFront = process.env.NEXT_PUBLIC_FRONTEND_URL;
 
+console.log('URL del Frontend:', urlFront);
 
 export class MercadoPagoService {
   static async createPreference(order: any) {
@@ -37,14 +39,14 @@ export class MercadoPagoService {
           external_reference: order._id.toString(), 
           
           // URL DE NOTIFICACIÓN - Para recibir actualizaciones de estado
-          notification_url: `${process.env.BASE_URL}/api/webhooks/mercadopago`,
+          notification_url: `${process.env.BASE_URL}/api/mercadopago/webhook`,
           
           // CONFIGURACIÓN DE REDIRECCIÓN
           auto_return: 'approved', // Redirige automáticamente al éxito
           back_urls: {
-            success: `${process.env.FRONTEND_URL}/pago-exitoso/success`,
-            failure: `${process.env.FRONTEND_URL}/pago-fallido/failure`, 
-            pending: `${process.env.FRONTEND_URL}/pago-pendiente/pending`
+            success: `${urlFront}/pago-exitoso/success`,
+            failure: `${urlFront}/pago-fallido/failure`, 
+            pending: `${urlFront}/pago-pendiente/pending`
           },
           
           // CONFIGURACIONES ADICIONALES RECOMENDADAS:
