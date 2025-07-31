@@ -241,24 +241,24 @@ const ProductCard = ({
             <h2 className="text-sm font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
               {producto.nombre}
             </h2>
-            {producto.descripcionCorta && (
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                {producto.descripcionCorta}
-              </p>
-            )}
+            {/* Descripción corta solo en desktop */}
+            <p className="hidden sm:block text-xs text-gray-500 mt-1 line-clamp-2">
+              {producto.descripcionCorta}
+            </p>
           </button>
+          {/* Categoría solo en desktop */}
           {producto.categoria && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+            <span className="hidden sm:inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
               {producto.categoria}
             </span>
           )}
         </div>
 
-        {/* Sección de medidas y precios */}
+        {/* Sección de medidas y precios - Simplificada en mobile */}
         <div className="mt-2 mb-3">
           {producto.tieneVariaciones ? (
             <>
-              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
+              <h4 className="text-xs text-gray-500 mb-1 sm:block hidden">Medidas disponibles</h4>
               <div className="flex flex-wrap gap-1">
                 {producto.variaciones.slice(0, 3).map((variacion, index) => (
                   <span
@@ -277,9 +277,9 @@ const ProductCard = ({
             </>
           ) : (
             producto.precio && (
-              <div className="flex flex-col mt-2">
-                <span className="text-xs text-gray-500">Precio</span>
-                <span className="text-lg font-bold text-brand mt-1">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500 sm:block hidden">Precio</span>
+                <span className="text-lg font-bold text-brand">
                   {formatPrice(producto.precio)}
                 </span>
               </div>
@@ -287,9 +287,9 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Especificaciones técnicas (mostrar máximo 2) */}
+        {/* Especificaciones técnicas (solo en desktop) */}
         {producto.especificacionesTecnicas && producto.especificacionesTecnicas.length > 0 && (
-          <ul className="space-y-1.5 mb-3">
+          <ul className="hidden sm:block space-y-1.5 mb-3">
             {producto.especificacionesTecnicas.slice(0, 2).map((espec, index) => (
               <li key={index} className="flex items-start text-xs">
                 <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
@@ -304,7 +304,7 @@ const ProductCard = ({
             onClick={() => onViewDetails(producto)}
             className="flex items-center justify-between w-full text-xs font-medium text-brand hover:text-brandHover transition-colors group"
           >
-            <span>Ver detalles completos</span>
+            <span>Ver detalles</span>
             <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
@@ -312,6 +312,3 @@ const ProductCard = ({
     </div>
   );
 };
-
-
-
