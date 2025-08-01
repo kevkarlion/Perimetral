@@ -1,7 +1,7 @@
 // src/app/api/webhooks/mercadopago/route.ts
 import { NextResponse } from 'next/server';
 import { Payment } from 'mercadopago';
-import { client } from '@/lib/mercadopago';
+import { client } from '@/backend/lib/services/mercadoPagoPayment';
 import { OrderService } from '@/backend/lib/services/order.services';
 
 export async function POST(request: Request) {
