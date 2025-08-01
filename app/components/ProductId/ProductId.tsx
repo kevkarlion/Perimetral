@@ -319,7 +319,7 @@ export default function ProductId({
 
             <Button
               onClick={handleAddToCart}
-              className="w-full h-12 text-base font-medium"
+              className="w-full h-12 text-base font-medium bg-balckHero hover:bg-blackCharcoal"
               disabled={isAddedToCart || !product}
             >
               {isAddedToCart ? (

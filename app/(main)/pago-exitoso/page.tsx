@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { verifyPayment } from '@/lib/mercadopago'; // Función que debes crear
+import { verifyPayment } from '@/backend/lib/services/mercadoPagoPayment'; // Función que debes crear
 
 export default async function PagoExitoso({
   searchParams,

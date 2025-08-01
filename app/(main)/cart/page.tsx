@@ -323,8 +323,8 @@ const handleCheckout = async () => {
                     <Image 
                       src="/payment-methods/mercado-pago.svg" 
                       alt="Mercado Pago" 
-                      width={20} 
-                      height={20} 
+                      width={80} 
+                      height={80} 
                     />
                     Pagar con Mercado Pago
                   </>

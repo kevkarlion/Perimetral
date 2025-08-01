@@ -1,5 +1,5 @@
 import { Preference } from 'mercadopago';
-import { client } from '@/lib/mercadopago';
+import { client } from '@/backend/lib/services/mercadoPagoPayment'; // Asegúrate de que la ruta sea correcta
 
 
 const urlFront = process.env.NEXT_PUBLIC_FRONTEND_URL;
