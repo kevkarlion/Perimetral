@@ -1,6 +1,6 @@
 // app/catalogo/page.tsx
-import VariantPages from "@/app/components/VariantPage/VariantPage";
+import CatalogoPage from "@/app/components/CatalogoPage/CatalogoPage";
 
-export default function ProductosPage() {
-  return <VariantPages />;
+export default function Catalogo() {
+  return <CatalogoPage />;
 }
