@@ -1,5 +1,11 @@
-import VariantPage from '@/app/components/VariantPage/VariantPage'
+'use client'
+import dynamic from 'next/dynamic'
+
+// Este componente se renderiza solo en el cliente (donde `useSearchParams()` funciona)
+const VariantPageClient = dynamic(() => import('@/app/components/VariantPage/VariantPage'), {
+  ssr: false,
+})
 
 export default function ProductVariantsPage() {
-  return <VariantPage />
+  return <VariantPageClient />
 }

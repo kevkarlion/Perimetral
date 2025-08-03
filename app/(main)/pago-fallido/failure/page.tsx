@@ -15,8 +15,8 @@ export default function PagoFallido({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Pago Fallido</h1>
-        <p className="text-gray-600 mb-6">{errorMessage}</p>
+        {/* <h1 className="text-2xl font-bold text-gray-800 mb-2">Pago Fallido</h1>
+        <p className="text-gray-600 mb-6">{errorMessage}</p> */}
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/carrito" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300">

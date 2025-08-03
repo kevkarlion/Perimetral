@@ -44,9 +44,9 @@ export class MercadoPagoService {
           // CONFIGURACIÓN DE REDIRECCIÓN
           auto_return: 'approved', // Redirige automáticamente al éxito
           back_urls: {
-            success: `${urlFront}/pago-exitoso/success`,
-            failure: `${urlFront}/pago-fallido/failure`, 
-            pending: `${urlFront}/pago-pendiente/pending`
+            success: `https://20ce5dd99957.ngrok-free.app/pago-exitoso/success`,
+            failure: `https://20ce5dd99957.ngrok-free.app/pago-fallido/failure`, 
+            pending: `https://20ce5dd99957.ngrok-free.app/pago-pendiente/pending`
           },
           
           // CONFIGURACIONES ADICIONALES RECOMENDADAS:

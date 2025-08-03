@@ -22,7 +22,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend/lib/dbConnect", "server.mts", "server.mts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend/lib/dbConnect", "server.ts", "server.ts"],
   "exclude": ["node_modules"],
   "types": ["node"]
 }

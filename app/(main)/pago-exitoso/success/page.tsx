@@ -20,10 +20,10 @@ export default async function PagoExitoso({
         <h1 className="text-2xl font-bold text-gray-800 mb-2">¡Pago Exitoso!</h1>
         <p className="text-gray-600 mb-6">Tu pago ha sido procesado correctamente. Número de transacción: {paymentId}</p>
         
-        <div className="mb-6 p-4 bg-green-50 rounded-md text-left">
+        {/* <div className="mb-6 p-4 bg-green-50 rounded-md text-left">
           <h2 className="font-semibold mb-2">Detalles del pago:</h2>
           <pre className="text-sm text-gray-700">{JSON.stringify(paymentStatus, null, 2)}</pre>
-        </div>
+        </div> */}
 
         <Link href="/mis-ordenes" className="inline-block bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-md transition duration-300">
           Ver mis órdenes
