@@ -10,22 +10,23 @@ export interface MercadoPagoItem {
   category_id?: string;
 }
 
-export interface MercadoPagoAdditionalInfo {
-  items?: MercadoPagoItem[];
-  reference?: string; // Contiene el orderId de tu sistema
-  payer?: {
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-    phone?: {
-      number?: string;
-    };
+export interface MercadoPagoPayer {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: {
+    number?: string;
   };
 }
 
-// src/types/mercadoPagoTypes.ts
+export interface MercadoPagoAdditionalInfo {
+  reference?: string; // Contiene tu orderId
+  items?: MercadoPagoItem[];
+  payer?: MercadoPagoPayer;
+}
+
 export interface MercadoPagoPayment {
-  id: number; // Cambiado a number para coincidir con el SDK
+  id: number;
   status: string;
   status_detail?: string;
   transaction_amount: number;
@@ -33,18 +34,20 @@ export interface MercadoPagoPayment {
   payment_method_id?: string;
   payment_type_id?: string;
   additional_info?: MercadoPagoAdditionalInfo;
-  [key: string]: any; // Para propiedades adicionales del SDK
+}
+
+export interface StockUpdateResult {
+  productId: string;
+  variationId?: string;
+  success: boolean;
+  newStock?: number;
+  error?: string;
 }
 
 export interface WebhookResponse {
   success: boolean;
   orderId?: string;
-  stockUpdates?: Array<{
-    productId: string;
-    success: boolean;
-    data?: any;
-    error?: string;
-  }>;
+  stockUpdates?: StockUpdateResult[];
   error?: string;
   details?: any;
 }

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+     "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "target": "ES2020",
@@ -8,7 +9,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -18,11 +19,14 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+     "paths": {
+      "@/*": ["./*"],
+      "@controllers/*": ["backend/controllers/*"],
+      "@services/*": ["backend/services/*"],
+      "@lib/*": ["backend/lib/*"]
+    },
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend/lib/dbConnect", "server.ts", "server.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend"],
   "exclude": ["node_modules"],
   "types": ["node"]
 }

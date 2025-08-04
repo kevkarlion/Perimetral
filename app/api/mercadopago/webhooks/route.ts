@@ -3,64 +3,138 @@ import { NextResponse } from 'next/server';
 import { Payment } from 'mercadopago';
 import { client } from '@/backend/lib/services/mercadoPagoPayment';
 import { OrderService } from '@/backend/lib/services/order.services';
-import {
+import type {
   MercadoPagoPayment,
-  MercadoPagoAdditionalInfo,
-  MercadoPagoItem,
-  WebhookResponse
+  WebhookResponse,
+  StockUpdateResult
 } from '@/types/mercadopagoTypes';
+
+// Función para validar y convertir los datos del pago
+function parsePaymentData(paymentData: any): MercadoPagoPayment {
+  if (typeof paymentData?.id !== 'number') {
+    throw new Error('ID de pago inválido o faltante');
+  }
+
+  if (typeof paymentData?.status !== 'string') {
+    throw new Error('Estado de pago inválido o faltante');
+  }
+
+  return {
+    id: paymentData.id,
+    status: paymentData.status,
+    status_detail: paymentData.status_detail,
+    transaction_amount: paymentData.transaction_amount || 0,
+    date_approved: paymentData.date_approved,
+    payment_method_id: paymentData.payment_method_id,
+    payment_type_id: paymentData.payment_type_id,
+    additional_info: paymentData.additional_info ? {
+      reference: paymentData.additional_info.reference,
+      items: paymentData.additional_info.items?.map(item => ({
+        id: String(item.id || ''),
+        title: item.title,
+        description: item.description,
+        quantity: Number(item.quantity) || 0,
+        unit_price: Number(item.unit_price) || 0,
+        variation_id: item.variation_id ? String(item.variation_id) : undefined,
+        category_id: item.category_id ? String(item.category_id) : undefined
+      })),
+      payer: paymentData.additional_info.payer
+    } : undefined
+  };
+}
 
 export async function POST(request: Request): Promise<NextResponse<WebhookResponse>> {
   try {
     const body = await request.json();
     
-    if (!body.data || !body.data.id) {
-      console.error('Invalid webhook data:', body);
+    // Validación básica del webhook
+    if (!body?.data?.id) {
       return NextResponse.json(
-        { success: false, error: 'Invalid data' }, 
+        { success: false, error: 'Datos de webhook inválidos' }, 
         { status: 400 }
       );
     }
 
-    const paymentId = body.data.id;
+    // Obtener detalles del pago
     const payment = new Payment(client);
-    const paymentDetails = await payment.get({ id: paymentId }) as MercadoPagoPayment;
+    const rawPaymentData = await payment.get({ id: body.data.id });
+    const paymentDetails = parsePaymentData(rawPaymentData);
 
+    // Verificar que el pago esté aprobado
     if (paymentDetails.status !== 'approved') {
-      console.log(`Payment ${paymentId} not approved, status: ${paymentDetails.status}`);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ 
+        success: true,
+        details: `Pago no aprobado, estado: ${paymentDetails.status}`
+      });
     }
 
+    // Validar información adicional
     const orderId = paymentDetails.additional_info?.reference;
     const items = paymentDetails.additional_info?.items || [];
 
     if (!orderId) {
-      console.error('OrderId not found in additional_info.reference');
       return NextResponse.json(
-        { success: false, error: 'OrderId not provided' },
+        { success: false, error: 'No se encontró referencia de orden' },
         { status: 400 }
       );
     }
 
-    if (items.length === 0) {
-      console.error('No items in payment:', paymentDetails);
-      return NextResponse.json(
-        { success: false, error: 'No products in payment' },
-        { status: 400 }
-      );
-    }
-
+    // Actualizar estado de la orden
     await OrderService.updateOrderStatus(
       orderId,
       'completed',
       {
-        paymentStatus: 'approved',
-        paymentId,
-        paidAmount: paymentDetails.transaction_amount
+        paymentStatus: paymentDetails.status,
+        paymentId: paymentDetails.id.toString(),
+        paidAmount: paymentDetails.transaction_amount,
+        paymentMethod: paymentDetails.payment_method_id
       }
     );
 
-    const stockUpdates = await updateStockForItems(items);
+    // Actualizar stock para cada item
+    const stockUpdates: StockUpdateResult[] = [];
+    
+    for (const item of items) {
+      try {
+        if (!item.id) {
+          throw new Error('ID de producto faltante');
+        }
+
+        const payload: any = {
+          productId: item.id,
+          stock: -Math.abs(item.quantity), // Valor negativo para disminuir
+          action: 'increment'
+        };
+
+        if (item.variation_id) {
+          payload.variationId = item.variation_id;
+        }
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        stockUpdates.push({
+          productId: item.id,
+          variationId: item.variation_id,
+          success: response.ok,
+          newStock: result?.data?.stock,
+          ...(!response.ok && { error: result.error || 'Error desconocido' })
+        });
+
+      } catch (error) {
+        stockUpdates.push({
+          productId: item.id,
+          variationId: item.variation_id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Error desconocido'
+        });
+      }
+    }
 
     return NextResponse.json({ 
       success: true,
@@ -69,55 +143,14 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     });
 
   } catch (error: any) {
-    console.error('Webhook error:', error);
+    console.error('Error en webhook:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: 'Error processing webhook',
+        error: 'Error procesando el webhook',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
       { status: 500 }
     );
   }
-}
-
-async function updateStockForItems(items: MercadoPagoItem[]) {
-  const updateResults: WebhookResponse['stockUpdates'] = [];
-  
-  for (const item of items) {
-    try {
-      if (!item.id || !item.quantity) {
-        throw new Error(`Invalid item: ${JSON.stringify(item)}`);
-      }
-
-      const payload = {
-        productId: item.id,
-        stock: -Math.abs(item.quantity),
-        action: 'increment' as const,
-        ...(item.variation_id && { variationId: item.variation_id })
-      };
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      updateResults.push({
-        productId: item.id,
-        success: response.ok,
-        data: await response.json(),
-        ...(!response.ok && { error: response.statusText })
-      });
-      
-    } catch (error) {
-      updateResults.push({
-        productId: item.id,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-
-  return updateResults;
 }
