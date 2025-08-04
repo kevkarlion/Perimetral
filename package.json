@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "start": "next start",	
     "lint": "next lint",
     "seed": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/seedProducts.ts"
   },
