@@ -1,7 +1,10 @@
 'use client'
-import  VariantPage  from '@/app/components/VariantPage/VariantPage'
+import dynamic from 'next/dynamic'
 
 
+const VariantPage = dynamic(() => import('@/app/components/VariantPage/VariantPage'), {
+  ssr: false,
+})
 
 export default function VariantPageClientWrapper() {
   return <VariantPage />
