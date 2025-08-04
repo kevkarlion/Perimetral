@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} pt-6`} >
+      <body className={`${inter.className} flex flex-col min-h-screen pt-6`} >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ProductInitializer />
           <Navbar />
