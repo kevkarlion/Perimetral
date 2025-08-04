@@ -4,7 +4,9 @@ import ProductId from '@/app/components/ProductId/ProductId'
 
 export default async function Page({ params }: { params: { id: string } }) {
   // 1. Obtener el producto en el servidor (SSR)
-  const res = await fetch(`http://localhost:3000/api/stock/${params.id}`)
+
+  const URL = process.env.BASE_URL
+  const res = await fetch(`${URL}/api/stock/${params.id}`)
   const { data: product } = await res.json()
   
   // 2. Hidratar el store (solo en cliente)

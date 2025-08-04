@@ -1,44 +1,14 @@
-// components/products/ProductSection.tsx
 'use client'
 
-import { useEffect } from "react"
-import ProductGrid from "./ProductGridMain"
 import { ProductsLoading } from "@/app/components/ProductLoading"
 import { Button } from "@/app/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import ProductGrid from "./ProductGridMain"
 import { useProductStore } from "@/app/components/store/product-store"
 
 export default function ProductSection() {
-  const { products, loading, error, setProducts, setLoading, setError } = useProductStore()
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true)
-      try {
-        const response = await fetch('/api/stock')
-        
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`)
-        }
-
-        const result = await response.json()
-        
-        if (result && result.data) {
-          setProducts(result.data)
-        } else {
-          throw new Error('La respuesta no contiene datos válidos')
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido')
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadProducts()
-  }, [setProducts, setLoading, setError])
+  const { products, loading, error } = useProductStore()
 
   if (loading) return <ProductsLoading />
 
@@ -68,7 +38,7 @@ export default function ProductSection() {
           </p>
         </div>
 
-        <ProductGrid products={products} />
+        <ProductGrid />
 
         <div className="text-center mt-12">
           <Button

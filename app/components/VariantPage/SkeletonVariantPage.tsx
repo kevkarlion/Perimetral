@@ -17,7 +17,7 @@ export function SkeletonVariantPage({ productName }: VariantLoadingProps) {
         className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-6"
       >
         <ArrowLeft size={16} className="mr-2" />
-        Volver al catálogo
+        Volver
       </button>
 
       {/* Sección de variantes - Título siempre visible */}
