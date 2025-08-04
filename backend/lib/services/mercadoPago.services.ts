@@ -1,5 +1,5 @@
 import { Preference } from 'mercadopago';
-import { client } from '@/backend/lib/services/mercadoPagoPayment'; // Asegúrate de que la ruta sea correcta
+import { getClient } from '@/backend/lib/services/mercadoPagoPayment'; // Asegúrate de que la ruta sea correcta
 
 
 const urlFront = process.env.BASE_URL;
@@ -9,6 +9,7 @@ console.log('URL del Frontend:', urlFront);
 export class MercadoPagoService {
   static async createPreference(order: any) {
     try {
+      const client = getClient();
       const preference = new Preference(client);
       
       // 1. MAPEO DE ITEMS - Mejoras de robustez

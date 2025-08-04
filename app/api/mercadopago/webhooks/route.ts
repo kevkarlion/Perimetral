@@ -1,7 +1,7 @@
 // src/app/api/webhooks/mercadopago/route.ts
 import { NextResponse } from 'next/server';
 import { Payment } from 'mercadopago';
-import { client } from '@/backend/lib/services/mercadoPagoPayment';
+import { getClient } from '@/backend/lib/services/mercadoPagoPayment';
 import { OrderService } from '@/backend/lib/services/order.services';
 import type {
   MercadoPagoPayment,
@@ -56,6 +56,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     }
 
     // Obtener detalles del pago
+    const client = getClient();
     const payment = new Payment(client);
     const rawPaymentData = await payment.get({ id: body.data.id });
     const paymentDetails = parsePaymentData(rawPaymentData);

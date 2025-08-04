@@ -1,11 +1,14 @@
 import mongoose, { Mongoose } from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
-  );
+// Usar función para acceder a la variable de entorno
+function getMongoUri() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error(
+      'Please define the MONGODB_URI environment variable inside .env.local'
+    );
+  }
+  return uri;
 }
 
 // Extiende la interfaz global para el caché de Mongoose
@@ -34,26 +37,25 @@ export async function dbConnect(): Promise<Mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 10000, // 10 segundos para selección de servidor
-      socketTimeoutMS: 45000, // Cierra sockets después de 45s de inactividad
-      family: 4, // Usar IPv4, omitir IPv6
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4,
     };
 
     console.log('🔄 Creating new MongoDB connection');
     cached.promise = mongoose
-      .connect(MONGODB_URI!, opts)
+      .connect(getMongoUri(), opts)
       .then((mongoose) => {
         console.log('✨ MongoDB connected successfully');
         return mongoose;
       })
       .catch((err) => {
         console.error('❌ MongoDB connection error:', err);
-        cached.promise = null; // Resetear en caso de error
+        cached.promise = null;
         throw err;
       });
   }
 
-  // 3. Esperar la conexión y cachearla
   try {
     cached.conn = await cached.promise;
   } catch (err) {
