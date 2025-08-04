@@ -2,7 +2,7 @@ import { Preference } from 'mercadopago';
 import { client } from '@/backend/lib/services/mercadoPagoPayment'; // Asegúrate de que la ruta sea correcta
 
 
-const urlFront = process.env.NEXT_PUBLIC_FRONTEND_URL;
+const urlFront = process.env.BASE_URL;
 
 console.log('URL del Frontend:', urlFront);
 
@@ -39,14 +39,14 @@ export class MercadoPagoService {
           external_reference: order._id.toString(), 
           
           // URL DE NOTIFICACIÓN - Para recibir actualizaciones de estado
-          notification_url: `${process.env.BASE_URL}/api/mercadopago/webhook`,
+          notification_url: `${urlFront}/api/mercadopago/webhook`,
           
           // CONFIGURACIÓN DE REDIRECCIÓN
           auto_return: 'approved', // Redirige automáticamente al éxito
           back_urls: {
-            success: `https://20ce5dd99957.ngrok-free.app/pago-exitoso/success`,
-            failure: `https://20ce5dd99957.ngrok-free.app/pago-fallido/failure`, 
-            pending: `https://20ce5dd99957.ngrok-free.app/pago-pendiente/pending`
+            success: `${urlFront}/pago-exitoso/success`,
+            failure: `${urlFront}/pago-fallido/failure`,
+            pending: `${urlFront}/pago-pendiente/pending`
           },
           
           // CONFIGURACIONES ADICIONALES RECOMENDADAS:
