@@ -2,6 +2,7 @@
 import Order from '@/backend/lib/models/Order';
 import { validateCart } from '@/backend/lib/services/validate.cart.services';
 import { MercadoPagoService } from './mercadoPago.services';
+import { sendEmail } from '@/backend/lib/services/emailService'; // Asume que tienes un servicio de email
 
 export class OrderService {
   static async createValidatedOrder(orderData: {
@@ -44,6 +45,7 @@ export class OrderService {
 
       await order.save();
 
+
       // 3. Si el método es MercadoPago, crear preferencia
       if (orderData.paymentMethod === 'mercadopago') {
         try {
@@ -65,6 +67,7 @@ export class OrderService {
           };
 
           await order.save();
+          await this.sendOrderConfirmationEmail(order);
 
           return {
             ...order.toObject(),
@@ -90,6 +93,32 @@ export class OrderService {
     } catch (error: any) {
       console.error('Error general al crear orden:', error);
       throw new Error(`Error al crear la orden: ${error.message}`);
+    }
+  }
+
+
+    static async sendOrderConfirmationEmail(order: any) {
+    try {
+      const orderLink = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.accessToken}`;
+      
+      await sendEmail({
+        to: order.customer.email,
+        subject: `Confirmación de tu orden #${order.orderNumber}`,
+        html: `
+          <h1>¡Gracias por tu compra!</h1>
+          <p>Hemos recibido tu orden <strong>#${order.orderNumber}</strong>.</p>
+          <p>Puedes ver el estado de tu pedido en el siguiente enlace:</p>
+          <a href="${orderLink}" style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+            Ver mi orden
+          </a>
+          <p>O copia y pega esta URL en tu navegador:</p>
+          <p style="word-break: break-all;">${orderLink}</p>
+          <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
+        `
+      });
+    } catch (emailError) {
+      console.error('Error al enviar email de confirmación:', emailError);
+      // No lanzamos error para no interrumpir el flujo de compra
     }
   }
 
