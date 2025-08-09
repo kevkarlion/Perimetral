@@ -34,6 +34,7 @@ export interface MercadoPagoPayment {
   payment_method_id?: string;
   payment_type_id?: string;
   additional_info?: MercadoPagoAdditionalInfo;
+  external_reference?: string; // Añadido para vincular con tu orden
 }
 
 export interface StockUpdateResult {

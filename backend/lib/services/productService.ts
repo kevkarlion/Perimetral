@@ -279,6 +279,11 @@ async incrementProductStock(
   variationId?: string
 ): Promise<IProduct> {
   await dbConnect();
+  console.log("Datos recibidos en incrementProductStock:", {
+  productId,
+  amount,  // Debería ser negativo (ej: -2)
+  variationId
+});
   
   if (!Types.ObjectId.isValid(productId)) {
     throw new Error('ID de producto no válido');

@@ -40,7 +40,7 @@ export class MercadoPagoService {
           external_reference: order._id.toString(), 
           
           // URL DE NOTIFICACIÓN - Para recibir actualizaciones de estado
-          notification_url: `${urlFront}/api/mercadopago/webhook`,
+          notification_url: `${urlFront}/api/mercadopago/webhooks`,
           
           // CONFIGURACIÓN DE REDIRECCIÓN
           auto_return: 'approved', // Redirige automáticamente al éxito
