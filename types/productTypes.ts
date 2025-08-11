@@ -1,18 +1,8 @@
 // lib/types/productTypes.ts
-
 import { Types } from 'mongoose';
 
-
-export interface ServiceResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  details?: string;
-}
-
-
 export interface IVariation {
-  _id?: string;
+  _id?: string | Types.ObjectId;
   codigo: string;
   descripcion?: string;
   medida: string;
@@ -30,36 +20,50 @@ export interface IVariation {
   activo?: boolean;
 }
 
-export interface DBProduct {
-  _id: Types.ObjectId;
-  name: string;
-  price: number;
-  stock: number;
-  isActive: boolean;
-  images?: string[];
-  sku?: string;
-  // Agrega aquí otros campos que necesites
+export interface ICategoryRef {
+  _id: string | Types.ObjectId;
+  nombre: string;
 }
 
-
-export interface IProduct {
-  _id?: string;
+export interface IProductBase {
   codigoPrincipal: string;
   nombre: string;
-  categoria: Types.ObjectId | string; // Ahora referencia a Categoria
-  descripcionCorta: string; // Añade este campo
+  categoria: string | Types.ObjectId | ICategoryRef | null;
+  descripcionCorta: string;
   descripcionLarga?: string;
   precio?: number;
   stock?: number;
   stockMinimo?: number;
   tieneVariaciones: boolean;
-  variaciones: IVariation[];
+  variaciones?: IVariation[];
   especificacionesTecnicas?: string[];
   caracteristicas?: string[];
   imagenesGenerales?: string[];
   proveedor?: string;
   destacado?: boolean;
   activo?: boolean;
+}
+
+export interface IProduct extends IProductBase {
+  _id?: string | Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface IProductDocument extends IProductBase {
+  _id: Types.ObjectId;
+  categoria: Types.ObjectId | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IProductPopulated extends Omit<IProductDocument, 'categoria'> {
+  categoria: ICategoryRef | null;
+}
+
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  details?: any;
 }

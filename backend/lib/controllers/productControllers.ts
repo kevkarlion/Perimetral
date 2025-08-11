@@ -2,7 +2,9 @@
 import { NextResponse } from 'next/server';
 import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
-import { IProduct, IVariation } from '@/types/productTypes';
+import Product from '@/backend/lib/models/Product';
+import { IProductDocument, IProductPopulated, IProduct, IVariation } from '@/types/productTypes';
+import { dbConnect } from '../dbConnect/dbConnect';
 
 // Tipos para respuestas
 type ApiError = {
@@ -79,109 +81,115 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
 };
 
 // En tu controlador
-export async function getAllProducts(): Promise<NextResponse> {
+export async function getAllProducts() {
   try {
-    console.log('Obteniendo productos desde controlador');
-    const serviceResponse = await productService.getAllProducts();
     
-    if (!serviceResponse.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: serviceResponse.error || 'Error al obtener productos',
-          details: serviceResponse.details
-        },
-        { status: 400 }
-      );
-    }
+    dbConnect();
+    // Usamos populate con tipos explícitos
+    const products = await Product.find({})
+      .populate<{ categoria: { _id: Types.ObjectId, nombre: string } | null }>('categoria', 'nombre _id')
+      .lean<IProductPopulated[]>();
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: serviceResponse.data
-      },
-      { status: 200 }
-    );
+    // Transformamos los ObjectId a strings
+    const transformedProducts = products.map(product => ({
+      ...product,
+      _id: product._id.toString(),
+      categoria: product.categoria ? {
+        _id: product.categoria._id.toString(),
+        nombre: product.categoria.nombre
+      } : null,
+      variaciones: product.variaciones?.map(v => ({
+        ...v,
+        _id: v._id?.toString(),
+        atributos: v.atributos || undefined
+      })) || []
+    }));
+
+    console.log('Productos transformados:', transformedProducts);
+    return NextResponse.json({
+      success: true,
+      data: transformedProducts
+    });
   } catch (error) {
-    console.error('Error en controlador:', error);
+    console.error('Error en getAllProducts:', error);
     return NextResponse.json(
-      {
+      { 
         success: false,
-        error: 'Error interno del servidor',
-        details: process.env.NODE_ENV === 'development' 
-          ? error instanceof Error ? error.message : String(error)
-          : undefined
+        error: 'Error al obtener productos',
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );
   }
 }
 
-export async function createProduct(body: ProductData): PromiseApiResponse<IProduct> {
+export async function createProduct(req: Request) {
   try {
-    console.log('Datos recibidos en controlador:', {
+
+    const body = await req.json();
+
+    // Validación de categoría
+    if (body.categoria === null || body.categoria === undefined) {
+      return NextResponse.json(
+        { success: false, error: 'La categoría es requerida' },
+        { status: 400 }
+      );
+    }
+
+    // Convertir string ID a ObjectId si es necesario
+    let categoriaId: Types.ObjectId | null = null;
+    
+    if (typeof body.categoria === 'string' && Types.ObjectId.isValid(body.categoria)) {
+      categoriaId = new Types.ObjectId(body.categoria);
+    } else if (body.categoria && typeof body.categoria === 'object' && '_id' in body.categoria) {
+      categoriaId = new Types.ObjectId(body.categoria._id);
+    } else if (body.categoria instanceof Types.ObjectId) {
+      categoriaId = body.categoria;
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'Formato de categoría no válido' },
+        { status: 400 }
+      );
+    }
+
+    // Crear el producto
+    const product = new Product({
       ...body,
-      codigoPrincipal: body.codigoPrincipal,
-      codigoPrincipalTrimmed: body.codigoPrincipal?.trim(),
-      codigoPrincipalLength: body.codigoPrincipal?.length
+      categoria: categoriaId,
+      variaciones: body.variaciones || [],
+      stockMinimo: body.stockMinimo ?? 5,
+      activo: body.activo !== false,
+      destacado: body.destacado || false
     });
 
-    // Validación mejorada
-    const productError = validateProductData(body);
-    if (productError) {
-      console.error('Error de validación:', productError);
-      return errorResponse(productError, 400);
-    }
+    await product.save();
 
-    if (body.tieneVariaciones) {
-      const variationError = validateVariations(body.variaciones || []);
-      if (variationError) return errorResponse(variationError, 400);
-    }
-
-    // Limpieza de datos antes de enviar al servicio
-    const cleanProductData = {
-      ...body,
-      codigoPrincipal: body.codigoPrincipal.trim(),
-      nombre: body.nombre.trim(),
-      categoria: body.categoria.trim(),
-      descripcionCorta: body.descripcionCorta.trim()
+    // Convertir a formato para respuesta
+    const responseData: IProduct = {
+      ...product.toObject(),
+      _id: product._id.toString(),
+      categoria: body.categoria && typeof body.categoria === 'object' 
+        ? { 
+            _id: body.categoria._id.toString(), 
+            nombre: body.categoria.nombre 
+          }
+        : null
     };
 
-    console.log('Datos limpios para creación:', cleanProductData);
-    const createdProduct = await productService.createProduct(cleanProductData);
-    return NextResponse.json(createdProduct, { status: 201 });
+    return NextResponse.json({ success: true, data: responseData }, { status: 201 });
 
   } catch (error) {
-    console.error('Error completo en createProduct:', error);
-    
-    if ((error as any).code === 11000) {
-      return errorResponse(
-        { error: 'El código principal ya existe', field: 'codigoPrincipal' },
-        400
-      );
-    }
-
-    if ((error as any).name === 'ValidationError') {
-      const errors = Object.values((error as any).errors).map((err: any) => ({
-        field: err.path,
-        message: err.message
-      }));
-      return errorResponse(
-        { error: 'Error de validación', details: errors },
-        400
-      );
-    }
-
-    return errorResponse(
+    console.error('Error creating product:', error);
+    return NextResponse.json(
       { 
+        success: false, 
         error: 'Error al crear producto',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : String(error)
       },
-      500
+      { status: 500 }
     );
   }
 }
-
 export async function deleteProductById(req: Request): PromiseApiResponse<{ message: string }> {
   try {
     const { searchParams } = new URL(req.url);

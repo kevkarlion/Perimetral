@@ -28,6 +28,7 @@ export default function ProductTable() {
         throw new Error(errorData.error || "Error al obtener productos");
       }
       const result = await response.json();
+      console.log("Productos obtenidos:", result);
       if (result.success && Array.isArray(result.data)) {
         setProducts(result.data);
         setError(null);

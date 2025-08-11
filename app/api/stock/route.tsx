@@ -20,6 +20,7 @@ export async function GET() {
     console.log("Productos obtenidos:", response);
     
     // Devuelve directamente la respuesta del controlador
+    console.log("GET /api/stock - Respuesta:", response);
     return response;
   } catch (error) {
     console.error("Error en GET /api/stock:", error);
