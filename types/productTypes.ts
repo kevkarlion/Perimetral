@@ -43,10 +43,10 @@ export interface DBProduct {
 
 
 export interface IProduct {
-  _id: string;
+  _id?: string;
   codigoPrincipal: string;
   nombre: string;
-  categoria: string;
+  categoria: Types.ObjectId | string; // Ahora referencia a Categoria
   descripcionCorta: string; // Añade este campo
   descripcionLarga?: string;
   precio?: number;

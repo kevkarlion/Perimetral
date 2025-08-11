@@ -1,7 +1,7 @@
 // lib/models/Product.ts
 
 import { Schema, model, models, Document } from 'mongoose';
-import type { IProduct as IProductType, IVariation as IVariationType } from '../../app/types/productTypes';
+import type { IProduct as IProductType, IVariation as IVariationType } from '@/types/productTypes';
 import { HydratedDocument } from 'mongoose';
 
 // Combinar tus interfaces con Document para los modelos
@@ -29,7 +29,11 @@ const VariationSchema = new Schema<IVariationDoc>({
 const ProductSchema = new Schema<IProductDoc>({
   codigoPrincipal: { type: String, required: true, unique: true },
   nombre: { type: String, required: true },
-  categoria: { type: String, required: true },
+  categoria: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Categoria', // Referencia al modelo Categoria
+    required: true 
+  },
 
   precio: { type: Number, min: 0, required: false },
   stock: { type: Number, min: 0, default: 0, required: false },
