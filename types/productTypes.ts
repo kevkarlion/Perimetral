@@ -1,8 +1,16 @@
 // lib/types/productTypes.ts
-import { Types } from 'mongoose';
+
+import { Types } from "mongoose";
+
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  details?: string;
+}
 
 export interface IVariation {
-  _id?: string | Types.ObjectId;
+  _id?: string;
   codigo: string;
   descripcion?: string;
   medida: string;
@@ -20,50 +28,84 @@ export interface IVariation {
   activo?: boolean;
 }
 
-export interface ICategoryRef {
-  _id: string | Types.ObjectId;
-  nombre: string;
+export interface DBProduct {
+  _id: Types.ObjectId;
+  name: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+  images?: string[];
+  sku?: string;
+  // Agrega aquí otros campos que necesites
 }
 
-export interface IProductBase {
+export interface IProduct {
+  _id?: string;
   codigoPrincipal: string;
   nombre: string;
-  categoria: string | Types.ObjectId | ICategoryRef | null;
-  descripcionCorta: string;
+  categoria: {
+    _id: string;
+    nombre: string;
+  } | null;
+  descripcionCorta: string; // Añade este campo
   descripcionLarga?: string;
   precio?: number;
   stock?: number;
   stockMinimo?: number;
   tieneVariaciones: boolean;
-  variaciones?: IVariation[];
+  variaciones: IVariation[];
   especificacionesTecnicas?: string[];
   caracteristicas?: string[];
   imagenesGenerales?: string[];
   proveedor?: string;
   destacado?: boolean;
   activo?: boolean;
-}
-
-export interface IProduct extends IProductBase {
-  _id?: string | Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface IProductDocument extends IProductBase {
-  _id: Types.ObjectId;
-  categoria: Types.ObjectId | null;
-  createdAt: Date;
-  updatedAt: Date;
+export interface ProductFormData {
+  codigoPrincipal: string;
+  nombre: string;
+  categoria: string; // O podría ser Types.ObjectId si usas MongoDB
+  descripcionCorta: string;
+  descripcionLarga: string;
+  imagenesGenerales: string[];
+  precio?: number; // Opcional porque puede ser undefined
+  stock?: number; // Opcional porque puede ser undefined
+  stockMinimo: number;
+  tieneVariaciones: boolean;
+  variaciones: VariationFormData[];
+  destacado: boolean;
+  especificacionesTecnicas: string[];
+  caracteristicas: string[];
+  proveedor: string;
+  activo: boolean;
 }
 
-export interface IProductPopulated extends Omit<IProductDocument, 'categoria'> {
-  categoria: ICategoryRef | null;
+interface VariationFormData {
+  // Añade aquí los campos de tus variaciones si son necesarios
+  medida: string;
+  precio: number;
+  stock?: number;
+  stockMinimo?: number;
+  codigo?: string;
+  imagenes?: string[];
+  atributos?: {
+    longitud?: number;
+    altura?: number;
+    calibre?: string;
+    material?: string;
+    color?: string;
+  };
 }
 
-export interface ServiceResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  details?: any;
-}
+// export interface ProductIdentifier {
+//   _id: string | Types.ObjectId;
+//   codigoPrincipal: string;
+//   nombre: string;
+//   categoria: string | Types.ObjectId | { _id: Types.ObjectId; nombre: string };
+//   descripcionCorta: string;
+//   tieneVariaciones: boolean;
+//   variaciones: IVariation[];
+// }

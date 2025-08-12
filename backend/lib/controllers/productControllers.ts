@@ -1,5 +1,5 @@
 // lib/controllers/productController.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
 import Product from '@/backend/lib/models/Product';
@@ -11,17 +11,28 @@ type ApiError = {
   error: string;
   details?: string | Record<string, unknown> | any[];
   field?: string;
-  
 };
 
-type ApiResponse<T> = NextResponse<T | ApiError>;
+type ApiResponse<T> = NextResponse<{ 
+  success: boolean; 
+  data?: T; 
+  error?: string; 
+  details?: any;
+  message?: string;
+}>;
+
 type PromiseApiResponse<T> = Promise<ApiResponse<T>>;
 
 type ProductData = Omit<IProduct, '_id' | 'createdAt' | 'updatedAt'>;
 
 // Helper para respuestas de error
 const errorResponse = (error: ApiError, status: number): ApiResponse<never> => {
-  return NextResponse.json(error, { status });
+  return NextResponse.json({ 
+    success: false, 
+    error: error.error,
+    details: error.details,
+    field: error.field 
+  }, { status });
 };
 
 // Validación de datos de producto
@@ -80,54 +91,56 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
   return null;
 };
 
-// En tu controlador
+// Obtener todos los productos
 export async function getAllProducts() {
-  try {
-    
-    dbConnect();
-    // Usamos populate con tipos explícitos
-    const products = await Product.find({})
-      .populate<{ categoria: { _id: Types.ObjectId, nombre: string } | null }>('categoria', 'nombre _id')
-      .lean<IProductPopulated[]>();
+  const result = await productService.getAllProducts();
 
-    // Transformamos los ObjectId a strings
-    const transformedProducts = products.map(product => ({
-      ...product,
-      _id: product._id.toString(),
-      categoria: product.categoria ? {
-        _id: product.categoria._id.toString(),
-        nombre: product.categoria.nombre
-      } : null,
-      variaciones: product.variaciones?.map(v => ({
-        ...v,
-        _id: v._id?.toString(),
-        atributos: v.atributos || undefined
-      })) || []
-    }));
-
-    console.log('Productos transformados:', transformedProducts);
-    return NextResponse.json({
-      success: true,
-      data: transformedProducts
-    });
-  } catch (error) {
-    console.error('Error en getAllProducts:', error);
+  if (!result.success) {
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Error al obtener productos',
-        details: error instanceof Error ? error.message : String(error)
+        error: result.error,
+        details: result.details,
       },
       { status: 500 }
     );
   }
+
+  // Transformar ObjectId a string y otros campos si hace falta
+ const transformedProducts = result.data?.map(product => {
+  // Chequear que categoria es un objeto y no un string u ObjectId
+  const categoriaObj = product.categoria && typeof product.categoria === "object" && "nombre" in product.categoria
+    ? {
+        _id: (product.categoria._id as any).toString(), // Si es ObjectId, usar toString
+        nombre: product.categoria.nombre,
+      }
+    : null;
+
+  return {
+    ...product,
+    _id: product._id?.toString(),
+    categoria: categoriaObj,
+    variaciones: product.variaciones?.map(v => ({
+      ...v,
+      _id: v._id?.toString(),
+      atributos: v.atributos || undefined,
+    })) || [],
+  };
+});
+
+
+  return NextResponse.json({
+    success: true,
+    data: transformedProducts,
+  });
 }
 
-export async function createProduct(req: Request) {
+// Crear un nuevo producto
+export async function createProduct(req: Request | NextRequest): PromiseApiResponse<IProduct> {
   try {
-
     const body = await req.json();
 
+    console.log("Body recibido en createProduct:", body);
     // Validación de categoría
     if (body.categoria === null || body.categoria === undefined) {
       return NextResponse.json(
@@ -176,7 +189,12 @@ export async function createProduct(req: Request) {
         : null
     };
 
-    return NextResponse.json({ success: true, data: responseData }, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      data: responseData 
+    }, { 
+      status: 201 
+    });
 
   } catch (error) {
     console.error('Error creating product:', error);
@@ -190,6 +208,8 @@ export async function createProduct(req: Request) {
     );
   }
 }
+
+// Eliminar un producto por ID
 export async function deleteProductById(req: Request): PromiseApiResponse<{ message: string }> {
   try {
     const { searchParams } = new URL(req.url);
@@ -204,7 +224,10 @@ export async function deleteProductById(req: Request): PromiseApiResponse<{ mess
       return errorResponse({ error: 'Producto no encontrado' }, 404);
     }
 
-    return NextResponse.json({ message: 'Producto eliminado correctamente' });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Producto eliminado correctamente' 
+    });
 
   } catch (error) {
     console.error('Error al eliminar producto:', error);
@@ -218,7 +241,8 @@ export async function deleteProductById(req: Request): PromiseApiResponse<{ mess
   }
 }
 
-export async function updateProduct(req: Request): Promise<NextResponse> {
+// Actualizar un producto
+export async function updateProduct(req: Request): PromiseApiResponse<IProduct> {
   console.log("CONTROLADOR - Inicio de updateProduct");
   try {
     const { searchParams } = new URL(req.url);
@@ -295,8 +319,7 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
       
       return NextResponse.json({
         success: true,
-        product: updatedProduct,
-        variations: updatedProduct.variations
+        data: updatedProduct
       });
     }
 
@@ -309,13 +332,11 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
         );
       }
 
-      
       console.log('Datos enviados a removeProductVariation:', productId, variationId);
       const updatedProduct = await productService.removeProductVariation(productId, variationId);
       return NextResponse.json({
         success: true,
-        product: updatedProduct,
-        variations: updatedProduct.variaciones
+        data: updatedProduct
       });
     }
 
@@ -344,19 +365,18 @@ export async function updateProduct(req: Request): Promise<NextResponse> {
     { success: false, error: 'Acción no reconocida' },
     { status: 400 }
   );
-  
 }
 
-
-export async function getProductById(id: string): Promise<NextResponse> {
+// Obtener un producto por ID
+export async function getProductById(id: string): PromiseApiResponse<IProduct> {
   try {
-    const serviceResponse = await productService.getProductById(id)
+    const serviceResponse = await productService.getProductById(id);
     
     if (!serviceResponse) {
       return NextResponse.json(
         { success: false, error: 'Producto no encontrado' },
         { status: 404 }
-      )
+      );
     }
 
     return NextResponse.json(
@@ -365,9 +385,9 @@ export async function getProductById(id: string): Promise<NextResponse> {
         data: serviceResponse
       },
       { status: 200 }
-    )
+    );
   } catch (error) {
-    console.error('Error en controlador:', error)
+    console.error('Error en controlador:', error);
     return NextResponse.json(
       {
         success: false,
@@ -377,15 +397,12 @@ export async function getProductById(id: string): Promise<NextResponse> {
           : undefined
       },
       { status: 500 }
-    )
+    );
   }
 }
 
-
-
-// Añade estos métodos al controlador existente
-
-export async function updateStock(req: Request): Promise<NextResponse> {
+// Actualizar stock de un producto
+export async function updateStock(req: Request): PromiseApiResponse<IProduct> {
   try {
     const { productId, variationId, stock, action } = await req.json();
 
@@ -434,7 +451,7 @@ export async function updateStock(req: Request): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      product: updatedProduct
+      data: updatedProduct
     });
 
   } catch (error) {

@@ -15,33 +15,21 @@ import {
 // GET - Obtener todos los productos
 export async function GET() {
   try {
-   
-    const response = await getAllProducts();
-    console.log("Productos obtenidos:", response);
-    
-    // Devuelve directamente la respuesta del controlador
-    console.log("GET /api/stock - Respuesta:", response);
-    return response;
+    return await getAllProducts();
   } catch (error) {
-    console.error("Error en GET /api/stock:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: "Error al obtener productos",
-        details: error instanceof Error ? error.message : String(error)
-      },
+      { success: false, error: "Error en GET /api/stock", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
 }
 
-
 // POST - Crear nuevo producto
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    console.log("POST /api/stock - Body recibido:", body);
-    return await createProduct(body); // <<-- Asegúrate de usar await
+    // const body = await req.json();
+    // console.log("POST /api/stock - Body recibido:", body);
+    return  createProduct(req); // <<-- Asegúrate de usar await
   } catch (error) {
     console.error("Error al parsear JSON:", error);
     return new Response(JSON.stringify({ error: "Cuerpo de solicitud inválido" }), {

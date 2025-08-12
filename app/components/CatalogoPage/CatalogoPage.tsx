@@ -249,7 +249,7 @@ const ProductCard = ({
           {/* Categoría solo en desktop */}
           {producto.categoria && (
             <span className="hidden sm:inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
-              {producto.categoria}
+              {producto.categoria.nombre}
             </span>
           )}
         </div>

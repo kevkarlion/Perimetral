@@ -162,7 +162,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
           </button>
           {categoria && (
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
-              {categoria}
+              {categoria.nombre}
             </span>
           )}
         </div>

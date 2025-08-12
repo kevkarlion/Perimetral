@@ -18,6 +18,7 @@ import { CartSidebar } from "@/app/components/CartSideBar/CartSideBar";
 import { AddToCartNotification } from "@/app/components/AddToCartNotification/AddToCartNotification";
 import { IProduct, IVariation } from "@/types/productTypes";
 import { ProductIdSkeleton } from "@/app/components/ProductId/ProductIdSkeleton";
+import { CartItem, CartItemForm  } from "@/types/cartTypes";
 
 interface ProductImage {
   src: string;
@@ -33,7 +34,7 @@ const defaultProduct: IProduct = {
   _id: "",
   codigoPrincipal: "",
   nombre: "Cargando producto...",
-  categoria: "",
+  categoria: null,
   descripcionCorta: "",
   tieneVariaciones: false,
   variaciones: [],
@@ -66,6 +67,7 @@ export default function ProductId({
 
   const addItem = useCartStore((state) => state.addItem);
 
+  // Helper function to get images safely
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
     if (!product) {
       return [
@@ -159,10 +161,10 @@ export default function ProductId({
     if (!product) return;
 
     const imagenes = getSafeImages(product);
-    const itemToAdd = {
+    const itemToAdd: CartItemForm = {
       id: selectedVariation
-        ? `${product._id}-${selectedVariation._id}`
-        : product._id,
+        ? `${product._id!}-${selectedVariation._id!}` // El ! asume que no es null/undefined
+        : product._id!,
       name:
         product.nombre +
         (selectedVariation ? ` - ${selectedVariation.medida}` : ""),
@@ -170,8 +172,8 @@ export default function ProductId({
       image: imagenes[0]?.src || "/placeholder-product.jpg",
       variation: selectedVariation
         ? {
-            medida: selectedVariation.medida,
-            codigo: selectedVariation.codigo,
+            medida: selectedVariation.medida!,
+            codigo: selectedVariation.codigo!,
           }
         : undefined,
     };
@@ -241,7 +243,7 @@ export default function ProductId({
         </h1>
         {safeProduct.categoria && (
           <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
-            {safeProduct.categoria}
+            {safeProduct.categoria.nombre}
           </span>
         )}
       </div>
@@ -252,7 +254,9 @@ export default function ProductId({
           <div className="w-full">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
               <Image
-                src={imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"}
+                src={
+                  imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"
+                }
                 alt={imagenes[imagenPrincipal]?.alt || "Imagen del producto"}
                 fill
                 className="object-contain p-4"
@@ -299,7 +303,7 @@ export default function ProductId({
             </h1>
             {safeProduct.categoria && (
               <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                {safeProduct.categoria}
+                {safeProduct.categoria.nombre}
               </span>
             )}
           </div>
@@ -345,17 +349,21 @@ export default function ProductId({
           </div>
 
           {/* Especificaciones técnicas */}
-          {(specsToShow.length > 0 || Object.keys(variationAttributes).length > 0) && (
+          {(specsToShow.length > 0 ||
+            Object.keys(variationAttributes).length > 0) && (
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
                 Especificaciones técnicas
               </h3>
-              
+
               {selectedVariation?.medida && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                     <span className="text-gray-700 font-medium">
-                      Medida: <span className="text-brand">{selectedVariation.medida}</span>
+                      Medida:{" "}
+                      <span className="text-brand">
+                        {selectedVariation.medida}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -366,28 +374,40 @@ export default function ProductId({
                 {variationAttributes.altura && (
                   <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                     <span className="text-gray-700 font-medium">
-                      Altura: <span className="text-brand">{variationAttributes.altura} mm</span>
+                      Altura:{" "}
+                      <span className="text-brand">
+                        {variationAttributes.altura} mm
+                      </span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.calibre && (
                   <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                     <span className="text-gray-700 font-medium">
-                      Calibre: <span className="text-brand">{variationAttributes.calibre}</span>
+                      Calibre:{" "}
+                      <span className="text-brand">
+                        {variationAttributes.calibre}
+                      </span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.material && (
                   <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                     <span className="text-gray-700 font-medium">
-                      Material: <span className="text-brand">{variationAttributes.material}</span>
+                      Material:{" "}
+                      <span className="text-brand">
+                        {variationAttributes.material}
+                      </span>
                     </span>
                   </div>
                 )}
                 {variationAttributes.color && (
                   <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                     <span className="text-gray-700 font-medium">
-                      Color: <span className="text-brand">{variationAttributes.color}</span>
+                      Color:{" "}
+                      <span className="text-brand">
+                        {variationAttributes.color}
+                      </span>
                     </span>
                   </div>
                 )}

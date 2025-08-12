@@ -1,11 +1,16 @@
+import { VariableIcon } from "lucide-react";
+import { ObjectId } from "mongoose";
+import { Types } from "mongoose";
+
 // types/cart.ts
 export interface CartItem {
-  id: string;
+  id: string | Types.ObjectId; // Cambiado a string para compatibilidad con el ID de producto
   name: string;
   price: number;
   quantity: number;
   image?: string;
   medida?: string; // Nueva propiedad para variantes
+  variation?: IVariation; // Nueva propiedad para la variación
 }
 
 export interface CartStore {
@@ -21,7 +26,20 @@ export interface CartStore {
 }
 
 export interface IVariation {
-  medida: string;
+  medida: string ;
+  codigo: string ;
+  price?: number;
+  stock?: number;
+}
+
+
+
+export interface CartItemForm {
+  id: string | Types.ObjectId; // Cambiado a string para compatibilidad con el ID de producto
+  name: string;
   price: number;
-  stock: number;
+  quantity?: number;
+  image?: string;
+  medida?: string; // Nueva propiedad para variantes
+  variation?: IVariation; // Nueva propiedad para la variación
 }

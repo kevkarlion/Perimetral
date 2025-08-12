@@ -17,7 +17,8 @@ export default function ProductTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStockManager, setShowStockManager] = useState(false);
-  const [selectedProductForStock, setSelectedProductForStock] = useState<IProduct | null>(null);
+  const [selectedProductForStock, setSelectedProductForStock] =
+    useState<IProduct | null>(null);
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -28,7 +29,7 @@ export default function ProductTable() {
         throw new Error(errorData.error || "Error al obtener productos");
       }
       const result = await response.json();
-      console.log("Productos obtenidos:", result);
+      console.log("Productos obtenidos desde /api/stock:", result.data);
       if (result.success && Array.isArray(result.data)) {
         setProducts(result.data);
         setError(null);
@@ -148,8 +149,11 @@ export default function ProductTable() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product._id} className="hover:bg-gray-50">
+              {products.map((product, index) => (
+                <tr
+                  key={product._id?.toString() ?? index}
+                  className="hover:bg-gray-50"
+                >
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                     {product.codigoPrincipal || (
                       <span className="text-gray-400">N/D</span>
@@ -159,7 +163,7 @@ export default function ProductTable() {
                     {product.nombre}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.categoria || (
+                    {product.categoria?.nombre || (
                       <span className="text-gray-400">N/D</span>
                     )}
                   </td>
@@ -266,7 +270,7 @@ export default function ProductTable() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => deleteProduct(product._id)}
+                        onClick={() => deleteProduct(product._id!)}
                         className="text-red-600 hover:text-red-900"
                         title="Eliminar producto"
                       >
@@ -319,13 +323,15 @@ export default function ProductTable() {
           >
             <div className="flex justify-between items-start">
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 truncate">{product.nombre}</h3>
+                <h3 className="font-bold text-gray-900 truncate">
+                  {product.nombre}
+                </h3>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>{product.codigoPrincipal || "N/D"}</span>
                   {product.categoria && (
                     <>
                       <span>•</span>
-                      <span>{product.categoria}</span>
+                      <span>{product.categoria?.nombre}</span>
                     </>
                   )}
                 </div>
@@ -350,7 +356,7 @@ export default function ProductTable() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => deleteProduct(product._id)}
+                  onClick={() => deleteProduct(product._id!)}
                   className="text-red-600 hover:text-red-900"
                   title="Eliminar producto"
                 >
@@ -372,11 +378,13 @@ export default function ProductTable() {
 
             {product.tieneVariaciones ? (
               <div className="mt-3 space-y-3">
-                <h4 className="text-sm font-medium text-gray-500">Variaciones:</h4>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Variaciones:
+                </h4>
                 <div className="space-y-2">
                   {product.variaciones?.map((variation, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className={`flex justify-between items-center p-2 rounded ${
                         variation.stock <= 0 ? "bg-red-50" : "bg-gray-50"
                       }`}
@@ -385,9 +393,13 @@ export default function ProductTable() {
                         {variation.medida || "Sin medida"}
                       </span>
                       <div className="flex items-center gap-4">
-                        <span className={`text-sm ${
-                          variation.stock <= 0 ? "text-red-600 font-bold" : "text-gray-700"
-                        }`}>
+                        <span
+                          className={`text-sm ${
+                            variation.stock <= 0
+                              ? "text-red-600 font-bold"
+                              : "text-gray-700"
+                          }`}
+                        >
                           Stock: {variation.stock ?? 0}
                         </span>
                         <span className="text-sm font-bold text-gray-900">
@@ -402,9 +414,13 @@ export default function ProductTable() {
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 p-2 rounded">
                   <p className="text-xs text-gray-500">Stock</p>
-                  <p className={`text-sm font-medium ${
-                    (product.stock ?? 0) <= 0 ? "text-red-600" : "text-gray-900"
-                  }`}>
+                  <p
+                    className={`text-sm font-medium ${
+                      (product.stock ?? 0) <= 0
+                        ? "text-red-600"
+                        : "text-gray-900"
+                    }`}
+                  >
                     {product.stock ?? 0}
                   </p>
                 </div>
@@ -470,7 +486,7 @@ export default function ProductTable() {
 
       {showVariationModal && currentProduct && (
         <AddVariationModal
-          productId={currentProduct._id}
+          productId={currentProduct._id!}
           initialVariations={currentProduct.variaciones || []}
           onClose={closeVariationModal}
         />

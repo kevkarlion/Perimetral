@@ -54,12 +54,11 @@ const toIProduct = (doc: ProductDocument): IProduct => {
 };
 
 const productService = {
-  async getAllProducts(): Promise<ServiceResponse<IProduct[]>> {
+   async getAllProducts(): Promise<ServiceResponse<IProduct[]>> {
     try {
-      console.log("estoy en servicio");
       await dbConnect();
-      const products = await Product.find({}).lean();
-      console.log("productos desde servicio", products);
+      const products = await Product.find({}).populate('categoria').lean();
+
       return {
         success: true,
         data: products.map(toIProduct),
