@@ -2,17 +2,18 @@
 import { NextResponse } from 'next/server'
 import Product from '@/backend/lib/models/Product'
 import { dbConnect } from '@/backend/lib/dbConnect/dbConnect'
+import { any } from 'zod';
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, context: any) {
   try {
     await dbConnect()
 
+    // ⚠️ Next.js 15: params dinámicos deben ser awaited
+    const { id } = await context.params;
+
     // 1. Buscar el producto que contiene esta variante
     const product = await Product.findOne({
-      'variaciones._id': params.id
+      'variaciones._id': id
     }).select('variaciones.$ nombre codigoPrincipal') // Solo traer los campos necesarios
 
     if (!product) {
@@ -23,7 +24,7 @@ export async function GET(
     }
 
     // 2. Extraer la variante específica
-    const variant = product.variaciones.find(v => v._id.toString() === params.id)
+    const variant = product.variaciones.find(v => v._id.toString() === id)
     
     if (!variant) {
       return NextResponse.json(

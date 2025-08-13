@@ -300,7 +300,7 @@ export default function Navbar() {
       </div>
 
       {/* Espacio para compensar el navbar fijo */}
-      <div className="h-[112px] md:h-[96px]"></div>
+      <div className="h-[40px] md:h-[96px]"></div>
     </>
   );
 }

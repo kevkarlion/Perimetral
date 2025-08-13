@@ -132,7 +132,7 @@ export default function ProductId({
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/stock/${id}`);
+        const response = await fetch(`${process.env.BASE_URL}/api/stock/${id}`);
 
         if (!response.ok) {
           throw new Error(`Error al cargar producto: ${response.status}`);

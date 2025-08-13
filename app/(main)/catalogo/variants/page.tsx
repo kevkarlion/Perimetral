@@ -1,4 +1,4 @@
-// app/catalogo/[id]/page.tsx
+// app/catalogo/variants/page.tsx
 import { useProductStore } from '@/app/components/store/product-store'
 import VariantPage from '@/app/components/VariantPage/VariantPage'
 
