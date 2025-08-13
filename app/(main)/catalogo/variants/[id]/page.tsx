@@ -8,66 +8,73 @@ import { IProduct, IVariation } from '@/types/productTypes'
 
 interface PageProps {
   params: { 
-    id: string // ID de la variante
+    id: string
   },
   searchParams: {
-    productId?: string // ID del producto padre (opcional)
+    productId?: string
   }
 }
 
-export default async function Page({ params, searchParams }: PageProps) {
+
+//convertir a objeto plano
+function deepConvertToPlain(obj: any): any {
+  if (obj == null) return obj;
+  if (obj instanceof Types.ObjectId) return obj.toString();
+  if (obj instanceof Date) return obj.toISOString();
+  if (obj instanceof Buffer) return obj.toString("base64");
+  if (Array.isArray(obj)) return obj.map(deepConvertToPlain);
+  if (typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, deepConvertToPlain(v)])
+    );
+  }
+  return obj;
+}
+
+
+
+export default async function Page(props: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await props.params
 
-    // 1. Buscar el producto que contiene esta variante
+    // Buscar el producto que contiene la variante
     const productDoc = await Product.findOne({
-      'variaciones._id': new Types.ObjectId(params.id)
+      'variaciones._id': new Types.ObjectId(id)
     }).exec()
 
-    if (!productDoc) {
-      return notFound()
-    }
+    if (!productDoc) return notFound()
 
-    // Convertir a objeto plano y asegurar el tipado
-    const product = productDoc.toObject() as IProduct & {
-      variaciones: Array<IVariation & { _id: Types.ObjectId }>
-    }
+    // Convertir todo el documento a un objeto plano sin nada de Mongoose
+const productPlain = deepConvertToPlain(productDoc.toObject());
 
-    // 2. Encontrar la variante específica
-    const variant = product.variaciones.find(v => 
-      v._id.toString() === params.id
-    )
-    
-    if (!variant) {
-      return notFound()
-    }
+// Buscar variante
+const variant = productPlain.variaciones.find((v: any) => v._id === id);
+if (!variant) return notFound();
 
-    // 3. Crear un producto combinado para el componente
-    const combinedProduct: IProduct & { medidaSeleccionada: string } = {
-      ...product,
-      _id: product._id.toString(),
-      precio: variant.precio,
-      stock: variant.stock,
-      medidaSeleccionada: variant.medida, // <-- Aquí enviamos la medida específica
-      variaciones: product.variaciones.map(v => ({
-        ...v,
-        _id: v._id.toString(),
-        medida: v.medida // Asegurar que la medida esté en cada variación
-      })),
-      // Copiar atributos específicos de la variante
-      ...(variant.atributos && { atributos: variant.atributos }),
-      // Asegurar arrays vacíos si no existen
-      especificacionesTecnicas: product.especificacionesTecnicas || [],
-      caracteristicas: product.caracteristicas || [],
-      imagenesGenerales: product.imagenesGenerales || []
-    }
+// Crear producto combinado plano
+const combinedProduct = {
+  ...productPlain,
+  precio: variant.precio,
+  stock: variant.stock,
+  medidaSeleccionada: variant.medida,
+  variaciones: productPlain.variaciones.map((v: any) => ({
+    ...v,
+    medida: v.medida
+  })),
+  ...(variant.atributos && { atributos: variant.atributos }),
+  especificacionesTecnicas: productPlain.especificacionesTecnicas || [],
+  caracteristicas: productPlain.caracteristicas || [],
+  imagenesGenerales: productPlain.imagenesGenerales || []
+};
 
-    console.log('Medida enviada:', variant.medida) // Para verificación
+
+    console.log('Medida enviada:', variant.medida)
 
     return (
       <ProductId 
         initialProduct={combinedProduct} 
-        initialVariationId={params.id}
+        initialVariationId={id}
       />
     )
 

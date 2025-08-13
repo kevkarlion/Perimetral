@@ -1,3 +1,4 @@
+//components/CartPage/CartPage.tsx
 'use client'
 
 import { Button } from "@/app/components/ui/button";
@@ -73,9 +74,9 @@ const handleCheckout = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: cartItems.map(item => ({
-           productId: item.id.split('-')[0],
+           productId: item.id.toString().split('-')[0],
           // Solo incluir variationId si el ID contiene un guión (indica que tiene variación)
-          ...(item.id.includes('-') && { variationId: item.id.split('-')[1] }),
+          ...(item.id.toString().includes('-') && { variationId: item.id.toString().split('-')[1] }),
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -159,7 +160,7 @@ const handleCheckout = async () => {
                   <div key={`${item.id}-${item.medida || ''}`} className="grid grid-cols-12 gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-4">
                     <div className="col-span-6 md:col-span-5 flex items-center">
                       <button 
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id.toString())}
                         className="mr-3 text-gray-500 hover:text-red-500 transition-colors"
                       >
                         <X className="h-4 w-4" />
@@ -190,7 +191,7 @@ const handleCheckout = async () => {
                     <div className="col-span-4 md:col-span-3 flex items-center justify-center">
                       <div className="flex items-center border border-gray-300 rounded-md bg-gray-50">
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id.toString(), item.quantity - 1)}
                           disabled={item.quantity <= 1}
                           className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
                         >
@@ -198,7 +199,7 @@ const handleCheckout = async () => {
                         </button>
                         <span className="px-3 py-1 text-sm font-medium text-gray-800">{item.quantity}</span>
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id.toString(), item.quantity + 1)}
                           className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
                         >
                           <Plus className="h-4 w-4" />

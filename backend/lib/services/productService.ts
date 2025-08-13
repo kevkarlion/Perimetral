@@ -103,9 +103,9 @@ const productService = {
     // Paso 1: Resolver la categoría (ID existente o nombre nuevo)
     let categoriaId: Types.ObjectId;
 
-    if (Types.ObjectId.isValid(data.categoria)) {
+    if (Types.ObjectId.isValid(data.categoria.nombre)) {
       // Es un ID existente - verificamos que exista
-      categoriaId = new Types.ObjectId(data.categoria);
+      categoriaId = new Types.ObjectId(data.categoria.nombre);
       const exists = await CategoriaService.categoryExists(categoriaId);
       if (!exists) {
         throw new Error("La categoría especificada no existe");

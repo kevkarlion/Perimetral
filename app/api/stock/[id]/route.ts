@@ -1,13 +1,21 @@
 // app/api/stock/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { getProductById } from '@/backend/lib/controllers/productControllers'
+import { Types } from "mongoose";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const response = await getProductById(params.id)
+    const { id } = await params
+    if (!id) {
+    return NextResponse.json({ success: false, error: "No se recibió ID" }, { status: 400 });
+  }
+  if (!Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ success: false, error: "ID inválido" }, { status: 400 });
+  }
+    const response = await getProductById(id)
     return response
   } catch (error) {
     return NextResponse.json(

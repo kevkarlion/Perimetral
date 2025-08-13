@@ -1,31 +1,23 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { SkeletonVariantPage } from '@/app/components/VariantPage/SkeletonVariantPage'
+// app/catalogo/[id]/page.tsx
 import { useProductStore } from '@/app/components/store/product-store'
 import VariantPage from '@/app/components/VariantPage/VariantPage'
 
-export default function ProductVariantsPage({
-  searchParams
-}: {
-  searchParams: { productId?: string; productName?: string }
-}) {
-  const [isLoading, setIsLoading] = useState(true)
-  const { products, initialized } = useProductStore()
-  const productId = searchParams.productId
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const URL = process.env.BASE_URL
+  const res = await fetch(`${URL}/api/stock/${id}`, { cache: 'no-store' })
+  const { data: product } = await res.json()
 
-  // Verificación completa del estado de carga
-  useEffect(() => {
-    const productLoaded = productId && products.find(p => p._id === productId)
-    
-    if (initialized && productLoaded) {
-      const timer = setTimeout(() => setIsLoading(false), 100) // Pequeño delay para evitar flash
-      return () => clearTimeout(timer)
-    }
-  }, [initialized, products, productId])
-
-  if (isLoading) {
-    return <SkeletonVariantPage productName={searchParams.productName} />
+  // Hidratar el store en cliente solo si no está cargado
+  if (typeof window !== 'undefined') {
+    useProductStore.setState(state => ({
+      products: state.products.length ? state.products : [product],
+      initialized: true
+    }))
   }
 
-  return <VariantPage />
+  return <VariantPage  />
 }
+
+
+

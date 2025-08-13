@@ -26,6 +26,8 @@ export interface IVariation {
   };
   imagenes?: string[];
   activo?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface DBProduct {
@@ -62,6 +64,14 @@ export interface IProduct {
   activo?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  medidaSeleccionada?: string; // Añade este campo para la medida seleccionada
+  atributos?: {
+    longitud?: number;
+    altura?: number;
+    calibre?: string;
+    material?: string;
+    color?: string;
+  };
 }
 
 export interface ProductFormData {
@@ -100,12 +110,17 @@ interface VariationFormData {
   };
 }
 
-// export interface ProductIdentifier {
-//   _id: string | Types.ObjectId;
-//   codigoPrincipal: string;
-//   nombre: string;
-//   categoria: string | Types.ObjectId | { _id: Types.ObjectId; nombre: string };
-//   descripcionCorta: string;
-//   tieneVariaciones: boolean;
-//   variaciones: IVariation[];
-// }
+
+// types/productTypes.ts
+
+export interface IVariationSerialized extends Omit<IVariation, "createdAt" | "updatedAt"> {
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface IProductSerialized extends Omit<IProduct, "createdAt" | "updatedAt" | "variaciones"> {
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  variaciones: IVariationSerialized[];
+  categoria: { _id: string; nombre: string } | null;
+}

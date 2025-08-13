@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
 import Product from '@/backend/lib/models/Product';
-import { IProductDocument, IProductPopulated, IProduct, IVariation } from '@/types/productTypes';
+import { IProduct, IVariation } from '@/types/productTypes';
 import { dbConnect } from '../dbConnect/dbConnect';
 
 // Tipos para respuestas
