@@ -35,7 +35,7 @@ const defaultProduct: IProduct = {
   nombre: "Cargando producto...",
   categoria: {
     _id: "",
-    nombre: ''
+    nombre: "",
   },
   descripcionCorta: "",
   tieneVariaciones: false,
@@ -255,7 +255,9 @@ export default function ProductId({
           <div className="w-full">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
               <Image
-                src={imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"}
+                src={
+                  imagenes[imagenPrincipal]?.src || "/placeholder-product.jpg"
+                }
                 alt={imagenes[imagenPrincipal]?.alt || "Imagen del producto"}
                 fill
                 className="object-contain p-4"
@@ -347,68 +349,79 @@ export default function ProductId({
             </p>
           </div>
 
-          {/* Especificaciones técnicas */}
-          {(specsToShow.length > 0 || Object.keys(variationAttributes).length > 0) && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                Especificaciones técnicas
-              </h3>
-              
-              {selectedVariation?.medida && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                    <span className="text-gray-700 font-medium">
-                      Medida: <span className="text-brand">{selectedVariation.medida}</span>
-                    </span>
-                  </div>
-                </div>
-              )}
+        {/* Sección completa con el nuevo diseño */}
+{/* Especificaciones técnicas - Versión final sin "0" */}
+{specsToShow.length > 0 || Object.keys(variationAttributes).length > 0 ? (
+  <div className="space-y-6">
+    <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
+      Especificaciones técnicas
+    </h3>
 
-              {/* Atributos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {variationAttributes.altura && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                    <span className="text-gray-700 font-medium">
-                      Altura: <span className="text-brand">{variationAttributes.altura} mm</span>
-                    </span>
-                  </div>
-                )}
-                {variationAttributes.calibre && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                    <span className="text-gray-700 font-medium">
-                      Calibre: <span className="text-brand">{variationAttributes.calibre}</span>
-                    </span>
-                  </div>
-                )}
-                {variationAttributes.material && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                    <span className="text-gray-700 font-medium">
-                      Material: <span className="text-brand">{variationAttributes.material}</span>
-                    </span>
-                  </div>
-                )}
-                {variationAttributes.color && (
-                  <div className="flex items-center bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                    <span className="text-gray-700 font-medium">
-                      Color: <span className="text-brand">{variationAttributes.color}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
+    <div className="space-y-4">
+      {/* Atributos principales */}
+      <div className="space-y-2">
+        {selectedVariation?.medida ? (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+            <span className="text-gray-700">
+              <span className="font-medium">Medida:</span> {selectedVariation.medida}
+            </span>
+          </div>
+        ) : null}
 
-              {/* Especificaciones */}
-              {specsToShow.length > 0 && (
-                <ul className="space-y-3">
-                  {specsToShow.map((espec, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-brand mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{espec}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+        {variationAttributes.altura ? (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+            <span className="text-gray-700">
+              <span className="font-medium">Altura:</span> {variationAttributes.altura} mm
+            </span>
+          </div>
+        ) : null}
+
+        {variationAttributes.calibre ? (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+            <span className="text-gray-700">
+              <span className="font-medium">Calibre:</span> {variationAttributes.calibre}
+            </span>
+          </div>
+        ) : null}
+
+        {variationAttributes.material ? (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+            <span className="text-gray-700">
+              <span className="font-medium">Material:</span> {variationAttributes.material}
+            </span>
+          </div>
+        ) : null}
+
+        {variationAttributes.color ? (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+            <span className="text-gray-700">
+              <span className="font-medium">Color:</span> {variationAttributes.color}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Especificaciones técnicas (checklist) */}
+      {specsToShow.length > 0 ? (
+        <div className="pt-2 border-t border-gray-100">
+          <ul className="space-y-2.5">
+            {specsToShow.map((espec, index) => (
+              <li key={index} className="flex items-start">
+                <Check className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-700">{espec}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  </div>
+) : null}
 
           {/* Características principales */}
           {(safeProduct.caracteristicas?.length ?? 0) > 0 && (

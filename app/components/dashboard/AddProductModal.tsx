@@ -405,6 +405,7 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
             }),
       };
 
+      console.log('producToSend', productToSend)
       const response = await fetch("/api/stock", {
         method: "POST",
         headers: {

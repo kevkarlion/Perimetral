@@ -27,9 +27,9 @@ export async function GET() {
 // POST - Crear nuevo producto
 export async function POST(req: Request) {
   try {
-    // const body = await req.json();
-    // console.log("POST /api/stock - Body recibido:", body);
-    return  createProduct(req); // <<-- Asegúrate de usar await
+    const body = await req.json();
+    console.log("POST /api/stock - Body recibido:", body);
+    return await createProduct(body); // <<-- Asegúrate de usar await
   } catch (error) {
     console.error("Error al parsear JSON:", error);
     return new Response(JSON.stringify({ error: "Cuerpo de solicitud inválido" }), {
