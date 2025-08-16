@@ -1,64 +1,88 @@
 // lib/services/productService.ts
 import Product from "@/backend/lib/models/Product";
 import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
-import { Types } from "mongoose";
-import { IProduct, IVariation, ServiceResponse } from "@/types/productTypes";
+import { Types, Require_id, FlattenMaps } from "mongoose";
+import {
+  IProduct,
+  IVariation,
+  ServiceResponse,
+  IProductLean,
+  IProductDocument,
+} from "@/types/productTypes";
 import { CategoriaService } from "@/backend/lib/services/categoriaService";
 
 type ProductDocument = ReturnType<typeof Product.prototype.toObject>;
 type ProductCreateData = Omit<IProduct, "_id" | "createdAt" | "updatedAt">;
 type ProductUpdateData = Partial<ProductCreateData>;
 
-// Función para transformar documentos Mongoose a IProduct
-const toIProduct = (doc: ProductDocument): IProduct => {
+type ProductInput =
+  | ProductDocument
+  | FlattenMaps<ProductDocument>
+  | Require_id<FlattenMaps<ProductDocument>>;
+
+const toIProduct = (
+  doc: IProductDocument | IProductLean | FlattenMaps<ProductDocument>
+): IProduct => {
+  // Convertir categoría al tipo correcto
+  let categoria:
+    | Types.ObjectId
+    | { _id: Types.ObjectId; nombre: string }
+    | undefined;
+
+  if ((doc as any).categoria) {
+    const cat = (doc as any).categoria;
+    if (cat instanceof Types.ObjectId || typeof cat === "string") {
+      categoria = new Types.ObjectId(cat);
+    } else if (cat && typeof cat === "object") {
+      categoria = {
+        _id: new Types.ObjectId(cat._id),
+        nombre: cat.nombre,
+      };
+    }
+  }
+
+  // Convertir variaciones al tipo correcto
+  const variaciones = (doc.variaciones || []).map((v: any) => ({
+    ...v,
+    _id: v._id instanceof Types.ObjectId ? v._id : new Types.ObjectId(v._id),
+    descripcion: v.descripcion || "",
+    stockMinimo: v.stockMinimo ?? 5,
+    atributos: v.atributos
+      ? {
+          longitud: v.atributos.longitud || 0,
+          altura: v.atributos.altura || 0,
+          calibre: v.atributos.calibre || "",
+          material: v.atributos.material || "",
+          color: v.atributos.color || "",
+        }
+      : undefined,
+    imagenes: v.imagenes || [],
+    activo: v.activo !== false,
+  }));
+
   return {
-    _id: doc._id.toString(),
-    codigoPrincipal: doc.codigoPrincipal,
-    nombre: doc.nombre,
-    categoria: doc.categoria,
-    descripcionCorta: doc.descripcionCorta,
+    ...doc,
+    _id:
+      doc._id instanceof Types.ObjectId ? doc._id : new Types.ObjectId(doc._id),
+    categoria,
+    variaciones,
     descripcionLarga: doc.descripcionLarga || "",
-    precio: doc.precio,
-    stock: doc.stock,
     stockMinimo: doc.stockMinimo ?? 5,
     tieneVariaciones: doc.tieneVariaciones ?? false,
-    variaciones: (doc.variaciones || []).map((v: any) => ({
-      _id: v._id?.toString(),
-      codigo: v.codigo,
-      descripcion: v.descripcion || "",
-      medida: v.medida,
-      precio: v.precio,
-      stock: v.stock,
-      stockMinimo: v.stockMinimo ?? 5,
-      atributos: v.atributos
-        ? {
-            longitud: v.atributos.longitud,
-            altura: v.atributos.altura,
-            calibre: v.atributos.calibre || "",
-            material: v.atributos.material || "",
-            color: v.atributos.color || "",
-          }
-        : undefined,
-      imagenes: v.imagenes || [],
-      activo: v.activo !== false,
-    })),
     especificacionesTecnicas: doc.especificacionesTecnicas || [],
     caracteristicas: doc.caracteristicas || [],
     imagenesGenerales: doc.imagenesGenerales || [],
     proveedor: doc.proveedor || "",
     destacado: doc.destacado ?? false,
     activo: doc.activo !== false,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-  };
+  } as IProduct;
 };
 
 const productService = {
-   async getAllProducts(): Promise<ServiceResponse<IProduct[]>> {
+  async getAllProducts(): Promise<ServiceResponse<IProduct[]>> {
     try {
       await dbConnect();
-      const products = await Product.find({}).populate('categoria').lean();
-
+      const products = await Product.find({}).populate("categoria").lean();
       return {
         success: true,
         data: products.map(toIProduct),
@@ -76,7 +100,6 @@ const productService = {
     try {
       await dbConnect();
       if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
-
       const product = await Product.findById(id).lean();
       return product ? toIProduct(product) : null;
     } catch (error) {
@@ -85,46 +108,37 @@ const productService = {
     }
   },
 
-
-  //Creo producto teniendo en cuenta la categoria
   async createProduct(data: ProductCreateData): Promise<IProduct> {
     console.log("Creando producto desde servicio...");
     await dbConnect();
-    // Validación inicial
+
     if (!data.categoria) {
       throw new Error("El campo categoría es requerido");
     }
 
-    // Asegurar que categoria es string o ObjectId válido
-    //String() Convertir a string para evitar problemas de tipos
-    //trim Eliminar espacios en blanco al inicio y final del string.
-    const categoriaInput = String(data.categoria).trim();
-
-    // Paso 1: Resolver la categoría (ID existente o nombre nuevo)
     let categoriaId: Types.ObjectId;
 
-    if (Types.ObjectId.isValid(data.categoria.nombre)) {
-      // Es un ID existente - verificamos que exista
-      categoriaId = new Types.ObjectId(data.categoria.nombre);
-      const exists = await CategoriaService.categoryExists(categoriaId);
-      if (!exists) {
-        throw new Error("La categoría especificada no existe");
+    if (typeof data.categoria === "object" && "nombre" in data.categoria) {
+      if (Types.ObjectId.isValid(data.categoria.nombre)) {
+        categoriaId = new Types.ObjectId(data.categoria.nombre);
+        const exists = await CategoriaService.categoryExists(categoriaId);
+        if (!exists) throw new Error("La categoría especificada no existe");
+      } else {
+        const categoria = await CategoriaService.findOrCreate(
+          data.categoria.nombre
+        );
+        categoriaId = categoria._id;
       }
     } else {
-      // Es un nombre de categoría - crear nueva
-      const categoria = await CategoriaService.findOrCreate(categoriaInput);
-      categoriaId = categoria._id;
+      categoriaId = new Types.ObjectId(data.categoria as Types.ObjectId);
     }
 
-    // Paso 2: Crear el producto con la categoría resuelta
     const product = new Product({
       ...data,
       categoria: categoriaId,
     });
 
     await product.save();
-    console.log("Producto creado en servicio:", product);
-
     return toIProduct(product.toObject());
   },
 
@@ -162,14 +176,9 @@ const productService = {
     error?: string;
   }> {
     try {
-      console.log("Agregando variación al producto desde servicio...");
       await dbConnect();
-
       if (!Types.ObjectId.isValid(productId)) {
-        return {
-          success: false,
-          error: "ID de producto no válido",
-        };
+        return { success: false, error: "ID de producto no válido" };
       }
 
       const updated = await Product.findByIdAndUpdate(
@@ -197,19 +206,14 @@ const productService = {
       ).lean();
 
       if (!updated) {
-        return {
-          success: false,
-          error: "Producto no encontrado",
-        };
+        return { success: false, error: "Producto no encontrado" };
       }
 
       const product = toIProduct(updated);
-      console.log("Variación agregada correctamente:", product);
-
       return {
         success: true,
         product,
-        variations: product.variaciones, // Asegúrate de que toIProduct mantiene las variaciones
+        variations: product.variaciones,
       };
     } catch (error) {
       console.error("Error en addProductVariation:", error);
@@ -221,26 +225,17 @@ const productService = {
     }
   },
 
-  /**
-   * Elimina UNA variación específica
-   * @param productId - ID del producto
-   * @param variationId - ID o código de la variación
-   */
-
   async removeProductVariation(
     productId: string,
     variationId: string
   ): Promise<IProduct> {
     await dbConnect();
-
-    if (!Types.ObjectId.isValid(productId)) {
+    if (!Types.ObjectId.isValid(productId))
       throw new Error("ID de producto no válido");
-    }
 
     const product = await Product.findById(productId);
     if (!product) throw new Error("Producto no encontrado");
 
-    // Filtramos buscando por _id o codigo (como en tu modal)
     const initialLength = product.variaciones.length;
     product.variaciones = product.variaciones.filter(
       (v: any) => v._id?.toString() !== variationId && v.codigo !== variationId
@@ -250,36 +245,36 @@ const productService = {
       throw new Error("Variación no encontrada");
     }
 
-    // Actualiza el flag si no quedan variaciones
     product.tieneVariaciones = product.variaciones.length > 0;
-
     const updated = await product.save();
     return toIProduct(updated.toObject());
   },
 
-  // Añade estos métodos al servicio existente
+  // Solo cambia estas dos funciones:
 
-  async updateProductStock(
+  async incrementProductPrice(
     productId: string,
-    newStock: number,
+    amount: number,
     variationId?: string
   ): Promise<IProduct> {
     await dbConnect();
-
-    if (!Types.ObjectId.isValid(productId)) {
+    if (!Types.ObjectId.isValid(productId))
       throw new Error("ID de producto no válido");
-    }
 
-    const updateQuery = variationId
+    const incrementQuery = variationId
       ? {
+          $inc: {
+            "variaciones.$[elem].precio": amount,
+          },
           $set: {
-            "variaciones.$[elem].stock": newStock,
             updatedAt: new Date(),
           },
         }
       : {
+          $inc: {
+            precio: amount,
+          },
           $set: {
-            stock: newStock,
             updatedAt: new Date(),
           },
         };
@@ -291,49 +286,93 @@ const productService = {
         }
       : { new: true };
 
+    // Agrega el tipo explícito aquí
+    const updated = await Product.findByIdAndUpdate(
+      productId,
+      incrementQuery,
+      options
+    ).lean<IProductLean & { variaciones: IVariation[]; precio: number }>(); // <-- Esta es la línea clave
+
+    if (!updated) throw new Error("Producto no encontrado");
+
+    const finalPrice = variationId
+      ? updated.variaciones.find((v) => v._id?.toString() === variationId)
+          ?.precio
+      : updated.precio;
+
+    if (finalPrice && finalPrice <= 0) {
+      await this.updateProductPrice(productId, 0, variationId);
+      throw new Error("El precio no puede ser menor que 0");
+    }
+
+    return toIProduct(updated);
+  },
+
+  // Repite el mismo patrón para updateProductPrice:
+
+  async updateProductPrice(
+    productId: string,
+    newPrice: number,
+    variationId?: string
+  ): Promise<IProduct> {
+    await dbConnect();
+
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new Error("ID de producto no válido");
+    }
+
+    if (newPrice <= 0) {
+      throw new Error("El precio debe ser mayor que 0");
+    }
+
+    const updateQuery = variationId
+      ? {
+          $set: {
+            "variaciones.$[elem].precio": newPrice,
+            updatedAt: new Date(),
+          },
+        }
+      : {
+          $set: {
+            precio: newPrice,
+            updatedAt: new Date(),
+          },
+        };
+
+    const options = variationId
+      ? {
+          new: true,
+          arrayFilters: [{ "elem._id": new Types.ObjectId(variationId) }],
+        }
+      : { new: true };
+
+    // Agrega el tipo explícito aquí también
     const updated = await Product.findByIdAndUpdate(
       productId,
       updateQuery,
       options
-    ).lean();
+    ).lean<IProductLean & { variaciones: IVariation[]; precio: number }>(); // <-- Esta es la línea clave
 
     if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
   },
 
+  
   async incrementProductStock(
     productId: string,
     amount: number,
     variationId?: string
   ): Promise<IProduct> {
     await dbConnect();
-    console.log("Datos recibidos en incrementProductStock:", {
-      productId,
-      amount, // Debería ser negativo (ej: -2)
-      variationId,
-    });
-
-    if (!Types.ObjectId.isValid(productId)) {
+    if (!Types.ObjectId.isValid(productId))
       throw new Error("ID de producto no válido");
-    }
 
     const incrementQuery = variationId
       ? {
-          $inc: {
-            "variaciones.$[elem].stock": amount,
-          },
-          $set: {
-            updatedAt: new Date(),
-          },
+          $inc: { "variaciones.$[elem].stock": amount },
+          $set: { updatedAt: new Date() },
         }
-      : {
-          $inc: {
-            stock: amount,
-          },
-          $set: {
-            updatedAt: new Date(),
-          },
-        };
+      : { $inc: { stock: amount }, $set: { updatedAt: new Date() } };
 
     const options = variationId
       ? {
@@ -347,7 +386,6 @@ const productService = {
       incrementQuery,
       options
     ).lean();
-
     if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
   },

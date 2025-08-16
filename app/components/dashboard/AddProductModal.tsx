@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IProduct, IVariation, ProductFormData } from "@/types/productTypes";
+import { IProduct, IVariation, ProductFormData, ApiErrorResponse } from "@/types/productTypes";
 
 type Props = {
   onClose: () => void;
@@ -414,10 +414,28 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
         body: JSON.stringify(productToSend),
       });
 
+
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al crear el producto");
+      // Manejo mejorado de errores
+      const errorData = data as ApiErrorResponse;
+      
+      // Mostrar error general
+      setErrors(prev => ({
+        ...prev,
+        form: errorData.error || "Error al crear el producto",
+      }));
+
+      // Mostrar errores específicos por campo si existen
+      if (errorData.fieldErrors) {
+        setErrors(prev => ({
+          ...prev,
+          ...errorData.fieldErrors
+        }));
       }
+
+      return; // Salir sin lanzar excepción
+    }
 
       // Limpiar formulario después de éxito
       setFormData({

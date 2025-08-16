@@ -1,6 +1,5 @@
 // lib/types/productTypes.ts
-
-import { Types } from "mongoose";
+import { Types, Document, FlattenMaps, ObjectId } from 'mongoose';
 
 export interface ServiceResponse<T> {
   success: boolean;
@@ -9,14 +8,15 @@ export interface ServiceResponse<T> {
   details?: string;
 }
 
-export interface IVariation {
-  _id?: string;
+// Tipos base
+export interface IVariationBase {
   codigo: string;
   descripcion?: string;
   medida: string;
   precio: number;
   stock: number;
   stockMinimo?: number;
+  length?: number;
   atributos?: {
     longitud?: number;
     altura?: number;
@@ -30,32 +30,32 @@ export interface IVariation {
   updatedAt?: Date;
 }
 
-export interface DBProduct {
-  _id: Types.ObjectId;
-  name: string;
-  price: number;
-  stock: number;
-  isActive: boolean;
-  images?: string[];
-  sku?: string;
-  // Agrega aquí otros campos que necesites
+// Para objetos planos (con _id como string o ObjectId)
+export interface IVariation extends IVariationBase {
+  _id?: string | Types.ObjectId;
 }
 
-export interface IProduct {
-  _id?: string;
+// Para documentos Mongoose
+export interface IVariationDocument extends IVariationBase, Document {
+  _id: Types.ObjectId;
+}
+
+// Tipos base de producto
+export interface IProductBase {
+  _id: Types.ObjectId | string;
   codigoPrincipal: string;
   nombre: string;
-  categoria: {
-    _id: string;
-    nombre: string;
+  categoria?: Types.ObjectId | { 
+    _id: Types.ObjectId | string;
+    nombre: string 
   } | null;
-  descripcionCorta: string; // Añade este campo
+  descripcionCorta: string;
   descripcionLarga?: string;
   precio?: number;
   stock?: number;
   stockMinimo?: number;
   tieneVariaciones: boolean;
-  variaciones: IVariation[];
+  variaciones?: IVariation[];
   especificacionesTecnicas?: string[];
   caracteristicas?: string[];
   imagenesGenerales?: string[];
@@ -64,15 +64,41 @@ export interface IProduct {
   activo?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  medidaSeleccionada?: string; // Añade este campo para la medida seleccionada
-  atributos?: {
-    longitud?: number;
-    altura?: number;
-    calibre?: string;
-    material?: string;
-    color?: string;
-  };
 }
+
+// Para documentos Mongoose completos
+export interface IProductDocument extends IProductBase, Document {
+  _id: Types.ObjectId;
+  variaciones: Types.Array<IVariationDocument>;
+}
+
+// Para objetos planos (resultados de .lean())
+export interface IProductLean extends Omit<IProductBase, 'categoria'> {
+  _id: Types.ObjectId;
+  variaciones: IVariation[];
+  categoria?: Types.ObjectId | {
+    _id: Types.ObjectId;
+    nombre: string;
+  };
+  __v?: number;
+}
+
+// Tipo combinado para uso general
+export type IProduct = IProductDocument | IProductLean | FlattenMaps<IProductLean>;
+
+// Tipo para API (con IDs como strings)
+export interface IProductApi extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
+  _id: string;
+  categoria: { _id: string; nombre: string } | null;
+  variaciones: Array<IVariation & { _id: string }>;
+}
+
+export type ApiErrorResponse = {
+  error: string;
+  details?: string;
+  fieldErrors?: Record<string, string>;
+};
+
 
 export interface ProductFormData {
   codigoPrincipal: string;
@@ -108,19 +134,4 @@ interface VariationFormData {
     material?: string;
     color?: string;
   };
-}
-
-
-// types/productTypes.ts
-
-export interface IVariationSerialized extends Omit<IVariation, "createdAt" | "updatedAt"> {
-  createdAt?: string | null;
-  updatedAt?: string | null;
-}
-
-export interface IProductSerialized extends Omit<IProduct, "createdAt" | "updatedAt" | "variaciones"> {
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  variaciones: IVariationSerialized[];
-  categoria: { _id: string; nombre: string } | null;
 }

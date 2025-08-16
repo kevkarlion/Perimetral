@@ -77,7 +77,9 @@ export default function ProductTable() {
       });
 
       if (!response.ok) throw new Error("Error al eliminar producto");
-      setProducts(products.filter((product) => product._id !== productId));
+      setProducts(
+        products.filter((product) => product._id.toString() !== productId)
+      );
     } catch (error) {
       console.error("Error deleting product:", error);
       alert("No se pudo eliminar el producto");
@@ -163,7 +165,11 @@ export default function ProductTable() {
                     {product.nombre}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.categoria?.nombre || (
+                    {product.categoria &&
+                    typeof product.categoria === "object" &&
+                    "nombre" in product.categoria ? (
+                      product.categoria.nombre
+                    ) : (
                       <span className="text-gray-400">N/D</span>
                     )}
                   </td>
@@ -270,7 +276,7 @@ export default function ProductTable() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => deleteProduct(product._id!)}
+                        onClick={() => deleteProduct(product._id!.toString())}
                         className="text-red-600 hover:text-red-900"
                         title="Eliminar producto"
                       >
@@ -318,7 +324,7 @@ export default function ProductTable() {
       <div className="lg:hidden space-y-4">
         {products.map((product) => (
           <div
-            key={product._id}
+            key={product._id.toString()}
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex justify-between items-start">
@@ -328,12 +334,14 @@ export default function ProductTable() {
                 </h3>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>{product.codigoPrincipal || "N/D"}</span>
-                  {product.categoria && (
-                    <>
-                      <span>•</span>
-                      <span>{product.categoria?.nombre}</span>
-                    </>
-                  )}
+                  {product.categoria &&
+                    typeof product.categoria === "object" &&
+                    "nombre" in product.categoria && (
+                      <>
+                        <span>•</span>
+                        <span>{product.categoria.nombre}</span>
+                      </>
+                    )}
                 </div>
               </div>
               <div className="flex space-x-2 ml-2">
@@ -356,7 +364,7 @@ export default function ProductTable() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => deleteProduct(product._id!)}
+                  onClick={() => deleteProduct(product._id!.toString())}
                   className="text-red-600 hover:text-red-900"
                   title="Eliminar producto"
                 >
@@ -486,7 +494,7 @@ export default function ProductTable() {
 
       {showVariationModal && currentProduct && (
         <AddVariationModal
-          productId={currentProduct._id!}
+          productId={currentProduct._id!.toString()}
           initialVariations={currentProduct.variaciones || []}
           onClose={closeVariationModal}
         />

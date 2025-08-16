@@ -27,7 +27,7 @@ export async function GET() {
 // POST - Crear nuevo producto
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+     const body = req.body ? await req.json() : {};
     console.log("POST /api/stock - Body recibido:", body);
     return await createProduct(body); // <<-- Asegúrate de usar await
   } catch (error) {
@@ -64,6 +64,22 @@ export async function PUT(req: NextRequest) {
         }),
         { status: 400 }
       );
+    }
+     // Lógica para eliminar variación
+    if (action === 'remove-variation') {
+      console.log('Ejecutando eliminación de variación...');
+      const response = await updateProduct(
+        new NextRequest(req.url, {
+          body: JSON.stringify({
+            productId,
+            action: 'remove-variation',
+            variationId
+          }),
+          method: "PUT",
+          headers: req.headers
+        })
+      );
+      return response;
     }
 
     // Lógica existente para manejo de variaciones

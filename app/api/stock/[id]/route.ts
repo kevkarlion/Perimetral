@@ -5,14 +5,6 @@ import { Types } from "mongoose"
 
 
 
-//context contiene información sobre la request que Next.js te pasa automáticamente.
-// {
-//   params: { id: string },   
-//   request: Request,        
- 
-// }
-
-
 
 
 export async function GET(request: Request, context: any) {

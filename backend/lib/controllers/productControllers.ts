@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
 import Product from '@/backend/lib/models/Product';
 import { IProduct, IVariation } from '@/types/productTypes';
-import { dbConnect } from '../dbConnect/dbConnect';
+// import { dbConnect } from '../dbConnect/dbConnect';
 
 // Tipos para respuestas
 type ApiError = {
@@ -136,9 +136,9 @@ export async function getAllProducts() {
 }
 
 // Crear un nuevo producto
-export async function createProduct(req: Request | NextRequest): PromiseApiResponse<IProduct> {
+export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
   try {
-    const body = await req.json();
+    
 
     console.log("Body recibido en createProduct:", body);
     // Validación de categoría
@@ -241,6 +241,73 @@ export async function deleteProductById(req: Request): PromiseApiResponse<{ mess
   }
 }
 
+
+//Actualizar precio
+export async function updatePrice(req: Request): Promise<NextResponse> {
+  try {
+    const body = await req.json();
+    const { productId, price, variationId, action } = body;
+
+    // Validación básica del ID del producto
+    if (!productId || !Types.ObjectId.isValid(productId)) {
+      return NextResponse.json(
+        { success: false, error: 'ID de producto no válido' },
+        { status: 400 }
+      );
+    }
+
+    // Validación del precio
+    if (price === undefined || isNaN(Number(price)) ) {
+      return NextResponse.json(
+        { success: false, error: 'Precio no válido' },
+        { status: 400 }
+      );
+    }
+
+    // Validación de la acción
+    if (action && action !== 'set' && action !== 'increment') {
+      return NextResponse.json(
+        { success: false, error: 'Acción no válida. Use "set" o "increment"' },
+        { status: 400 }
+      );
+    }
+
+    // Llamar al servicio correspondiente
+    let updatedProduct;
+    if (action === 'increment') {
+      updatedProduct = await productService.incrementProductPrice(
+        productId, 
+        Number(price), 
+        variationId
+      );
+    } else {
+      updatedProduct = await productService.updateProductPrice(
+        productId, 
+        Number(price), 
+        variationId
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: updatedProduct
+    });
+
+  } catch (error) {
+    console.error('Error en controlador updatePrice:', error);
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Error al procesar la solicitud',
+        details: error instanceof Error ? error.message : 'Error desconocido'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+
+
 // Actualizar un producto
 export async function updateProduct(req: Request): PromiseApiResponse<IProduct> {
   console.log("CONTROLADOR - Inicio de updateProduct");
@@ -319,7 +386,7 @@ export async function updateProduct(req: Request): PromiseApiResponse<IProduct> 
       
       return NextResponse.json({
         success: true,
-        data: updatedProduct
+        data: updatedProduct.product
       });
     }
 
@@ -436,7 +503,7 @@ export async function updateStock(req: Request): PromiseApiResponse<IProduct> {
 
     let updatedProduct: IProduct;
     if (action === 'set') {
-      updatedProduct = await productService.updateProductStock(
+      updatedProduct = await productService.incrementProductStock(
         productId,
         Number(stock),
         variationId
