@@ -7,6 +7,7 @@ import {
   deleteProductById,
   updateProduct,
   updateStock,
+  updatePrice
 } from "@/backend/lib/controllers/productControllers";
 
 // GET - Obtener todos los productos
@@ -52,7 +53,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     console.log("Body recibido:", JSON.stringify(body, null, 2));
 
-    const { productId, action, variation, stock, variationId } = body;
+    const { productId, action, variation, stock, variationId, price  } = body;
 
     if (!productId) {
       console.error("Faltan parámetros requeridos");
@@ -64,24 +65,49 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
-    // Lógica para eliminar variación
-   if (action === "remove-variation") {
-  console.log("Ejecutando eliminación de variación...");
-  const response = await updateProduct(
-    new NextRequest(req.url, {
-      body: JSON.stringify({
-        productId,
-        action: "remove-variation",
-        variationId,
-      }),
-      method: "PUT",
-      headers: req.headers,
-    })
-  );
 
-  // Devuelve las variaciones actualizadas en el mismo formato que add-variation
-  return response;
-}
+
+       // Lógica para actualización de precios
+    if (price !== undefined) {
+      console.log("Ejecutando actualización de precio...");
+      
+      const updateData = {
+        productId,
+        price: Number(price),
+        variationId: variationId || null,
+        action: action || "set", // 'set' o 'increment'
+      };
+
+
+      console.log('actualizando precio...??? ')
+      const response = await updatePrice(
+        new NextRequest(req.url, {
+          body: JSON.stringify(updateData),
+          method: "PUT",
+          headers: req.headers,
+        })
+      );
+      return response;
+    }
+
+    // Lógica para eliminar variación
+    if (action === "remove-variation") {
+      console.log("Ejecutando eliminación de variación...");
+      const response = await updateProduct(
+        new NextRequest(req.url, {
+          body: JSON.stringify({
+            productId,
+            action: "remove-variation",
+            variationId,
+          }),
+          method: "PUT",
+          headers: req.headers,
+        })
+      );
+
+      // Devuelve las variaciones actualizadas en el mismo formato que add-variation
+      return response;
+    }
 
     // Lógica existente para manejo de variaciones
     if (variation || action === "update-variation") {

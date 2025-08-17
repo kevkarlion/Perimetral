@@ -6,6 +6,7 @@ import AddVariationModal from "./AddVariationModal";
 import DetailsProductModal from "./DetailsProductModal";
 import StockManager from "./StockManager";
 import { IProduct, IVariation } from "@/types/productTypes";
+import PriceManagerModal from "@/app/components/dashboard/PriceManagerModal";
 
 export default function ProductTable() {
   const [showModal, setShowModal] = useState(false);
@@ -19,6 +20,19 @@ export default function ProductTable() {
   const [showStockManager, setShowStockManager] = useState(false);
   const [selectedProductForStock, setSelectedProductForStock] =
     useState<IProduct | null>(null);
+  const [showPriceManager, setShowPriceManager] = useState(false);
+  const [selectedProductForPrice, setSelectedProductForPrice] =
+    useState<IProduct | null>(null);
+
+  const openPriceManager = (product: IProduct) => {
+    setSelectedProductForPrice(product);
+    setShowPriceManager(true);
+  };
+
+  const closePriceManager = () => {
+    setSelectedProductForPrice(null);
+    setShowPriceManager(false);
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -311,6 +325,21 @@ export default function ProductTable() {
                           />
                         </svg>
                       </button>
+                      <button
+                        onClick={() => openPriceManager(product)}
+                        className="text-yellow-600 hover:text-yellow-900"
+                        title="Gestionar precios"
+                      >
+                        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  className="h-4 w-4 mr-1"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M12 1.5c-.552 0-1 .448-1 1v1.184c-2.23.293-4 2.005-4 4.066 0 2.206 1.794 4 4 4h2c1.103 0 2 .897 2 2s-.897 2-2 2h-4c-.552 0-1 .448-1 1s.448 1 1 1h2v1.184c0 .552.448 1 1 1s1-.448 1-1V18c2.206 0 4-1.794 4-4s-1.794-4-4-4h-2c-1.103 0-2-.897-2-2s.897-2 2-2h4c.552 0 1-.448 1-1s-.448-1-1-1h-2V2.5c0-.552-.448-1-1-1z"/>
+</svg>
+
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -479,6 +508,21 @@ export default function ProductTable() {
                 </svg>
                 Gestionar Stock
               </button>
+              <button
+                onClick={() => openPriceManager(product)}
+                className="text-yellow-600 hover:text-yellow-900 flex items-center text-sm"
+              >
+                <svg
+  xmlns="http://www.w3.org/2000/svg"
+  className="h-4 w-4 mr-1"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M12 1.5c-.552 0-1 .448-1 1v1.184c-2.23.293-4 2.005-4 4.066 0 2.206 1.794 4 4 4h2c1.103 0 2 .897 2 2s-.897 2-2 2h-4c-.552 0-1 .448-1 1s.448 1 1 1h2v1.184c0 .552.448 1 1 1s1-.448 1-1V18c2.206 0 4-1.794 4-4s-1.794-4-4-4h-2c-1.103 0-2-.897-2-2s.897-2 2-2h4c.552 0 1-.448 1-1s-.448-1-1-1h-2V2.5c0-.552-.448-1-1-1z"/>
+</svg>
+
+                Precios
+              </button>
             </div>
           </div>
         ))}
@@ -504,6 +548,13 @@ export default function ProductTable() {
         <DetailsProductModal
           product={selectedProduct}
           onClose={closeDetailsModal}
+        />
+      )}
+      {showPriceManager && selectedProductForPrice && (
+        <PriceManagerModal
+          product={selectedProductForPrice}
+          onClose={closePriceManager}
+          onPriceUpdated={fetchProducts}
         />
       )}
 
