@@ -123,7 +123,7 @@ export default function CatalogoPage() {
         {products.length > 0 ? (
           products.map((producto) => (
             <ProductCard
-              key={producto._id}
+              key={producto._id.toString()}
               producto={producto}
               sliderSettings={sliderSettings}
               onViewDetails={handleViewDetails}
@@ -173,16 +173,16 @@ const ProductCard = ({
 }: ProductCardProps) => {
   // Función para formatear el precio
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
     }).format(price);
   };
 
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
       <div className="relative h-48 bg-gray-100">
-          {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
+        {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
           producto.imagenesGenerales.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
               {producto.imagenesGenerales.map((imagen, index) => (
@@ -230,6 +230,11 @@ const ProductCard = ({
             <Star className="h-3 w-3 mr-1" /> DESTACADO
           </div>
         )}
+          {producto.tieneVariaciones && (
+          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+            VARIANTES
+          </div>
+        )}
       </div>
 
       <div className="p-3 flex-grow flex flex-col">
@@ -247,20 +252,24 @@ const ProductCard = ({
             </p>
           </button>
           {/* Categoría solo en desktop */}
-          {producto.categoria && (
-            <span className="hidden sm:inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
-              {producto.categoria.nombre}
-            </span>
-          )}
+          {producto.categoria &&
+            typeof producto.categoria === "object" &&
+            "nombre" in producto.categoria && (
+              <span className="hidden sm:inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+                {producto.categoria.nombre}
+              </span>
+            )}
         </div>
 
         {/* Sección de medidas y precios - Simplificada en mobile */}
         <div className="mt-2 mb-3">
-          {producto.tieneVariaciones ? (
+          {producto.tieneVariaciones && producto.variaciones ? (
             <>
-              <h4 className="text-xs text-gray-500 mb-1 sm:block hidden">Medidas disponibles</h4>
+              <h4 className="text-xs text-gray-500 mb-1 sm:block hidden">
+                Medidas disponibles
+              </h4>
               <div className="flex flex-wrap gap-1">
-                {producto.variaciones.slice(0, 3).map((variacion, index) => (
+                {producto.variaciones?.slice(0, 3).map((variacion, index) => (
                   <span
                     key={index}
                     className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
@@ -270,7 +279,7 @@ const ProductCard = ({
                 ))}
                 {producto.variaciones.length > 3 && (
                   <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                    +{producto.variaciones.length - 3}
+                    +{producto.variaciones?.length - 3}
                   </span>
                 )}
               </div>
@@ -278,7 +287,9 @@ const ProductCard = ({
           ) : (
             producto.precio && (
               <div className="flex flex-col">
-                <span className="text-xs text-gray-500 sm:block hidden">Precio</span>
+                <span className="text-xs text-gray-500 sm:block hidden">
+                  Precio
+                </span>
                 <span className="text-lg font-bold text-brand">
                   {formatPrice(producto.precio)}
                 </span>
@@ -288,16 +299,19 @@ const ProductCard = ({
         </div>
 
         {/* Especificaciones técnicas (solo en desktop) */}
-        {producto.especificacionesTecnicas && producto.especificacionesTecnicas.length > 0 && (
-          <ul className="hidden sm:block space-y-1.5 mb-3">
-            {producto.especificacionesTecnicas.slice(0, 2).map((espec, index) => (
-              <li key={index} className="flex items-start text-xs">
-                <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700">{espec}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {producto.especificacionesTecnicas &&
+          producto.especificacionesTecnicas.length > 0 && (
+            <ul className="hidden sm:block space-y-1.5 mb-3">
+              {producto.especificacionesTecnicas
+                .slice(0, 2)
+                .map((espec, index) => (
+                  <li key={index} className="flex items-start text-xs">
+                    <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{espec}</span>
+                  </li>
+                ))}
+            </ul>
+          )}
 
         <div className="mt-auto pt-3 border-t border-gray-100">
           <button

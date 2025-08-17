@@ -1,42 +1,54 @@
 // app/components/ProductCardMain.tsx
 "use client";
 
-import Image from "next/image"
-import { ArrowRight, Star, ChevronLeft, ChevronRight, Check } from "lucide-react"
-import Slider from "react-slick"
-import "slick-carousel/slick/slick.css"
-import "slick-carousel/slick/slick-theme.css"
-import { IProduct } from "@/types/productTypes"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import Image from "next/image";
+import {
+  ArrowRight,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from "lucide-react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { IProduct } from "@/types/productTypes";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useProductStore } from "@/app/components/store/product-store";
 
-const CustomArrow = ({ direction, onClick }: { direction: 'next' | 'prev', onClick?: () => void }) => {
-  const Icon = direction === 'next' ? ChevronRight : ChevronLeft
+const CustomArrow = ({
+  direction,
+  onClick,
+}: {
+  direction: "next" | "prev";
+  onClick?: () => void;
+}) => {
+  const Icon = direction === "next" ? ChevronRight : ChevronLeft;
   return (
     <button
       type="button"
       className={`absolute top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none ${
-        direction === 'next' ? 'right-1' : 'left-1'
+        direction === "next" ? "right-1" : "left-1"
       }`}
       onClick={onClick}
-      aria-label={`${direction === 'next' ? 'Next' : 'Previous'} image`}
+      aria-label={`${direction === "next" ? "Next" : "Previous"} image`}
     >
       <div className="bg-brand hover:bg-brandHover rounded-full p-1 transition-colors shadow-md">
         <Icon className="h-4 w-4 text-white" />
       </div>
     </button>
-  )
-}
+  );
+};
 
 interface ProductCardProps {
-  product: IProduct
+  product: IProduct;
 }
 
 export default function ProductCardMain({ product }: ProductCardProps) {
   const router = useRouter();
   const { setCurrentProduct } = useProductStore();
-  
+
   const {
     _id,
     nombre,
@@ -47,8 +59,8 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     variaciones = [],
     categoria,
     especificacionesTecnicas = [],
-    imagenesGenerales = []
-  } = product
+    imagenesGenerales = [],
+  } = product;
 
   const sliderSettings = {
     dots: false,
@@ -63,27 +75,29 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     autoplaySpeed: 5000,
     pauseOnHover: true,
     arrows: true,
-  }
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+    }).format(price);
+  };
 
   const handleViewDetails = () => {
     // Guardar el producto actual en el store antes de navegar
     setCurrentProduct(product);
-    
+
     if (tieneVariaciones) {
       router.push(
-        `/catalogo/variants?productId=${_id}&productName=${encodeURIComponent(nombre)}`
+        `/catalogo/variants?productId=${_id}&productName=${encodeURIComponent(
+          nombre
+        )}`
       );
     } else {
       router.push(`/catalogo/${_id}`);
     }
-  }
+  };
 
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
@@ -147,7 +161,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
       {/* Contenido de la card */}
       <div className="p-3 flex-grow flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <button 
+          <button
             onClick={handleViewDetails}
             className="group text-left flex-grow"
           >
@@ -160,17 +174,21 @@ export default function ProductCardMain({ product }: ProductCardProps) {
               </p>
             )}
           </button>
-          {categoria && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
-              {categoria.nombre}
-            </span>
-          )}
+          {categoria &&
+            typeof categoria === "object" &&
+            "nombre" in categoria && (
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+                {categoria.nombre}
+              </span>
+            )}
         </div>
 
         <div className="mt-2 mb-3">
           {tieneVariaciones ? (
             <>
-              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
+              <h4 className="text-xs text-gray-500 mb-1">
+                Medidas disponibles
+              </h4>
               <div className="flex flex-wrap gap-1">
                 {variaciones.slice(0, 3).map((variacion, index) => (
                   <span
@@ -221,5 +239,5 @@ export default function ProductCardMain({ product }: ProductCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
