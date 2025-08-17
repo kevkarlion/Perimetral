@@ -3,7 +3,7 @@ import { Types, Document, FlattenMaps, ObjectId } from 'mongoose';
 
 export interface ServiceResponse<T> {
   success: boolean;
-  data?: T;
+  data?: T;     // aquí va tu IProduct completo
   error?: string;
   details?: string;
 }
@@ -84,7 +84,7 @@ export interface IProductLean extends Omit<IProductBase, 'categoria'> {
 }
 
 // Tipo combinado para uso general
-export type IProduct = IProductDocument | IProductLean | FlattenMaps<IProductLean>;
+export type IProduct = IProductBase | IProductLean | FlattenMaps<IProductLean>;
 
 // Tipo para API (con IDs como strings)
 export interface IProductApi extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {

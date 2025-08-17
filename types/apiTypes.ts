@@ -3,4 +3,4 @@ import { NextResponse } from 'next/server';
 import { ServiceResponse } from './productTypes';
 
 
-export type ApiResponse<T> = NextResponse<ServiceResponse<T>>;
+export type ApiResponse<T> = ServiceResponse<T>;
