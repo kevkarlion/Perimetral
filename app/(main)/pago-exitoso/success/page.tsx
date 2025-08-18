@@ -1,11 +1,24 @@
+'use client'
 import Link from 'next/link';
 import { verifyPayment } from '@/backend/lib/services/mercadoPagoPayment'; // Función que debes crear
+
+import { useEffect } from 'react';
+import { useCartStore } from '@/app/components/store/cartStore'
 
 export default async function PagoExitoso({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
+
+
+    const clearCart = useCartStore((state) => state.clearCart);
+
+  useEffect(() => {
+    clearCart(); // Vacía el carrito al llegar a esta página
+  }, [clearCart]);
+
+
   const paymentId = searchParams.payment_id as string;
   const paymentStatus = await verifyPayment(paymentId);
 
