@@ -48,10 +48,7 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 text-white">Contacto</h3>
             <ul className="space-y-3">
-              <li className="flex items-start">
-                <MapPin className="h-4 w-4 text-brand mr-2 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-400 text-sm">Cacique Catriel 850, Stefenelli, Roca</span>
-              </li>
+             
               <li className="flex items-center">
                 <Phone className="h-4 w-4 text-brand mr-2 flex-shrink-0" />
                 <span className="text-gray-400 text-sm">+54 298 - 4392148</span>
