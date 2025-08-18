@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
 import { OrderService } from "@/backend/lib/services/order.services";
+
 import type {
   MercadoPagoPayment,
   WebhookResponse,
@@ -11,6 +12,8 @@ import type {
 } from "@/types/mercadopagoTypes";
 
 console.log("Inicializando webhook de MercadoPago");
+
+
 
 // Función para validar y convertir los datos del pago
 function parsePaymentData(paymentData: any): MercadoPagoPayment {
@@ -86,6 +89,21 @@ export async function POST(
       });
     }
 
+     if (paymentDetails.status === "approved") {
+      // Limpiar el carrito llamando al endpoint
+
+      
+      const clearResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/clear`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!clearResponse.ok) {
+        console.error("Error al limpiar carrito:", await clearResponse.json());
+      }
+    }
+
+
     // Validar información adicional
     // Por esto (usando external_reference):
     const orderId = paymentDetails.external_reference;
@@ -159,6 +177,8 @@ export async function POST(
         });
       }
     }
+
+    
 
     return NextResponse.json({
       success: true,

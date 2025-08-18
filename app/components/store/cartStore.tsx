@@ -1,3 +1,4 @@
+//app/components/store/cartStore.tsx
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, CartStore } from '@/types/cartTypes';
@@ -52,4 +53,15 @@ export const useCartStore = create<CartStore>()(
       name: 'cart-storage',
     }
   )
+
 );
+
+// Exportar funciones directas para uso en API routes
+export const clearCart = () => {
+  if (typeof window !== 'undefined') {
+    // Ejecutar en cliente
+    useCartStore.getState().clearCart();
+  } else {
+    // Opcional: lógica para servidor (ej. limpiar localStorage simulado)
+  }
+};
