@@ -30,7 +30,8 @@
 //       
 //       "Material: Acero galvanizado",
 //       "Resistencia: Alta tensión",
-//       "Vida útil: 15+ años"
+//       "Vida útil: 15+ años",
+//          "Garantía: 6 Meses",
 //     ],
 //     caracteristicas: [
 //       "Resistente a la corrosión",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { IProduct, IVariation, ProductFormData, ApiErrorResponse } from "@/types/productTypes";
+import CloudinaryUploader from '@/app/components/CloudinaryUploader';
 
 type Props = {
   onClose: () => void;
@@ -40,6 +41,23 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+ // Manejar subida de imágenes
+   const handleImageUpload = (imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      imagenesGenerales: [...prev.imagenesGenerales, imageUrl]
+    }));
+  };
+
+  // Eliminar imagen
+  const handleRemoveImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      imagenesGenerales: prev.imagenesGenerales.filter((_, i) => i !== index)
+    }));
+  };
+
 
   // Estados para variaciones
   const [newVariation, setNewVariation] = useState<
@@ -726,42 +744,44 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
           </div>
 
           {/* Imágenes generales */}
-          <div className="col-span-4">
+         <div className="col-span-4">
             <label className={labelClass}>Imágenes del producto</label>
-            {formData.imagenesGenerales?.map((img, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder={`URL imagen ${index + 1}`}
-                  className={inputClass}
-                  value={img}
-                  onChange={(e) =>
-                    handleArrayChange(
-                      "imagenesGenerales",
-                      index,
-                      e.target.value
-                    )
-                  }
-                />
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => removeArrayField("imagenesGenerales", index)}
-                    className="text-red-500 hover:text-red-700 px-2"
-                    aria-label="Eliminar imagen"
-                  >
-                    ✕
-                  </button>
-                )}
+            
+            <CloudinaryUploader
+              onImageUpload={handleImageUpload}
+              existingImages={formData.imagenesGenerales.filter(img => img !== '')}
+              folder="products"
+            />
+
+            {/* Mostrar miniaturas de las imágenes subidas */}
+            {formData.imagenesGenerales.filter(img => img !== '').length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Imágenes subidas:</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {formData.imagenesGenerales
+                    .filter(img => img !== '')
+                    .map((img, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={img}
+                          alt={`Imagen ${index + 1}`}
+                          className="w-full h-20 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(
+                            formData.imagenesGenerales.indexOf(img)
+                          )}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Eliminar imagen"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                </div>
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayField("imagenesGenerales")}
-              className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
-            >
-              + Agregar otra imagen
-            </button>
+            )}
           </div>
 
           {/* Sección de stock y precios */}

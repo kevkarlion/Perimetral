@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useProductStore } from "@/app/components/store/product-store";
 import { CatalogLoading } from "@/app/components/ProductCardSkeleton/CatalogLoading";
 import { IProduct } from "@/types/productTypes";
+import { useState, useEffect } from "react";
 
 type CustomArrowProps = {
   direction: "next" | "prev";
@@ -51,6 +52,21 @@ export default function CatalogoPage() {
     initializeProducts,
   } = useProductStore();
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -63,7 +79,7 @@ export default function CatalogoPage() {
     autoplay: false,
     autoplaySpeed: 5000,
     pauseOnHover: true,
-    arrows: true,
+    arrows: !isMobile,
   };
 
   const handleViewDetails = (producto: IProduct) => {
@@ -85,7 +101,7 @@ export default function CatalogoPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Error al cargar productos
@@ -109,7 +125,7 @@ export default function CatalogoPage() {
   }
 
   return (
-    <div className="container mx-auto py-11 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-11 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       <div className="text-center mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           Catálogo de Productos
@@ -119,7 +135,7 @@ export default function CatalogoPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
         {products.length > 0 ? (
           products.map((producto) => (
             <ProductCard
@@ -127,6 +143,7 @@ export default function CatalogoPage() {
               producto={producto}
               sliderSettings={sliderSettings}
               onViewDetails={handleViewDetails}
+              isMobile={isMobile}
             />
           ))
         ) : (
@@ -164,14 +181,15 @@ interface ProductCardProps {
   producto: IProduct;
   sliderSettings: any;
   onViewDetails: (producto: IProduct) => void;
+  isMobile: boolean;
 }
 
 const ProductCard = ({
   producto,
   sliderSettings,
   onViewDetails,
+  isMobile,
 }: ProductCardProps) => {
-  // Función para formatear el precio
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
@@ -181,12 +199,12 @@ const ProductCard = ({
 
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
-      <div className="relative h-48 bg-gray-100">
+      <div className="relative h-40 sm:h-48 bg-gray-100">
         {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
           producto.imagenesGenerales.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
               {producto.imagenesGenerales.map((imagen, index) => (
-                <div key={index} className="relative h-48 w-full">
+                <div key={index} className="relative h-40 sm:h-48 w-full">
                   <button
                     onClick={() => onViewDetails(producto)}
                     className="block h-full w-full"
@@ -204,7 +222,7 @@ const ProductCard = ({
               ))}
             </Slider>
           ) : (
-            <div className="relative h-48 w-full">
+            <div className="relative h-40 sm:h-48 w-full">
               <button
                 onClick={() => onViewDetails(producto)}
                 className="block h-full w-full"
@@ -221,7 +239,7 @@ const ProductCard = ({
             </div>
           )
         ) : (
-          <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+          <div className="relative h-40 sm:h-48 w-full bg-gray-200 flex items-center justify-center">
             <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
         )}
@@ -230,7 +248,7 @@ const ProductCard = ({
             <Star className="h-3 w-3 mr-1" /> DESTACADO
           </div>
         )}
-          {producto.tieneVariaciones && (
+        {producto.tieneVariaciones && (
           <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             VARIANTES
           </div>
@@ -238,59 +256,52 @@ const ProductCard = ({
       </div>
 
       <div className="p-3 flex-grow flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <button
-            onClick={() => onViewDetails(producto)}
-            className="group text-left flex-grow"
-          >
-            <h2 className="text-sm font-semibold text-gray-900 group-hover:text-brandHover transition-colors">
-              {producto.nombre}
-            </h2>
-            {/* Descripción corta solo en desktop */}
-            <p className="hidden sm:block text-xs text-gray-500 mt-1 line-clamp-2">
-              {producto.descripcionCorta}
-            </p>
-          </button>
-          {/* Categoría solo en desktop */}
-          {producto.categoria &&
-            typeof producto.categoria === "object" &&
-            "nombre" in producto.categoria && (
-              <span className="hidden sm:inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 flex-shrink-0">
+        {/* Categoría ahora arriba del nombre para mejor organización */}
+        {producto.categoria &&
+          typeof producto.categoria === "object" &&
+          "nombre" in producto.categoria && (
+            <div className="mb-1">
+              <span className="inline-block text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium break-words max-w-full">
                 {producto.categoria.nombre}
               </span>
-            )}
-        </div>
+            </div>
+          )}
 
-        {/* Sección de medidas y precios - Simplificada en mobile */}
-        <div className="mt-2 mb-3">
+        <button
+          onClick={() => onViewDetails(producto)}
+          className="group text-left mb-2"
+        >
+          <h2 className="text-sm font-semibold text-gray-900 group-hover:text-brandHover transition-colors break-words line-clamp-2 h-10 overflow-hidden">
+            {producto.nombre}
+          </h2>
+        </button>
+
+        {/* Sección de medidas y precios */}
+        <div className="mt-auto">
           {producto.tieneVariaciones && producto.variaciones ? (
-            <>
-              <h4 className="text-xs text-gray-500 mb-1 sm:block hidden">
-                Medidas disponibles
-              </h4>
+            <div className="mb-3">
+              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
               <div className="flex flex-wrap gap-1">
-                {producto.variaciones?.slice(0, 3).map((variacion, index) => (
+                {producto.variaciones.slice(0, isMobile ? 2 : 3).map((variacion, index) => (
                   <span
                     key={index}
-                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full break-all"
                   >
                     {variacion.medida}
                   </span>
                 ))}
-                {producto.variaciones.length > 3 && (
+                {producto.variaciones.length > (isMobile ? 2 : 3) && (
                   <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                    +{producto.variaciones?.length - 3}
+                    +{producto.variaciones.length - (isMobile ? 2 : 3)}
                   </span>
                 )}
               </div>
-            </>
+            </div>
           ) : (
             producto.precio && (
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-500 sm:block hidden">
-                  Precio
-                </span>
-                <span className="text-lg font-bold text-brand">
+              <div className="flex flex-col mb-3">
+                <span className="text-xs text-gray-500">Precio</span>
+                <span className="text-lg font-bold text-brand break-all">
                   {formatPrice(producto.precio)}/{producto.medida}
                 </span>
               </div>
@@ -298,27 +309,13 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Especificaciones técnicas (solo en desktop) */}
-        {producto.especificacionesTecnicas &&
-          producto.especificacionesTecnicas.length > 0 && (
-            <ul className="hidden sm:block space-y-1.5 mb-3">
-              {producto.especificacionesTecnicas
-                .slice(0, 2)
-                .map((espec, index) => (
-                  <li key={index} className="flex items-start text-xs">
-                    <Check className="h-3 w-3 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{espec}</span>
-                  </li>
-                ))}
-            </ul>
-          )}
-
+        {/* Botón de compra siempre visible en la parte inferior */}
         <div className="mt-auto pt-3 border-t border-gray-100">
           <button
             onClick={() => onViewDetails(producto)}
             className="flex items-center justify-between w-full text-xs font-medium text-brand hover:text-brandHover transition-colors group"
           >
-            <span>Comprar</span>
+            <span>Ver detalles</span>
             <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>

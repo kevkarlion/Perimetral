@@ -15,7 +15,7 @@ const VariationSchema = new Schema<IVariationDoc>(
   {
     codigo: { type: String, required: true, unique: true, sparse: true },
     descripcion: String,
-    medida: { type: String, required: true },
+    medida: { type: String, required: false },
     precio: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0, default: 0 },
     stockMinimo: { type: Number, min: 0, default: 5 },
@@ -41,7 +41,7 @@ const ProductSchema = new Schema<IProductDoc>(
       ref: "Categoria", // Referencia al modelo Categoria
       required: true,
     },
-    medida: { type: String, required: true },
+    medida: { type: String, required: false },
     precio: { type: Number, min: 0, required: false },
     stock: { type: Number, min: 0, default: 0, required: false },
     stockMinimo: { type: Number, min: 0, default: 5, required: false },

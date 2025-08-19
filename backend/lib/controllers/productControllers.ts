@@ -1,5 +1,5 @@
 // lib/controllers/productController.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
 import Product from '@/backend/lib/models/Product';
@@ -138,15 +138,43 @@ export async function getAllProducts() {
 // Crear un nuevo producto
 export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
   try {
-    
-
     console.log("Body recibido en createProduct:", body);
-    // Validación de categoría
+    
+    // 1. VALIDACIÓN DE DATOS BÁSICOS DEL PRODUCTO (¡AQUÍ FALTA!)
+    const productValidationError = validateProductData(body);
+    if (productValidationError) {
+      return errorResponse(productValidationError, 400);
+    }
+
+    // 2. VALIDACIÓN DE CATEGORÍA (esta ya la tienes)
     if (body.categoria === null || body.categoria === undefined) {
       return NextResponse.json(
         { success: false, error: 'La categoría es requerida' },
         { status: 400 }
       );
+    }
+
+    // 3. VALIDACIÓN DE VARIACIONES (¡AQUÍ FALTA!)
+    if (body.tieneVariaciones) {
+      // Si tiene variaciones, validar que el array exista y sea válido
+      const variationValidationError = validateVariations(body.variaciones || []);
+      if (variationValidationError) {
+        return errorResponse(variationValidationError, 400);
+      }
+    } else {
+      // Si no tiene variaciones, validar precio y stock directamente en el producto
+      if (body.precio === undefined || body.precio <= 0) {
+        return errorResponse({ 
+          error: 'Precio válido es requerido para productos sin variaciones', 
+          field: 'precio' 
+        }, 400);
+      }
+      if (body.stock === undefined || body.stock < 0) {
+        return errorResponse({ 
+          error: 'Stock válido es requerido para productos sin variaciones', 
+          field: 'stock' 
+        }, 400);
+      }
     }
 
     // Convertir string ID a ObjectId si es necesario
@@ -165,7 +193,7 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       );
     }
 
-    // Crear el producto
+    // Crear el producto (el resto del código igual)
     const product = new Product({
       ...body,
       categoria: categoriaId,
