@@ -5,14 +5,6 @@ import ProductId from "@/app/components/ProductId/ProductId";
 import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 import { Types } from "mongoose";
 
-// interface PageProps {
-//   params: {
-//     id: string;
-//   };
-//   searchParams: {
-//     productId?: string;
-//   };
-// }
 
 //convertir a objeto plano
 function deepConvertToPlain(obj: any): any {

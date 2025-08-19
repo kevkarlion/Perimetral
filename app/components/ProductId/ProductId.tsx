@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -16,7 +16,7 @@ import { useProductStore } from "@/app/components/store/product-store";
 import { Button } from "@/app/components/ui/button";
 import { CartSidebar } from "@/app/components/CartSideBar/CartSideBar";
 import { AddToCartNotification } from "@/app/components/AddToCartNotification/AddToCartNotification";
-import { IProduct, IVariation } from "@/types/productTypes";
+import { IProduct, IVariation, IProductBase } from "@/types/productTypes";
 import { ProductIdSkeleton } from "@/app/components/ProductId/ProductIdSkeleton";
 
 interface ProductImage {
@@ -29,10 +29,11 @@ interface ProductIdProps {
   initialVariationId?: string;
 }
 
-const defaultProduct: IProduct = {
+const defaultProduct: IProductBase = {
   _id: "",
   codigoPrincipal: "",
   nombre: "Cargando producto...",
+  medida: '',
   categoria: {
     _id: "",
     nombre: "",
@@ -103,6 +104,19 @@ export default function ProductId({
         minimumFractionDigits: 0,
       }) || "$ --"
     );
+  };
+
+  // Helper function to safely get category name
+  const getCategoryName = () => {
+    if (!product?.categoria) return '';
+    
+    // If categoria is an object with nombre property
+    if (typeof product.categoria === 'object' && 'nombre' in product.categoria) {
+      return product.categoria.nombre;
+    }
+    
+    // If it's just an ObjectId or string, return empty
+    return '';
   };
 
   useEffect(() => {
@@ -191,10 +205,11 @@ export default function ProductId({
     }, 3000);
   };
 
-  const safeProduct = product || defaultProduct;
+  const safeProduct: IProductBase = product || defaultProduct;
   const imagenes = getSafeImages(product);
   const specsToShow = safeProduct.especificacionesTecnicas || [];
   const variationAttributes = selectedVariation?.atributos || {};
+  const categoryName = getCategoryName();
 
   if (loading) {
     return <ProductIdSkeleton />;
@@ -242,9 +257,9 @@ export default function ProductId({
           {safeProduct.nombre}
           {selectedVariation && ` - ${selectedVariation.medida}`}
         </h1>
-        {safeProduct.categoria && (
+        {categoryName && (
           <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
-            {safeProduct.categoria.nombre}
+            {categoryName}
           </span>
         )}
       </div>
@@ -302,25 +317,28 @@ export default function ProductId({
               {safeProduct.nombre}
               {selectedVariation && ` - ${selectedVariation.medida}`}
             </h1>
-            {safeProduct.categoria && (
+            {categoryName && (
               <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                {safeProduct.categoria.nombre}
+                {categoryName}
               </span>
             )}
           </div>
 
           {/* Precio y botón */}
           <div className="space-y-6">
-            <div className="flex items-baseline gap-3">
-              <p className="text-3xl font-bold text-brand">
-                {formatPrice(
-                  selectedVariation
-                    ? selectedVariation.precio
-                    : safeProduct.precio
-                )}
-              </p>
-              <span className="text-sm text-gray-500">+ IVA</span>
-            </div>
+           <div className="flex items-baseline gap-3">
+  <p className="text-3xl font-bold text-brand">
+    {formatPrice(
+      selectedVariation
+        ? selectedVariation.precio
+        : safeProduct.precio
+    )}
+    {safeProduct.medida && (
+      <span className="text-sm text-gray-500">/{product?.medida}</span>
+    )}
+    <span className="text-sm text-gray-500"> + IVA</span>
+  </p>
+</div>
 
             <Button
               onClick={handleAddToCart}
@@ -349,79 +367,78 @@ export default function ProductId({
             </p>
           </div>
 
-        {/* Sección completa con el nuevo diseño */}
-{/* Especificaciones técnicas - Versión final sin "0" */}
-{specsToShow.length > 0 || Object.keys(variationAttributes).length > 0 ? (
-  <div className="space-y-6">
-    <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
-      Especificaciones técnicas
-    </h3>
+          {/* Especificaciones técnicas */}
+          {specsToShow.length > 0 || Object.keys(variationAttributes).length > 0 ? (
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
+                Especificaciones técnicas
+              </h3>
 
-    <div className="space-y-4">
-      {/* Atributos principales */}
-      <div className="space-y-2">
-        {selectedVariation?.medida ? (
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-            <span className="text-gray-700">
-              <span className="font-medium">Medida:</span> {selectedVariation.medida}
-            </span>
-          </div>
-        ) : null}
+              <div className="space-y-4">
+                {/* Atributos principales */}
+                <div className="space-y-2">
+                  {selectedVariation?.medida ? (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Medida:</span> {selectedVariation.medida}
+                      </span>
+                    </div>
+                  ) : null}
 
-        {variationAttributes.altura ? (
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-            <span className="text-gray-700">
-              <span className="font-medium">Altura:</span> {variationAttributes.altura} mm
-            </span>
-          </div>
-        ) : null}
+                  {variationAttributes.altura ? (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Altura:</span> {variationAttributes.altura} mm
+                      </span>
+                    </div>
+                  ) : null}
 
-        {variationAttributes.calibre ? (
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-            <span className="text-gray-700">
-              <span className="font-medium">Calibre:</span> {variationAttributes.calibre}
-            </span>
-          </div>
-        ) : null}
+                  {variationAttributes.calibre ? (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Calibre:</span> {variationAttributes.calibre}
+                      </span>
+                    </div>
+                  ) : null}
 
-        {variationAttributes.material ? (
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-            <span className="text-gray-700">
-              <span className="font-medium">Material:</span> {variationAttributes.material}
-            </span>
-          </div>
-        ) : null}
+                  {variationAttributes.material ? (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Material:</span> {variationAttributes.material}
+                      </span>
+                    </div>
+                  ) : null}
 
-        {variationAttributes.color ? (
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-            <span className="text-gray-700">
-              <span className="font-medium">Color:</span> {variationAttributes.color}
-            </span>
-          </div>
-        ) : null}
-      </div>
+                  {variationAttributes.color ? (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Color:</span> {variationAttributes.color}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
 
-      {/* Especificaciones técnicas (checklist) */}
-      {specsToShow.length > 0 ? (
-        <div className="pt-2 border-t border-gray-100">
-          <ul className="space-y-2.5">
-            {specsToShow.map((espec, index) => (
-              <li key={index} className="flex items-start">
-                <Check className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700">{espec}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  </div>
-) : null}
+                {/* Especificaciones técnicas (checklist) */}
+                {specsToShow.length > 0 ? (
+                  <div className="pt-2 border-t border-gray-100">
+                    <ul className="space-y-2.5">
+                      {specsToShow.map((espec, index) => (
+                        <li key={index} className="flex items-start">
+                          <Check className="h-4 w-4 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">{espec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           {/* Características principales */}
           {(safeProduct.caracteristicas?.length ?? 0) > 0 && (

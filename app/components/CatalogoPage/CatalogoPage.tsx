@@ -291,7 +291,7 @@ const ProductCard = ({
                   Precio
                 </span>
                 <span className="text-lg font-bold text-brand">
-                  {formatPrice(producto.precio)}
+                  {formatPrice(producto.precio)}/{producto.medida}
                 </span>
               </div>
             )

@@ -27,7 +27,7 @@
 //     ],
 //     destacado: true,
 //     especificaciones: [
-//       "Medidas: 1.50×10 m | 1.80×10 m | 2×10 m",
+//       
 //       "Material: Acero galvanizado",
 //       "Resistencia: Alta tensión",
 //       "Vida útil: 15+ años"

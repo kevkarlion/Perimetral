@@ -1,4 +1,3 @@
-// app/components/ProductCardMain.tsx
 "use client";
 
 import Image from "next/image";
@@ -54,6 +53,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     nombre,
     descripcionCorta,
     precio,
+    medida,
     destacado,
     tieneVariaciones,
     variaciones = [],
@@ -85,7 +85,6 @@ export default function ProductCardMain({ product }: ProductCardProps) {
   };
 
   const handleViewDetails = () => {
-    // Guardar el producto actual en el store antes de navegar
     setCurrentProduct(product);
 
     if (tieneVariaciones) {
@@ -211,6 +210,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
                 <span className="text-xs text-gray-500">Precio</span>
                 <span className="text-lg font-bold text-brand mt-1">
                   {formatPrice(precio)}
+                  {medida && <span className="text-sm font-normal">/{medida}</span>}
                 </span>
               </div>
             )

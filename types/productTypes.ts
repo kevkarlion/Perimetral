@@ -1,9 +1,9 @@
 // lib/types/productTypes.ts
-import { Types, Document, FlattenMaps, ObjectId } from 'mongoose';
+import { Types, Document, FlattenMaps, ObjectId } from "mongoose";
 
 export interface ServiceResponse<T> {
   success: boolean;
-  data?: T;     // aquí va tu IProduct completo
+  data?: T; // aquí va tu IProduct completo
   error?: string;
   details?: string;
 }
@@ -44,11 +44,15 @@ export interface IVariationDocument extends IVariationBase, Document {
 export interface IProductBase {
   _id: Types.ObjectId | string;
   codigoPrincipal: string;
+  medida: string;
   nombre: string;
-  categoria?: Types.ObjectId | { 
-    _id: Types.ObjectId | string;
-    nombre: string 
-  } | null;
+  categoria?:
+    | Types.ObjectId
+    | {
+        _id: Types.ObjectId | string;
+        nombre: string;
+      }
+    | null;
   descripcionCorta: string;
   descripcionLarga?: string;
   precio?: number;
@@ -73,13 +77,15 @@ export interface IProductDocument extends IProductBase, Document {
 }
 
 // Para objetos planos (resultados de .lean())
-export interface IProductLean extends Omit<IProductBase, 'categoria'> {
+export interface IProductLean extends Omit<IProductBase, "categoria"> {
   _id: Types.ObjectId;
   variaciones: IVariation[];
-  categoria?: Types.ObjectId | {
-    _id: Types.ObjectId;
-    nombre: string;
-  };
+  categoria?:
+    | Types.ObjectId
+    | {
+        _id: Types.ObjectId;
+        nombre: string;
+      };
   __v?: number;
 }
 
@@ -87,7 +93,8 @@ export interface IProductLean extends Omit<IProductBase, 'categoria'> {
 export type IProduct = IProductBase | IProductLean | FlattenMaps<IProductLean>;
 
 // Tipo para API (con IDs como strings)
-export interface IProductApi extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
+export interface IProductApi
+  extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
   _id: string;
   categoria: { _id: string; nombre: string } | null;
   variaciones: Array<IVariation & { _id: string }>;
@@ -99,10 +106,10 @@ export type ApiErrorResponse = {
   fieldErrors?: Record<string, string>;
 };
 
-
 export interface ProductFormData {
   codigoPrincipal: string;
   nombre: string;
+  medida: string;
   categoria: string; // O podría ser Types.ObjectId si usas MongoDB
   descripcionCorta: string;
   descripcionLarga: string;

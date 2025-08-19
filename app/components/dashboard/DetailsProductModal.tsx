@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { IProduct, IVariation } from "@/types/productTypes";
 
@@ -8,6 +8,18 @@ type Props = {
 };
 
 export default function DetailsProductModal({ product, onClose }: Props) {
+  // Destructure with default values to avoid undefined issues
+  const { 
+    nombre,
+    medida,
+    precio,
+    stock,
+    descripcionCorta,
+    descripcionLarga,
+    tieneVariaciones,
+    variaciones = [] // Default empty array if undefined
+  } = product;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[90vh] overflow-auto">
@@ -26,15 +38,15 @@ export default function DetailsProductModal({ product, onClose }: Props) {
         {/* Columna 1 - Información básica */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg border-b pb-2">Información Básica</h3>
-          <DetailItem label="Nombre" value={product.nombre} />
-          <DetailItem label="Categoría" value={product.categoria} />
+          <DetailItem label="Nombre" value={nombre} />
+          <DetailItem label="Medida" value={medida || 'N/A'} />
           <DetailItem 
             label="Precio base" 
-            value={product.precio ? `$${product.precio.toFixed(2)}` : 'N/A'} 
+            value={precio ? `$${precio.toFixed(2)}` : 'N/A'} 
           />
           <DetailItem 
             label="Stock total" 
-            value={product.stock !== undefined ? product.stock : 'N/A'} 
+            value={stock !== undefined ? stock : 'N/A'} 
           />
         </div>
 
@@ -43,12 +55,12 @@ export default function DetailsProductModal({ product, onClose }: Props) {
           <h3 className="font-semibold text-lg border-b pb-2">Descripciones</h3>
           <DetailItem 
             label="Descripción Corta" 
-            value={product.descripcionCorta || 'No disponible'} 
+            value={descripcionCorta || 'No disponible'} 
             fullWidth
           />
           <DetailItem
             label="Descripción Larga"
-            value={product.descripcionLarga || 'No disponible'}
+            value={descripcionLarga || 'No disponible'}
             fullWidth
           />
         </div>
@@ -56,11 +68,11 @@ export default function DetailsProductModal({ product, onClose }: Props) {
         {/* Columna 3 - Variaciones */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg border-b pb-2">
-            {product.tieneVariaciones ? 'Variaciones' : 'Sin Variaciones'}
+            {tieneVariaciones ? 'Variaciones' : 'Sin Variaciones'}
           </h3>
-          {product.tieneVariaciones && product.variaciones?.length > 0 ? (
+          {tieneVariaciones && variaciones.length > 0 ? (
             <div className="space-y-3 mt-2">
-              {product.variaciones.map((variacion) => (
+              {variaciones.map((variacion) => (
                 <div key={variacion.codigo} className="border rounded-lg p-3 text-sm bg-gray-50">
                   <div className="grid grid-cols-2 gap-2">
                     <DetailItemSmall label="Medida" value={variacion.medida} />

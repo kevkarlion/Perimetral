@@ -18,6 +18,7 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
   const [formData, setFormData] = useState<ProductFormData>({
     codigoPrincipal: "",
     nombre: "",
+    medida: '',
     categoria: "",
     descripcionCorta: "",
     descripcionLarga: "",
@@ -442,6 +443,7 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
         codigoPrincipal: "",
         nombre: "",
         categoria: "",
+        medida: '',
         descripcionCorta: "",
         descripcionLarga: "",
         imagenesGenerales: [""],
@@ -806,6 +808,20 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
                   required={!formData.tieneVariaciones}
                 />
                 {errors.precio && <p className={errorClass}>{errors.precio}</p>}
+              </div>
+               <div className="col-span-1">
+                <label htmlFor="medida" className={labelClass}>
+                  Medida <span className="text-red-600">*</span>
+                </label>
+                <input
+                  id="medida"
+                  type="text"
+                  name="medida"
+                  placeholder="Ej: m, kg, rollo"
+                  className={inputClass}
+                  value={formData.medida}
+                  onChange={handleChange}
+                />
               </div>
 
               <div className="col-span-1">
