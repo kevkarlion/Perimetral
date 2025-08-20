@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/app/components/theme-provider"
 import Navbar from "@/app/components/navbar"
 import  Footer  from "@/app/components/footer"
 import { ProductInitializer } from '@/app/components/ProductInit'
+import  ScrollToTop  from '@/app/components/ScrollTop/ScrollToTop'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} flex flex-col min-h-screen pt-6`} >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ScrollToTop />
           <ProductInitializer />
           <Navbar />
           {children}

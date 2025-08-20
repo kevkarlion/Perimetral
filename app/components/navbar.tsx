@@ -19,6 +19,7 @@ import {
   Newspaper,
 } from "lucide-react";
 import { useCartStore } from "@/app/components/store/cartStore";
+import { usePathname } from "next/navigation"; // Importar usePathname
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,6 +27,7 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const pathname = usePathname(); // Obtener la ruta actual
 
   const cartItems = useCartStore((state) => state.items);
   const cartItemsCount = cartItems.reduce(
@@ -69,6 +71,18 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // Efecto para asegurar que el navbar esté visible al cambiar de página
+  useEffect(() => {
+    // Cuando cambia la ruta, forzar que el navbar esté visible
+    
+    setIsScrolled(window.scrollY > 10);
+    
+    // También scroll al top si es necesario (puedes ajustar esto según tus necesidades)
+    if (pathname !== window.location.pathname) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname]); // Se ejecuta cuando cambia la ruta
 
   useEffect(() => {
     const handleResize = () => {
@@ -169,7 +183,7 @@ export default function Navbar() {
                     src="/Logos/Logo-mobile.png"
                     alt="Corralón Perimetral - Versión móvil"
                     fill
-                    className="object-contain md:hidden" // Se oculta en desktop
+                    className="object-contain md:hidden"
                     priority
                     sizes="(max-width: 768px) 128px, 192px"
                   />
@@ -179,7 +193,7 @@ export default function Navbar() {
                     src="/Logos/logo-header-black.svg"
                     alt="Corralón Perimetral - Versión completa"
                     fill
-                    className="object-contain hidden md:block" // Se oculta en mobile
+                    className="object-contain hidden md:block"
                     priority
                     sizes="(max-width: 768px) 128px, 192px"
                   />
@@ -271,12 +285,12 @@ export default function Navbar() {
               ))}
 
               <div className="border-t border-gray-200 pt-4 mt-2">
-                <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
+                {/* <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
                   <span className="text-blackHero">
                     <User size={18} />
                   </span>
                   <span className="font-medium">Mi cuenta</span>
-                </button>
+                </button> */}
 
                 <Link
                   href="/cart"

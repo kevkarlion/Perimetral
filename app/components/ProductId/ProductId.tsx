@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -33,7 +33,7 @@ const defaultProduct: IProductBase = {
   _id: "",
   codigoPrincipal: "",
   nombre: "Cargando producto...",
-  medida: '',
+  medida: "",
   categoria: {
     _id: "",
     nombre: "",
@@ -108,15 +108,18 @@ export default function ProductId({
 
   // Helper function to safely get category name
   const getCategoryName = () => {
-    if (!product?.categoria) return '';
-    
+    if (!product?.categoria) return "";
+
     // If categoria is an object with nombre property
-    if (typeof product.categoria === 'object' && 'nombre' in product.categoria) {
+    if (
+      typeof product.categoria === "object" &&
+      "nombre" in product.categoria
+    ) {
       return product.categoria.nombre;
     }
-    
+
     // If it's just an ObjectId or string, return empty
-    return '';
+    return "";
   };
 
   useEffect(() => {
@@ -236,7 +239,7 @@ export default function ProductId({
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-24 md:pb-8">
+    <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       <div className="mb-6">
         <button
           onClick={() => router.back()}
@@ -326,19 +329,21 @@ export default function ProductId({
 
           {/* Precio y botón */}
           <div className="space-y-6">
-           <div className="flex items-baseline gap-3">
-  <p className="text-3xl font-bold text-brand">
-    {formatPrice(
-      selectedVariation
-        ? selectedVariation.precio
-        : safeProduct.precio
-    )}
-    {safeProduct.medida && (
-      <span className="text-sm text-gray-500">/{product?.medida}</span>
-    )}
-    <span className="text-sm text-gray-500"> + IVA</span>
-  </p>
-</div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-brand">
+                {formatPrice(
+                  selectedVariation
+                    ? selectedVariation.precio
+                    : safeProduct.precio
+                )}
+                {safeProduct.medida && (
+                  <span className="text-sm text-brand">
+                    /{product?.medida}
+                  </span>
+                )}
+                <span className="text-sm text-black"> + IVA</span>
+              </p>
+            </div>
 
             <Button
               onClick={handleAddToCart}
@@ -368,7 +373,8 @@ export default function ProductId({
           </div>
 
           {/* Especificaciones técnicas */}
-          {specsToShow.length > 0 || Object.keys(variationAttributes).length > 0 ? (
+          {specsToShow.length > 0 ||
+          Object.keys(variationAttributes).length > 0 ? (
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
                 Especificaciones técnicas
@@ -381,7 +387,8 @@ export default function ProductId({
                     <div className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Medida:</span> {selectedVariation.medida}
+                        <span className="font-medium">Medida:</span>{" "}
+                        {selectedVariation.medida}
                       </span>
                     </div>
                   ) : null}
@@ -390,7 +397,8 @@ export default function ProductId({
                     <div className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Altura:</span> {variationAttributes.altura} mm
+                        <span className="font-medium">Altura:</span>{" "}
+                        {variationAttributes.altura} mm
                       </span>
                     </div>
                   ) : null}
@@ -399,7 +407,8 @@ export default function ProductId({
                     <div className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Calibre:</span> {variationAttributes.calibre}
+                        <span className="font-medium">Calibre:</span>{" "}
+                        {variationAttributes.calibre}
                       </span>
                     </div>
                   ) : null}
@@ -408,7 +417,8 @@ export default function ProductId({
                     <div className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Material:</span> {variationAttributes.material}
+                        <span className="font-medium">Material:</span>{" "}
+                        {variationAttributes.material}
                       </span>
                     </div>
                   ) : null}
@@ -417,7 +427,8 @@ export default function ProductId({
                     <div className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Color:</span> {variationAttributes.color}
+                        <span className="font-medium">Color:</span>{" "}
+                        {variationAttributes.color}
                       </span>
                     </div>
                   ) : null}
@@ -485,15 +496,15 @@ export default function ProductId({
       <div className="fixed bottom-4 left-4 right-4 md:hidden z-50 flex gap-3">
         <Button
           onClick={handleAddToCart}
-          className="flex-1 h-12"
+          className="flex-1 h-12 bg-brand"
           disabled={isAddedToCart || !product}
         >
           {isAddedToCart ? (
-            <Check className="h-5 w-5" />
+            <Check className="h-5 w-5"/>
           ) : (
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5 text-black"/>
           )}
-          <span className="ml-2">{isAddedToCart ? "Añadido" : "Comprar"}</span>
+          <span className="ml-2 text-black">{isAddedToCart ? "Añadido" : "Comprar"}</span>
         </Button>
         <Button asChild variant="outline" className="flex-1 h-12">
           <Link

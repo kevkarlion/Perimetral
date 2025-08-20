@@ -14,7 +14,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useRouter } from "next/navigation";
 import { useProductStore } from "@/app/components/store/product-store";
-import { CatalogLoading } from "@/app/components/ProductCardSkeleton/CatalogLoading";
+import { CatalogLoading } from "@/app/components/CatalogoPage/CatalogLoading";
 import { IProduct } from "@/types/productTypes";
 import { useState, useEffect } from "react";
 
@@ -127,7 +127,7 @@ export default function CatalogoPage() {
   return (
     <div className="container mx-auto py-11 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl md:text-3xl font-bold text-gray-900 mb-2">
           Catálogo de Productos
         </h1>
         <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -302,7 +302,7 @@ const ProductCard = ({
               <div className="flex flex-col mb-3">
                 <span className="text-xs text-gray-500">Precio</span>
                 <span className="text-lg font-bold text-brand break-all">
-                  {formatPrice(producto.precio)}/{producto.medida}
+                  {formatPrice(producto.precio)}/<span className="text-xs">  {producto.medida} </span>
                 </span>
               </div>
             )

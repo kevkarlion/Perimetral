@@ -10,7 +10,7 @@ interface VariantLoadingProps {
 
 export function SkeletonVariantPage({ productName }: VariantLoadingProps) {
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       {/* Botón de volver - Siempre visible */}
       <button
         onClick={() => window.history.back()}
@@ -22,7 +22,7 @@ export function SkeletonVariantPage({ productName }: VariantLoadingProps) {
 
       {/* Sección de variantes - Título siempre visible */}
       <div className="mt-8">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-3xl md:text-2xl font-bold text-gray-900 mb-6">
           Variantes de {productName || '...'}
         </h2>
         
