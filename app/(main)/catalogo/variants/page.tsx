@@ -1,8 +1,6 @@
 // app/catalogo/variants/page.tsx
-import { Suspense } from 'react'
 import { useProductStore } from '@/app/components/store/product-store'
 import VariantPage from '@/app/components/VariantPage/VariantPage'
-import { SkeletonVariantPage } from '@/app/components/VariantPage/SkeletonVariantPage'
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,9 +16,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     }))
   }
 
-  return (
-    <Suspense fallback={<SkeletonVariantPage productName={null} />}>
-      <VariantPage />
-    </Suspense>
-  )
+  return <VariantPage  />
 }
+
+
+
