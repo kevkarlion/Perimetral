@@ -8,20 +8,18 @@ export default function ScrollToTop() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Lista de rutas donde SI queremos scroll al top
+    // Lista de rutas exactas donde SI queremos scroll al top
     const scrollToTopPaths = [
-      '/catalogo/',
       '/catalogo',
-      '/vaiants/',
-      '/detalle/',
-      // añade más rutas según necesites
+      '/vaiants', // corregí el typo si era "variants"
+      '/detalle',
     ]
     
     // Verificar si la ruta actual requiere scroll al top
-    const shouldScrollToTop = scrollToTopPaths.some(path => pathname.includes(path))
+    const shouldScrollToTop = scrollToTopPaths.some(path => pathname === path)
     
     if (shouldScrollToTop) {
-      window.scrollTo(0, 0)
+      window.scrollTo({ top: 0, behavior: 'smooth' }) // opcional: smooth scroll
     }
   }, [pathname, searchParams])
 
