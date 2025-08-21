@@ -1,27 +1,23 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 export default function ScrollToTop() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Lista de rutas exactas donde SI queremos scroll al top
     const scrollToTopPaths = [
+      '/catalogo/',
       '/catalogo',
-      '/vaiants', // corregí el typo si era "variants"
-      '/detalle',
+      '/vaiants/',
+      '/detalle/',
     ]
     
-    // Verificar si la ruta actual requiere scroll al top
-    const shouldScrollToTop = scrollToTopPaths.some(path => pathname === path)
-    
-    if (shouldScrollToTop) {
-      window.scrollTo({ top: 0, behavior: 'smooth' }) // opcional: smooth scroll
+    if (scrollToTopPaths.some(path => pathname.includes(path))) {
+      window.scrollTo(0, 0)
     }
-  }, [pathname, searchParams])
+  }, [pathname]) // ✅ solo pathname
 
   return null
 }
