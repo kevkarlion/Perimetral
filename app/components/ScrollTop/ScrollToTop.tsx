@@ -8,8 +8,6 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     const scrollToTopPaths = [
-      '/catalogo/',
-      '/catalogo',
       '/vaiants/',
       '/detalle/',
     ]
