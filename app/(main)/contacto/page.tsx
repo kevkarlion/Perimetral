@@ -63,7 +63,7 @@ export default function ContactoPage() {
       {/* Hero Section */}
       <section className="border-b border-gray-200 pt-24 pb-12">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-[#1B1B1B] mb-4">Contacto</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-[#1B1B1B] mb-4">Contactanos</h1>
           <p className="text-base text-[#7A7A7A] max-w-2xl mx-auto">
             Simple y directo, como nos gusta trabajar
           </p>

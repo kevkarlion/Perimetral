@@ -125,7 +125,7 @@ const handleCheckout = async () => {
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-[40px] md:mt-0">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-          Tu <span className="text-blue-600">Carrito</span>
+          Tu <span className="text-brand">Carrito</span>
         </h2>
         <p className="max-w-[700px] mx-auto text-gray-600 md:text-lg">
           Revisa tus productos antes de finalizar la compra
@@ -225,7 +225,7 @@ const handleCheckout = async () => {
           ) : (
             <div className="py-12 text-center bg-white rounded-lg shadow-sm">
               <p className="text-gray-600 mb-4">Tu carrito está vacío</p>
-              <Link href="/catalogo" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/catalogo" className="text-brand hover:brandHover font-medium">
                 Ir al catálogo
               </Link>
             </div>
@@ -233,7 +233,7 @@ const handleCheckout = async () => {
 
           {cartItems.length > 0 && (
             <div className="mt-8">
-              <Link href="/catalogo" className="flex items-center text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/catalogo" className="flex items-center text-brand hover:text-brandHover font-medium">
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Seguir comprando
               </Link>
