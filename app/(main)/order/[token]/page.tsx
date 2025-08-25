@@ -1,14 +1,16 @@
 // app/order/[token]/page.tsx
 import OrderDetails from '@/app/components/OrderDetails/OrderDetails';
 
-export default function OrderPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+interface OrderPageProps {
+  params: Promise<{ token: string }>; // 👈 Ahora es Promise
+}
+
+export default async function OrderPage({ params }: OrderPageProps) {
+  const { token } = await params; // 👈 await antes de usar token
+
   return (
     <div className="container mx-auto py-8">
-      <OrderDetails token={params.token} />
+      <OrderDetails token={token} />
     </div>
   );
 }

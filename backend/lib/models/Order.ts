@@ -29,6 +29,7 @@ interface IPaymentDetails {
   mercadopagoPreferenceId?: string;
   paymentUrl?: string;
   approvedAt?: Date;
+  expirationDate?: Date; // Añadir para pagos en efectivo
   [key: string]: any;
 }
 
@@ -42,7 +43,7 @@ export interface IOrder extends Document {
   subtotal?: number;
   vat?: number;
   shippingCost?: number;
-  status: 'pending' | 'processing' | 'completed' | 'payment_failed' | 'cancelled';
+  status: 'pending' | 'pending_payment' | 'processing' | 'completed' | 'payment_failed' | 'cancelled'; // Añadido 'pending_payment'
   paymentMethod: string;
   paymentDetails?: IPaymentDetails;
   notes?: string;
@@ -88,7 +89,7 @@ const orderSchema = new Schema<IOrder>({
   status: { 
     type: String, 
     required: true,
-    enum: ['pending', 'processing', 'completed', 'payment_failed', 'cancelled'],
+    enum: ['pending', 'pending_payment', 'processing', 'completed', 'payment_failed', 'cancelled'], // Añadido 'pending_payment'
     default: 'pending'
   },
   paymentMethod: { type: String, required: true },
@@ -102,7 +103,8 @@ const orderSchema = new Schema<IOrder>({
     transactionId: String,
     mercadopagoPreferenceId: String,
     paymentUrl: String,
-    approvedAt: Date
+    approvedAt: Date,
+    expirationDate: Date // Añadir para pagos en efectivo
   },
   notes: String
 }, {

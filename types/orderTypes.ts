@@ -27,6 +27,8 @@ export interface IPaymentDetails {
   mercadopagoPreferenceId?: string;
   paymentUrl?: string;
   approvedAt?: Date;
+  expirationDate?: Date; // Añadido para pagos en efectivo
+  isCashPayment?: boolean; // Añadido para identificar pagos en efectivo
   // Mantener compatibilidad con tu paymentDetails any
   [key: string]: any;
 }
@@ -39,20 +41,14 @@ export interface IOrder extends Document {
   vat: number; // Nuevo campo: monto de IVA calculado
   total: number;
   shippingCost?: number; // Nuevo campo opcional
-  status: "pending" | "processing" | "completed" | "cancelled" | "refunded"; // Estados ampliados
+  status: "pending" | "pending_payment" | "processing" | "completed" | "cancelled" | "refunded" | "payment_failed"; // Estados ampliados con "pending_payment" y "payment_failed"
   paymentMethod: string; // Mantenido para compatibilidad
-  paymentDetails?: {
-    status: "pending" | "approved" | "rejected" | "refunded"; // paymentStatus está aquí
-    method?: string;
-    transactionId?: string;
-    paymentUrl?: string;
-    [key: string]: any;
-  };
+  paymentDetails?: IPaymentDetails; // Usando la interfaz IPaymentDetails definida arriba
   notes?: string; // Nuevo campo para notas
   createdAt: Date;
   updatedAt: Date;
-  orderNumber: string; // <-- Añade esta línea
-  accessToken: string; // <-- Añade esta línea
+  orderNumber: string;
+  accessToken: string;
 }
 
 // Tipos derivados (manteniendo los existentes)
