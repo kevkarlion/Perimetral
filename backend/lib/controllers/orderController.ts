@@ -9,6 +9,19 @@ export async function getOrders() {
     .lean();
 }
 
+export async function updateOrderByTokenController(
+  token: string,
+  status: string,
+  additionalData: any = {}
+) {
+  return await OrderService.updateOrderStatus(
+    token,
+    status,
+    additionalData,
+    "token"
+  );
+}
+
 export async function createOrder(orderData: {
   items: Array<{
     productId: string;

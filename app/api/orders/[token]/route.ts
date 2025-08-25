@@ -1,5 +1,8 @@
+//api/orders/[token]
 import { NextResponse } from 'next/server';
 import Order, { IOrder } from '@/backend/lib/models/Order';
+import { updateOrderByTokenController } from '@/backend/lib/controllers/orderController';
+
 
 interface OrderResponse {
   orderNumber: string;
@@ -64,6 +67,50 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: 'Error al obtener la orden' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH: actualizar orden por token
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ token: string }> }
+) {
+  try {
+    const { token } = await context.params;
+    const body = await request.json();
+    const { status, additionalData } = body;
+
+    if (!status) {
+      return NextResponse.json(
+        { error: "Debes enviar un estado válido." },
+        { status: 400 }
+      );
+    }
+
+    const updatedOrder = await updateOrderByTokenController(
+      token,
+      status,
+      additionalData || {}
+    );
+
+    if (!updatedOrder) {
+      return NextResponse.json(
+        { error: "Orden no encontrada" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Orden actualizada correctamente",
+      order: updatedOrder,
+    });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json(
+      { error: error.message || "Error al actualizar la orden" },
       { status: 500 }
     );
   }

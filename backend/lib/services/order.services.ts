@@ -195,53 +195,69 @@ export class OrderService {
       // No lanzamos error para no interrumpir el flujo de compra
     }
   }
+static async updateOrderStatus(
+  identifier: string, // token o ID
+  status: string,
+  additionalData: any = {},
+  searchBy: "id" | "token" = "id" // por defecto ID
+) {
+  try {
+    const validStatuses = [
+      "pending",
+      "pending_payment",
+      "processing",
+      "completed",
+      "payment_failed",
+      "cancelled",
+      "rejected",
+    ];
 
-  static async updateOrderStatus(orderId: string, status: string, additionalData: any = {}) {
-    try {
-      const validStatuses = ['pending', 'pending_payment', 'processing', 'completed', 'payment_failed', 'cancelled', 'rejected'];
-      
-      if (!validStatuses.includes(status)) {
-        throw new Error(`Estado '${status}' no válido`);
-      }
-
-      const order = await Order.findById(orderId);
-      if (!order) {
-        throw new Error('Orden no encontrada');
-      }
-
-      const previousStatus = order.status;
-
-      // Preparar datos de actualización
-      const updateData: any = {
-        status,
-        updatedAt: new Date(),
-        ...additionalData
-      };
-
-      // Si hay un descuento, actualizar el total
-      if (additionalData.discount !== undefined) {
-        updateData.discount = additionalData.discount;
-        if (additionalData.total !== undefined) {
-          updateData.total = additionalData.total;
-        }
-      }
-
-      // Actualizar la orden
-      const updatedOrder = await Order.findByIdAndUpdate(
-        orderId,
-        updateData,
-        { new: true }
-      );
-
-      // Gestionar el stock según el cambio de estado
-      await this.handleStockManagement(order, status, previousStatus);
-
-      return updatedOrder;
-    } catch (error: any) {
-      console.error('Error al actualizar orden:', error);
-      throw new Error(`Error al actualizar estado de la orden: ${error.message}`);
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Estado '${status}' no válido`);
     }
+
+    // Filtro dinámico
+    const filter = searchBy === "token"
+      ? { accessToken: identifier }
+      : { _id: identifier };
+
+    // Buscar orden
+    const order = await Order.findOne(filter);
+    if (!order) throw new Error("Orden no encontrada");
+
+    const previousStatus = order.status;
+
+    // Datos de actualización
+    const updateData: any = {
+      status,
+      updatedAt: new Date(),
+      ...additionalData,
+    };
+
+    if (additionalData.discount !== undefined) {
+      updateData.discount = additionalData.discount;
+      if (additionalData.total !== undefined) {
+        updateData.total = additionalData.total;
+      }
+    }
+
+    // Actualizar
+    const updatedOrder = await Order.findOneAndUpdate(filter, updateData, {
+      new: true,
+    });
+
+    // Manejo de stock
+    await this.handleStockManagement(order, status, previousStatus);
+
+    return updatedOrder;
+  } catch (error: any) {
+    console.error("Error al actualizar orden:", error);
+    throw new Error(
+      `Error al actualizar estado de la orden: ${error.message}`
+    );
   }
+}
+
 
   static async handleStockManagement(order: any, newStatus: string, previousStatus: string) {
     try {

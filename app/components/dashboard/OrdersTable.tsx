@@ -177,54 +177,63 @@ export default function OrdersTable() {
   };
 
   const updateOrder = async () => {
-    if (!orderToUpdate) return;
-    
-    setSaving(orderToUpdate);
-    setShowConfirmDialog(false);
-    
-    try {
-      const edits = orderEdits[orderToUpdate];
-      const order = orders.find(o => o._id === orderToUpdate);
-      
-      if (!order) {
-        throw new Error("Orden no encontrada");
-      }
+  if (!orderToUpdate) return;
 
-      const updatedData = {
-        status: edits.status,
-        discount: edits.discount,
-        total: calculateDiscountedTotal(orderToUpdate, edits.originalTotal || order.total)
-      };
+  setSaving(orderToUpdate);
+  setShowConfirmDialog(false);
 
-      const response = await fetch(`/api/orders/${orderToUpdate}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
+  try {
+    const edits = orderEdits[orderToUpdate];
+    const order = orders.find(o => o._id === orderToUpdate);
 
-      if (!response.ok) {
-        throw new Error("Error al actualizar la orden");
-      }
-
-      // Actualizar la lista de órdenes
-      await fetchOrders();
-      
-      // Salir del modo edición
-      setEditingOrder(null);
-      const newEdits = { ...orderEdits };
-      delete newEdits[orderToUpdate];
-      setOrderEdits(newEdits);
-      
-    } catch (error) {
-      console.error("Error updating order:", error);
-      alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
-    } finally {
-      setSaving(null);
-      setOrderToUpdate(null);
+    if (!order) {
+      throw new Error("Orden no encontrada");
     }
-  };
+
+    const updatedData = {
+      status: edits.status,
+      discount: edits.discount,
+      total: calculateDiscountedTotal(
+        orderToUpdate,
+        edits.originalTotal || order.total
+      ),
+    };
+
+    // 🔥 Usamos accessToken en la URL
+    const response = await fetch(`/api/orders/${order.accessToken}`, {
+      method: "PATCH", // PATCH para coincidir con tu API
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: updatedData.status,
+        additionalData: {
+          discount: updatedData.discount,
+          total: updatedData.total,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al actualizar la orden");
+    }
+
+    await fetchOrders();
+
+    setEditingOrder(null);
+    const newEdits = { ...orderEdits };
+    delete newEdits[orderToUpdate];
+    setOrderEdits(newEdits);
+
+  } catch (error) {
+    console.error("Error updating order:", error);
+    alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
+  } finally {
+    setSaving(null);
+    setOrderToUpdate(null);
+  }
+};
+
 
   // Generar números de página para mostrar
   const getPageNumbers = () => {
@@ -796,11 +805,10 @@ export default function OrdersTable() {
           </div>
         </div>
 
-        {/* Versión Mobile - Similar a desktop pero simplificada */}
+        {/* Versión Mobile (sm y inferior) - COMPLETA */}
         <div className="md:hidden space-y-4 p-4">
           {currentOrders.map((order) => (
             <div key={order._id} className="bg-white rounded-lg shadow p-4 border border-gray-100">
-              {/* Contenido móvil simplificado */}
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">{order.customer.name}</h3>
@@ -818,7 +826,15 @@ export default function OrdersTable() {
                 </div>
                 <div>
                   <p className="text-gray-500">Total</p>
-                  <p className="font-medium">${order.total.toLocaleString("es-AR")}</p>
+                  <p className="font-medium">
+                    {order.discount && order.discount > 0 ? (
+                      <span className="text-green-600">
+                        ${(order.total - (order.total * order.discount / 100)).toLocaleString("es-AR")}
+                      </span>
+                    ) : (
+                      `$${order.total.toLocaleString("es-AR")}`
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Productos</p>
@@ -835,6 +851,18 @@ export default function OrdersTable() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1">
                   <p className="text-sm text-gray-900">{order.customer.phone || "Sin teléfono"}</p>
+                  {order.customer.phone && (
+                    <button
+                      onClick={() => copyToClipboard(order.customer.phone || "", `phone-mobile-${order._id}`)}
+                      className="text-gray-400 hover:text-brand"
+                    >
+                      {copiedFields[`phone-mobile-${order._id}`] ? (
+                        <ClipboardCheck className="h-4 w-4" />
+                      ) : (
+                        <Clipboard className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -857,21 +885,244 @@ export default function OrdersTable() {
                 </div>
               </div>
               
-              {/* Detalles expandidos en móvil */}
+              {/* Detalles expandidos en móvil - COMPLETO */}
               {expandedOrder === order._id && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  {/* Contenido similar al desktop pero adaptado a móvil */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Información del Cliente</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Nombre:</span>
+                          <span className="font-medium">{order.customer.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Email:</span>
+                          <span className="font-medium flex items-center gap-1">
+                            {order.customer.email}
+                            <button
+                              onClick={() => copyToClipboard(order.customer.email, `email-mobile-${order._id}`)}
+                              className="text-gray-400 hover:text-brand"
+                            >
+                              {copiedFields[`email-mobile-${order._id}`] ? (
+                                <ClipboardCheck className="h-4 w-4" />
+                              ) : (
+                                <Clipboard className="h-4 w-4" />
+                              )}
+                            </button>
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Teléfono:</span>
+                          <span className="font-medium flex items-center gap-1">
+                            {order.customer.phone || "No proporcionado"}
+                            {order.customer.phone && (
+                              <button
+                                onClick={() => copyToClipboard(order.customer.phone || "", `phone-detail-${order._id}`)}
+                                className="text-gray-400 hover:text-brand"
+                              >
+                                {copiedFields[`phone-detail-${order._id}`] ? (
+                                  <ClipboardCheck className="h-4 w-4" />
+                                ) : (
+                                  <Clipboard className="h-4 w-4" />
+                                )}
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Dirección:</span>
+                          <span className="font-medium flex items-center gap-1 text-right">
+                            {order.customer.address || "No proporcionada"}
+                            {order.customer.address && (
+                              <button
+                                onClick={() => copyToClipboard(order.customer.address || "", `address-mobile-${order._id}`)}
+                                className="text-gray-400 hover:text-brand"
+                              >
+                                {copiedFields[`address-mobile-${order._id}`] ? (
+                                  <ClipboardCheck className="h-4 w-4" />
+                                ) : (
+                                  <Clipboard className="h-4 w-4" />
+                                )}
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Detalles del Pedido</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">N° Orden:</span>
+                          <span className="font-medium flex items-center gap-1">
+                            {order.orderNumber || "N/A"}
+                            {order.orderNumber && (
+                              <button
+                                onClick={() => copyToClipboard(order.orderNumber || "", `orderNumber-mobile-${order._id}`)}
+                                className="text-gray-400 hover:text-brand"
+                              >
+                                {copiedFields[`orderNumber-mobile-${order._id}`] ? (
+                                  <ClipboardCheck className="h-4 w-4" />
+                                ) : (
+                                  <Clipboard className="h-4 w-4" />
+                                )}
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Método de pago:</span>
+                          <span className="font-medium capitalize">{order.paymentMethod}</span>
+                        </div>
+                        {order.discount > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Descuento:</span>
+                            <span className="font-medium text-green-600">{order.discount}% aplicado</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Fecha creación:</span>
+                          <span className="font-medium">
+                            {format(new Date(order.createdAt), "dd MMM yyyy HH:mm", { locale: es })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Productos ({order.items.length})</h4>
+                      <ul className="space-y-3 text-sm">
+                        {order.items.map((item, index) => (
+                          <li key={index} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium text-gray-900">{item.name}</span>
+                              <span className="font-medium">
+                                ${(item.price * item.quantity).toLocaleString("es-AR")}
+                              </span>
+                            </div>
+                            <div className="flex justify-between mt-1 text-gray-600">
+                              <span>Cantidad: {item.quantity}</span>
+                              <span>${item.price.toLocaleString("es-AR")} c/u</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           ))}
+          
+          {/* Espaciadores para mantener el tamaño constante en móvil */}
+          {currentOrders.length < ordersPerPage && 
+            Array.from({ length: ordersPerPage - currentOrders.length }).map((_, index) => (
+              <div key={`empty-mobile-${index}`} className="h-0"></div>
+            ))
+          }
+          
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              {searchTerm ? "No se encontraron órdenes" : "No hay órdenes para mostrar"}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Paginación */}
       {filteredOrders.length > 0 && (
         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          {/* Código de paginación existente */}
+          {/* Versión móvil */}
+          <div className="flex-1 flex justify-between items-center md:hidden">
+            <button
+              onClick={prevPage}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-sm text-gray-700">
+              Página <span className="font-medium">{currentPage}</span> de{" "}
+              <span className="font-medium">{totalPages}</span>
+            </div>
+            <button
+              onClick={nextPage}
+              disabled={currentPage === totalPages}
+              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === totalPages
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Versión desktop */}
+          <div className="hidden md:flex-1 md:flex md:items-center md:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Mostrando{" "}
+                <span className="font-medium">
+                  {Math.min((currentPage - 1) * ordersPerPage + 1, filteredOrders.length)}
+                </span>{" "}
+                a{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * ordersPerPage, filteredOrders.length)}
+                </span>{" "}
+                de <span className="font-medium">{filteredOrders.length}</span> resultados
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="sr-only">Anterior</span>
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                
+                {getPageNumbers().map((number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      currentPage === number
+                        ? "z-10 bg-brand border-brand text-white"
+                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  > 
+                    {number}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
+                    currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="sr-only">Siguiente</span>
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
       )}
 
