@@ -3,6 +3,7 @@ import Order from '@/backend/lib/models/Order';
 import { validateCart } from '@/backend/lib/services/validate.cart.services';
 import { MercadoPagoService } from './mercadoPago.services';
 import { sendEmail } from '@/backend/lib/services/emailService';
+import { updateStockViaApi } from '@/backend/lib/services/stockApiService';
 
 export class OrderService {
   static async createValidatedOrder(orderData: {
@@ -175,13 +176,13 @@ export class OrderService {
               </a>
             </div>
             
-            <p style="font-size: 14px; color: #6b7280;">
+            <p style="font-size: 14px; color: '6b7280';">
               O copia y pega esta URL en tu navegador:<br>
-              <span style="word-break: break-all; color: #374151;">${orderLink}</span>
+              <span style="word-break: break-all; color: '374151';">${orderLink}</span>
             </p>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <p style="font-size: 14px; color: #6b7280;">
+              <p style="font-size: 14px; color: '6b7280';">
                 Si tienes alguna pregunta, no dudes en contactarnos.<br>
                 Teléfono: [Tu teléfono] | Email: [Tu email]
               </p>
@@ -195,7 +196,7 @@ export class OrderService {
     }
   }
 
-  static async updateOrderStatus(orderId: string, status: string, paymentDetails: any = {}) {
+  static async updateOrderStatus(orderId: string, status: string, additionalData: any = {}) {
     try {
       const validStatuses = ['pending', 'pending_payment', 'processing', 'completed', 'payment_failed', 'cancelled', 'rejected'];
       
@@ -203,27 +204,118 @@ export class OrderService {
         throw new Error(`Estado '${status}' no válido`);
       }
 
-      const order = await Order.findByIdAndUpdate(
-        orderId,
-        {
-          status,
-          'paymentDetails.status': paymentDetails.status || status,
-          'paymentDetails.updated': new Date(),
-          ...paymentDetails,
-          updatedAt: new Date()
-        },
-        { new: true }
-      );
-
+      const order = await Order.findById(orderId);
       if (!order) {
         throw new Error('Orden no encontrada');
       }
 
-      return order;
+      const previousStatus = order.status;
+
+      // Preparar datos de actualización
+      const updateData: any = {
+        status,
+        updatedAt: new Date(),
+        ...additionalData
+      };
+
+      // Si hay un descuento, actualizar el total
+      if (additionalData.discount !== undefined) {
+        updateData.discount = additionalData.discount;
+        if (additionalData.total !== undefined) {
+          updateData.total = additionalData.total;
+        }
+      }
+
+      // Actualizar la orden
+      const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        updateData,
+        { new: true }
+      );
+
+      // Gestionar el stock según el cambio de estado
+      await this.handleStockManagement(order, status, previousStatus);
+
+      return updatedOrder;
     } catch (error: any) {
       console.error('Error al actualizar orden:', error);
       throw new Error(`Error al actualizar estado de la orden: ${error.message}`);
     }
+  }
+
+  static async handleStockManagement(order: any, newStatus: string, previousStatus: string) {
+    try {
+      // Si el pago se confirma (de pending_payment a processing/completed)
+      if ((previousStatus === 'pending_payment' || previousStatus === 'pending') && 
+          (newStatus === 'processing' || newStatus === 'completed')) {
+        console.log(`Confirmando pago y actualizando stock para orden ${order._id}`);
+        await this.adjustOrderStock(order.items, 'decrement');
+      }
+      
+      // Si la orden se cancela o rechaza después de haber confirmado stock
+      else if ((previousStatus === 'processing' || previousStatus === 'completed') && 
+               (newStatus === 'cancelled' || newStatus === 'rejected' || newStatus === 'payment_failed')) {
+        console.log(`Cancelando orden y revertiendo stock para orden ${order._id}`);
+        await this.adjustOrderStock(order.items, 'increment');
+      }
+      
+      // Si la orden estaba pendiente de pago y se cancela
+      else if (previousStatus === 'pending_payment' && 
+              (newStatus === 'cancelled' || newStatus === 'rejected' || newStatus === 'payment_failed')) {
+        console.log(`Cancelando orden pendiente de pago ${order._id}`);
+        // No es necesario hacer nada con el stock porque nunca se decrementó
+      }
+    } catch (stockError) {
+      console.error('Error en la gestión de stock:', stockError);
+      // No lanzamos el error para no interrumpir el flujo principal
+    }
+  }
+
+  static async adjustOrderStock(items: Array<{
+    productId: string;
+    variationId?: string;
+    quantity: number;
+  }>, operation: 'increment' | 'decrement') {
+    const results = [];
+    
+    for (const item of items) {
+      try {
+        // Usar el servicio de API para actualizar el stock
+        await updateStockViaApi({
+          productId: item.productId,
+          variationId: item.variationId,
+          stock: item.quantity,
+          action: operation === 'decrement' ? 'decrement' : 'increment'
+        });
+        
+        results.push({
+          productId: item.productId,
+          variationId: item.variationId,
+          success: true,
+          message: `Stock ${operation === 'decrement' ? 'decrementado' : 'incrementado'} correctamente`
+        });
+        
+        console.log(`Stock ${operation === 'decrement' ? 'decrementado' : 'incrementado'} para producto ${item.productId}`);
+      } catch (error) {
+        console.error(`Error ajustando stock para producto ${item.productId}:`, error);
+        results.push({
+          productId: item.productId,
+          variationId: item.variationId,
+          success: false,
+          error: error instanceof Error ? error.message : 'Error desconocido'
+        });
+      }
+    }
+
+    // Verificar si hubo errores críticos
+    const failedUpdates = results.filter(r => !r.success);
+    if (failedUpdates.length > 0) {
+      console.warn(`${failedUpdates.length} actualizaciones de stock fallaron:`, failedUpdates);
+      // Podrías lanzar un error aquí o notificar al administrador
+      throw new Error(`Fallaron ${failedUpdates.length} actualizaciones de stock`);
+    }
+
+    return results;
   }
 
   static async getOrderById(orderId: string) {
