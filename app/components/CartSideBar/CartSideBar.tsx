@@ -60,6 +60,15 @@ export function CartSidebar({
     }
   }, [isOpen])
 
+  useEffect(() => {
+  return () => {
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.width = ''
+  }
+}, [])
+
   // Cerrar con tecla Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

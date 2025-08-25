@@ -140,7 +140,7 @@ export class OrderService {
           <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; border-radius: 4px;">
             <h4 style="color: #d97706; margin-top: 0;">Para completar tu compra:</h4>
             <ul style="margin-bottom: 0;">
-              <li>Acercate a nuestro local: <strong>[Tu dirección completa]</strong></li>
+              <li>Contactanos para completar el pedido</strong></li>
               <li>Horario de atención: <strong>Lunes a Viernes de 8:00 a 18:00</strong></li>
               <li>Menciona tu número de orden: <strong>${order.orderNumber}</strong></li>
               <li>Abona el monto total en efectivo</li>

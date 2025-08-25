@@ -18,7 +18,7 @@ export default function PagoPendienteEfectivo() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+      <div className="bg-white p-16 sm:p-8 rounded-lg shadow-md max-w-md w-full text-center">
         <div className="text-yellow-500 mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

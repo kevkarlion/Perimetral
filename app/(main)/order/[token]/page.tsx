@@ -9,7 +9,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const { token } = await params; // 👈 await antes de usar token
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto pb-8 pt-12 sm:py-8 sm:pb-8">
       <OrderDetails token={token} />
     </div>
   );

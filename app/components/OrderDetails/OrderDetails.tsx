@@ -6,6 +6,7 @@ import { IOrder } from '@/types/orderTypes';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
+import OrderDetailsSkeleton from './OrderDetailsSkeleton'; // Importa el skeleton
 
 interface OrderDetailsProps {
   token: string;
@@ -20,6 +21,8 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+
+ 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -42,11 +45,10 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
     fetchOrder();
   }, [token]);
 
-  if (loading) {
-    return <div className="flex justify-center py-12">
-      <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-    </div>;
+    if (loading) {
+    return <OrderDetailsSkeleton />; // Usa el skeleton en lugar del spinner
   }
+
 
   if (error) {
     return <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6">
