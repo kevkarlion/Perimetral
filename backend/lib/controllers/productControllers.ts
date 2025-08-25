@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import productService from '@/backend/lib/services/productService';
 import Product from '@/backend/lib/models/Product';
 import { IProduct, IVariation } from '@/types/productTypes';
+import { StockService } from '@/backend/lib/services/stockService';
 // import { dbConnect } from '../dbConnect/dbConnect';
 
 // Tipos para respuestas
@@ -205,7 +206,17 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
 
     await product.save();
 
-    // Convertir a formato para respuesta
+       // 🔹 Crear movimiento de stock inicial
+    await StockService.createMovement({
+      productId: product._id.toString(),
+      type: 'adjustment',            // movimiento de ajuste inicial
+      quantity: body.stock || 0,     // stock inicial
+      reason: 'initial',             // razón del movimiento
+      // si no tenés admin, ponés "system"
+      // createdBy: body.createdBy || 'system'
+    });
+
+    // 🔹 Preparar respuesta
     const responseData: IProduct = {
       ...product.toObject(),
       _id: product._id.toString(),
