@@ -149,81 +149,70 @@ const productService = {
     return !!result;
   },
 
-  async updateProduct(
-    id: string,
-    updateData: ProductUpdateData
-  ): Promise<IProduct> {
+ async addProductVariation(
+  productId: string,
+  variation: Omit<IVariation, "_id">
+): Promise<{
+  success: boolean;
+  product?: IProduct;
+  variationId?: string; // ← Nuevo campo
+  variations?: IVariation[];
+  error?: string;
+}> {
+  try {
     await dbConnect();
-    if (!Types.ObjectId.isValid(id)) throw new Error("ID inválido");
-
-    const updated = await Product.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    ).lean();
-
-    if (!updated) throw new Error("Producto no encontrado");
-    return toIProduct(updated);
-  },
-
-  async addProductVariation(
-    productId: string,
-    variation: Omit<IVariation, "_id">
-  ): Promise<{
-    success: boolean;
-    product?: IProduct;
-    variations?: IVariation[];
-    error?: string;
-  }> {
-    try {
-      await dbConnect();
-      if (!Types.ObjectId.isValid(productId)) {
-        return { success: false, error: "ID de producto no válido" };
-      }
-
-      const updated = await Product.findByIdAndUpdate(
-        productId,
-        {
-          $push: {
-            variaciones: {
-              ...variation,
-              stock: variation.stock || 0,
-              stockMinimo: variation.stockMinimo ?? 5,
-              activo: variation.activo !== false,
-              atributos: variation.atributos || {
-                longitud: 0,
-                altura: 0,
-                calibre: "",
-                material: "",
-                color: "",
-              },
-              imagenes: variation.imagenes || [],
-            },
-          },
-          $set: { tieneVariaciones: true },
-        },
-        { new: true, runValidators: true }
-      ).lean();
-
-      if (!updated) {
-        return { success: false, error: "Producto no encontrado" };
-      }
-
-      const product = toIProduct(updated);
-      return {
-        success: true,
-        product,
-        variations: product.variaciones,
-      };
-    } catch (error) {
-      console.error("Error en addProductVariation:", error);
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Error al agregar variación",
-      };
+    if (!Types.ObjectId.isValid(productId)) {
+      return { success: false, error: "ID de producto no válido" };
     }
-  },
+
+    // Encontrar el producto primero para obtener la variación creada
+    const product = await Product.findById(productId);
+    if (!product) {
+      return { success: false, error: "Producto no encontrado" };
+    }
+
+    // Agregar la variación al array
+    product.variaciones.push({
+      ...variation,
+      stock: variation.stock || 0,
+      stockMinimo: variation.stockMinimo ?? 5,
+      activo: variation.activo !== false,
+      atributos: variation.atributos || {
+        longitud: 0,
+        altura: 0,
+        calibre: "",
+        material: "",
+        color: "",
+      },
+      imagenes: variation.imagenes || [],
+    } as IVariation);
+
+    // Marcar que tiene variaciones
+    product.tieneVariaciones = true;
+
+    await product.save();
+
+    // Obtener la última variación agregada (la nueva)
+    const newVariation = product.variaciones[product.variaciones.length - 1];
+    const variationId = newVariation._id.toString();
+
+    const updatedProduct = toIProduct(product.toObject());
+    
+    return {
+      success: true,
+      product: updatedProduct,
+      variationId, // ← Devuelve el ID de la nueva variación
+      variations: updatedProduct.variaciones,
+    };
+  } catch (error) {
+    console.error("Error en addProductVariation:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Error al agregar variación",
+    };
+  }
+},
 
   async removeProductVariation(
     productId: string,
