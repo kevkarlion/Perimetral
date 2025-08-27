@@ -206,16 +206,27 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
 
     await product.save();
 
-       // 🔹 Crear movimiento de stock inicial
-    await StockService.createMovement({
-      productId: product._id.toString(),
-      type: 'adjustment',            // movimiento de ajuste inicial
-      quantity: body.stock || 0,     // stock inicial
-      reason: 'initial',             // razón del movimiento
-      // si no tenés admin, ponés "system"
-      // createdBy: body.createdBy || 'system'
-    });
-
+    // 🔹 MOVIMIENTOS DE STOCK - DESPUÉS de guardar el producto
+    if (body.tieneVariaciones && product.variaciones && product.variaciones.length > 0) {
+      // Usar las variaciones que ya tienen _id asignado por MongoDB
+      for (const variation of product.variaciones) {
+        await StockService.createMovement({
+          productId: product._id.toString(),
+          variationId: variation._id.toString(), // ← Ahora sí tiene _id
+          type: 'adjustment',
+          quantity: variation.stock || 0,
+          reason: 'initial'
+        });
+      }
+    } else {
+      // Para productos sin variaciones
+      await StockService.createMovement({
+        productId: product._id.toString(),
+        type: 'adjustment',
+        quantity: body.stock || 0,
+        reason: 'initial'
+      });
+    }
     // 🔹 Preparar respuesta
     const responseData: IProduct = {
       ...product.toObject(),

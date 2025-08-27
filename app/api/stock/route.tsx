@@ -48,6 +48,8 @@ export async function DELETE(req: NextRequest) {
   return deleteProductById(req);
 }
 
+
+// PUT - Actualizar producto
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();

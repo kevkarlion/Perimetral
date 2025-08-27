@@ -78,3 +78,5 @@ export interface StockLevel {
   minimumStock: number;
   lastMovement?: Date;
 }
+
+

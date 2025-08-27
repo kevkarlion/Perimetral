@@ -1,23 +1,38 @@
 // backend/lib/services/stockService.ts
-import StockMovement, { IStockMovement } from '@/backend/lib/models/StockMovement';
+import StockMovement from '@/backend/lib/models/StockMovement'; // Sin import de interfaz
 import Product from '@/backend/lib/models/Product';
 import { dbConnect } from '@/backend/lib/dbConnect/dbConnect';
 import { 
   StockMovementCreateData, 
   StockMovementFilter,
-  StockLevel ,
-  IStockMovementDocument
+  StockLevel
 } from '@/types/stockTypes';
 import { Types } from 'mongoose';
- 
+
 export class StockService {
-  static async createMovement(movementData: StockMovementCreateData): Promise<IStockMovement> {
+static async createMovement(movementData: StockMovementCreateData): Promise<any> {
     await dbConnect();
 
+    console.log('datos recibidos a servicio ', movementData);
+
+    // Convertir string IDs to ObjectId
+    const productId = new Types.ObjectId(movementData.productId);
+    const variationId = movementData.variationId ? new Types.ObjectId(movementData.variationId) : undefined;
+    const createdBy = movementData.createdBy ? new Types.ObjectId(movementData.createdBy) : undefined;
+
     // Obtener stock actual del producto/variación
-    const product = await Product.findById(movementData.productId);
+    const product = await Product.findById(productId);
     if (!product) {
       throw new Error('Producto no encontrado');
+    }
+
+    // ✅ VALIDACIONES MEJORADAS
+    if (product.tieneVariaciones && !movementData.variationId) {
+      throw new Error('El producto tiene variaciones, especifique una variación');
+    }
+
+    if (!product.tieneVariaciones && movementData.variationId) {
+      throw new Error('El producto no tiene variaciones, no se debe especificar variación');
     }
 
     let previousStock = 0;
@@ -51,36 +66,33 @@ export class StockService {
       variation.stock = newStock;
     } else {
       // Manejar producto sin variaciones
-      if (!product.tieneVariaciones) {
-        previousStock = product.stock || 0;
-        
-        switch (movementData.type) {
-          case 'in':
-            newStock = previousStock + movementData.quantity;
-            break;
-          case 'out':
-            newStock = Math.max(0, previousStock - movementData.quantity);
-            break;
-          case 'adjustment':
-            newStock = movementData.quantity;
-            break;
-          default:
-            newStock = previousStock;
-        }
-
-        product.stock = newStock;
-      } else {
-        throw new Error('El producto tiene variaciones, especifique una variación');
+      previousStock = product.stock || 0;
+      
+      switch (movementData.type) {
+        case 'in':
+          newStock = previousStock + movementData.quantity;
+          break;
+        case 'out':
+          newStock = Math.max(0, previousStock - movementData.quantity);
+          break;
+        case 'adjustment':
+          newStock = movementData.quantity;
+          break;
+        default:
+          newStock = previousStock;
       }
+
+      product.stock = newStock;
     }
 
     // Crear el movimiento de stock
     const movement = new StockMovement({
       ...movementData,
+      productId,
+      variationId,
+      createdBy,
       previousStock,
-      newStock,
-      productId: movementData.productId,
-      variationId: movementData.variationId
+      newStock
     });
 
     // Guardar ambos en una transacción
@@ -93,7 +105,11 @@ export class StockService {
       await session.commitTransaction();
       session.endSession();
 
-      return movement;
+      // Populate después de guardar para devolver datos completos
+      return await StockMovement.findById(movement._id)
+        .populate('productId', 'nombre codigoPrincipal')
+        .populate('createdBy', 'email nombre')
+        .exec();
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
@@ -101,30 +117,30 @@ export class StockService {
     }
   }
 
-static async getMovements(filter: StockMovementFilter = {}): Promise<{
-  movements: IStockMovementDocument[];
-  total: number;
-  page: number;
-  pages: number;
-}> {
-  await dbConnect();
+  static async getMovements(filter: StockMovementFilter = {}): Promise<{
+    movements: any[];
+    total: number;
+    page: number;
+    pages: number;
+  }> {
+    await dbConnect();
 
-  const {
-    productId,
-    variationId,
-    type,
-    startDate,
-    endDate,
-    page = 1,
-    limit = 20
-  } = filter;
+    const {
+      productId,
+      variationId,
+      type,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20
+    } = filter;
 
-  const query: any = {};
+    const query: any = {};
 
-  // Convertir string IDs to ObjectId para las búsquedas
-  if (productId) query.productId = new Types.ObjectId(productId);
-  if (variationId) query.variationId = new Types.ObjectId(variationId);
-  if (type) query.type = type;
+    // Convertir string IDs to ObjectId para las búsquedas
+    if (productId) query.productId = new Types.ObjectId(productId);
+    if (variationId) query.variationId = new Types.ObjectId(variationId);
+    if (type) query.type = type;
 
     if (startDate || endDate) {
       query.createdAt = {};
@@ -141,6 +157,7 @@ static async getMovements(filter: StockMovementFilter = {}): Promise<{
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
+        .lean() // Usar lean() para mejor performance
         .exec(),
       StockMovement.countDocuments(query)
     ]);
@@ -153,11 +170,12 @@ static async getMovements(filter: StockMovementFilter = {}): Promise<{
     };
   }
 
-  static async getMovementById(id: string): Promise<IStockMovement | null> {
+  static async getMovementById(id: string): Promise<any> {
     await dbConnect();
     return StockMovement.findById(id)
       .populate('productId', 'nombre codigoPrincipal')
       .populate('createdBy', 'email nombre')
+      .lean()
       .exec();
   }
 
@@ -208,53 +226,55 @@ static async getMovements(filter: StockMovementFilter = {}): Promise<{
     }
   }
 
+
+  // Obtener productos con bajo stock
   static async getLowStockItems(threshold?: number): Promise<StockLevel[]> {
-    await dbConnect();
+  await dbConnect();
 
-    const lowStockItems: StockLevel[] = [];
+  const lowStockItems: StockLevel[] = [];
+  const stockThreshold = threshold ?? 5; // valor por defecto si no viene
 
-    // Productos sin variaciones
-    const products = await Product.find({
-      tieneVariaciones: false,
-      activo: true,
-      $or: [
-        { stock: { $lte: threshold || 5 } },
-        { stock: { $lte: '$stockMinimo' } }
-      ]
+  // Productos sin variaciones
+  const products = await Product.find({
+    tieneVariaciones: false,
+    activo: true,
+    $expr: { $lte: ["$stock", stockThreshold] } // usamos $expr para comparar con variable JS
+  });
+
+  for (const product of products) {
+    lowStockItems.push({
+      productId: product._id,
+      currentStock: product.stock || 0,
+      minimumStock: product.stockMinimo || stockThreshold
     });
+  }
 
-    for (const product of products) {
-      lowStockItems.push({
-        productId: product._id,
-        currentStock: product.stock || 0,
-        minimumStock: product.stockMinimo || 0
-      });
-    }
+  // Productos con variaciones
+  const productsWithVariations = await Product.find({
+    tieneVariaciones: true,
+    activo: true,
+    'variaciones.activo': true
+  });
 
-    // Productos con variaciones
-    const productsWithVariations = await Product.find({
-      tieneVariaciones: true,
-      activo: true,
-      'variaciones.activo': true
-    });
-
-    for (const product of productsWithVariations) {
-      for (const variation of product.variaciones) {
-        if (variation.activo && 
-            (variation.stock <= (threshold || 5) || 
-             variation.stock <= (variation.stockMinimo || 0))) {
-          lowStockItems.push({
-            productId: product._id,
-            variationId: variation._id,
-            currentStock: variation.stock,
-            minimumStock: variation.stockMinimo || 0
-          });
-        }
+  for (const product of productsWithVariations) {
+    for (const variation of product.variaciones) {
+      if (
+        variation.activo &&
+        (variation.stock <= stockThreshold || variation.stock <= (variation.stockMinimo ?? stockThreshold))
+      ) {
+        lowStockItems.push({
+          productId: product._id,
+          variationId: variation._id,
+          currentStock: variation.stock,
+          minimumStock: variation.stockMinimo ?? stockThreshold
+        });
       }
     }
-
-    return lowStockItems;
   }
+
+  return lowStockItems;
+}
+
 
   static async getStockHistory(productId: string, variationId?: string, days: number = 30) {
     await dbConnect();

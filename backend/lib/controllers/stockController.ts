@@ -66,6 +66,7 @@ export class StockController {
       
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
+      console.log('admin', admin)
       if (!admin) {
         return NextResponse.json(
           { success: false, error: 'No autorizado' },
@@ -91,7 +92,7 @@ export class StockController {
       }
 
       const result = await StockService.getMovements(filter);
-
+      console.log('return controlador', result)
       return NextResponse.json({
         success: true,
         data: result.movements,
