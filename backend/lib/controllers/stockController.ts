@@ -199,10 +199,11 @@ export class StockController {
   static async getLowStockItems(req: NextRequest) {
     try {
       // Obtener cookies de la request
-      const cookies = getCookiesFromRequest(req);
+      const cookies = getCookiesFromRequest(req); 
       
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
+      console.log('Admin:', admin);
       if (!admin) {
         return NextResponse.json(
           { success: false, error: 'No autorizado' },

@@ -10,6 +10,8 @@ import {
   updatePrice
 } from "@/backend/lib/controllers/productControllers";
 
+import { StockService } from "@/backend/lib/services/stockService";
+
 // GET - Obtener todos los productos
 export async function GET() {
   try {
@@ -55,7 +57,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     console.log("Body recibido:", JSON.stringify(body, null, 2));
 
-    const { productId, action, variation, stock, variationId, price  } = body;
+    const { productId, action, variation, stock, variationId, price } = body;
 
     if (!productId) {
       console.error("Faltan parámetros requeridos");
@@ -68,8 +70,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-
-       // Lógica para actualización de precios
+    // Lógica para actualización de precios
     if (price !== undefined) {
       console.log("Ejecutando actualización de precio...");
       
@@ -77,11 +78,10 @@ export async function PUT(req: NextRequest) {
         productId,
         price: Number(price),
         variationId: variationId || null,
-        action: action || "set", // 'set' o 'increment'
+        action: action || "set",
       };
 
-
-      console.log('actualizando precio...??? ')
+      console.log('Actualizando precio...');
       const response = await updatePrice(
         new NextRequest(req.url, {
           body: JSON.stringify(updateData),
@@ -106,12 +106,10 @@ export async function PUT(req: NextRequest) {
           headers: req.headers,
         })
       );
-
-      // Devuelve las variaciones actualizadas en el mismo formato que add-variation
       return response;
     }
 
-    // Lógica existente para manejo de variaciones
+    // Manejo de actualización de variación
     if (variation || action === "update-variation") {
       console.log("Ejecutando actualización de variación...");
       const response = await updateProduct(
@@ -123,7 +121,8 @@ export async function PUT(req: NextRequest) {
       );
       return response;
     }
-    // Nueva lógica para manejo de stock (usando las mismas variables)
+    
+    // Manejo de actualización de stock
     else if (stock !== undefined) {
       console.log("Ejecutando actualización de stock...");
 
@@ -131,24 +130,40 @@ export async function PUT(req: NextRequest) {
         productId,
         stock: Number(stock),
         variationId: variationId || null,
-        action: action || "set", // Por defecto 'set' si no se especifica
+        action: action || "set",
       };
 
-      const response = await updateStock(
-        new NextRequest(req.url, {
-          body: JSON.stringify(updateData),
-          method: "PUT",
-          headers: req.headers,
-        })
-      );
-      return response;
+      // ✅ LLAMADA CORRECTA al método estático de StockService
+      try {
+        const movement = await StockService.updateStock(updateData);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: movement,
+            message: 'Stock actualizado correctamente'
+          }),
+          { status: 200 }
+        );
+        
+      } catch (error) {
+        console.error('Error al actualizar stock:', error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Error al actualizar stock',
+            details: error instanceof Error ? error.message : String(error)
+          }),
+          { status: 500 }
+        );
+      }
     } else {
       console.error("Acción no reconocida");
       return new Response(
         JSON.stringify({
           success: false,
           error:
-            "Acción no reconocida. Proporcione 'variation' o 'stock' en el body",
+            "Acción no reconocida. Proporcione 'variation', 'stock' o 'price' en el body",
         }),
         { status: 400 }
       );

@@ -37,7 +37,7 @@ export function useStock() {
   }
 
   const getLowStock = async (threshold = 5): Promise<StockLevel[]> => {
-    const res = await fetch(`/api/stock/low-stock?threshold=${threshold}`)
+    const res = await fetch(`/api/movement-stock/low-stock?threshold=${threshold}`)
     const data = await res.json()
     return data.success ? data.data : []
   }
