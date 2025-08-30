@@ -72,7 +72,7 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
           >
             <option value="">Seleccione una variación</option>
             {product.variaciones?.map((v) => (
-              <option key={v._id} value={v._id}>
+              <option key={v._id?.toString()} value={v._id?.toString()}>
                 {v.medida} (Stock actual: {v.stock})
               </option>
             ))}

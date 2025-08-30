@@ -15,7 +15,6 @@ export class StockService {
   ): Promise<any> {
     await dbConnect();
 
-    console.log("datos recibidos a servicio ", movementData);
 
     // Convertir string IDs to ObjectId
     const productId = new Types.ObjectId(movementData.productId);
