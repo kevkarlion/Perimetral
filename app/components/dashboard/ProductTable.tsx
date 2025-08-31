@@ -539,6 +539,7 @@ export default function ProductTable() {
       {showVariationModal && currentProduct && (
         <AddVariationModal
           productId={currentProduct._id!.toString()}
+          codigoPrincipal={currentProduct.codigoPrincipal}
           initialVariations={currentProduct.variaciones || []}
           onClose={closeVariationModal}
         />

@@ -378,6 +378,50 @@ const productService = {
     if (!updated) throw new Error("Producto no encontrado");
     return toIProduct(updated);
   },
+
+  async setProductStock(
+  productId: string,
+  newStock: number, // El nuevo valor absoluto, no un delta
+  variationId?: string
+): Promise<IProduct> {
+  await dbConnect();
+  
+  if (!Types.ObjectId.isValid(productId)) {
+    throw new Error("ID de producto no válido");
+  }
+
+  // Nota: Usamos $set, no $inc
+  const setQuery = variationId
+    ? {
+        $set: { 
+          "variaciones.$[elem].stock": newStock, // Establece el valor absoluto
+          updatedAt: new Date() 
+        },
+      }
+    : { 
+        $set: { 
+          stock: newStock, // Establece el valor absoluto
+          updatedAt: new Date() 
+        } 
+      };
+
+  const options = variationId
+    ? {
+        new: true,
+        arrayFilters: [{ "elem._id": new Types.ObjectId(variationId) }],
+      }
+    : { new: true };
+
+  const updated = await Product.findByIdAndUpdate(
+    productId,
+    setQuery, // Usamos la query de $set
+    options
+  ).lean();
+
+  if (!updated) throw new Error("Producto no encontrado");
+  return toIProduct(updated);
+}
+
 };
 
 export default productService;

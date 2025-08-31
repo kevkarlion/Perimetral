@@ -5,12 +5,14 @@ import type { ApiResponse } from "@/types/apiTypes";
 
 type Props = {
   productId: string;
+  codigoPrincipal: string;
   onClose: () => void;
   initialVariations: IVariation[];
 };
 
 export default function AddVariationModal({
   productId,
+  codigoPrincipal,
   onClose,
   initialVariations,
 }: Props) {
@@ -97,10 +99,8 @@ export default function AddVariationModal({
       }
 
       const result: ApiResponse<IProduct> = await response.json();
-      
 
-      
-      console.log('variationes', variations)
+      console.log("variationes", variations);
       if (!result.success) {
         throw new Error(result.error || "Error al procesar la solicitud");
       }
@@ -127,10 +127,10 @@ export default function AddVariationModal({
       const newVariation: Omit<IVariation, "_id"> = {
         ...variation,
         medida: variation.medida.trim(),
-        codigo: `${productId}-${variation.medida
+        codigo: `${codigoPrincipal}-${variation.medida
           .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "-")}-${Date.now()}`,
+          .toUpperCase()
+          .replace(/\s+/g, "-")}`,
         activo: true,
       };
 
@@ -138,7 +138,7 @@ export default function AddVariationModal({
         variation: newVariation,
       });
 
-      console.log('desde add', updatedVariations)
+      console.log("desde add", updatedVariations);
       setVariations(updatedVariations);
       setVariation({
         descripcion: "",
@@ -171,17 +171,16 @@ export default function AddVariationModal({
     setIsLoading(true);
     setError("");
 
-   try {
-    const updatedVariations = await sendToStockRoute("remove-variation", {
-      variationId: variationToRemove._id || variationToRemove.codigo,
-    });
-    console.log('desde remove', updatedVariations)
- if (Array.isArray(updatedVariations)) {
-      setVariations(updatedVariations);
-    } else {
-      throw new Error("Respuesta inválida del servidor");
-    }
-      
+    try {
+      const updatedVariations = await sendToStockRoute("remove-variation", {
+        variationId: variationToRemove._id || variationToRemove.codigo,
+      });
+      console.log("desde remove", updatedVariations);
+      if (Array.isArray(updatedVariations)) {
+        setVariations(updatedVariations);
+      } else {
+        throw new Error("Respuesta inválida del servidor");
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al eliminar variación"

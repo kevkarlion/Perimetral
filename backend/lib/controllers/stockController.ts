@@ -59,61 +59,110 @@ export class StockController {
     }
   }
 
+
+  
   static async getMovements(req: NextRequest) {
-    try {
-      // Obtener cookies de la request
-      const cookies = getCookiesFromRequest(req);
-      
-      // Verificar autenticación usando tu sistema
-      const admin = await getCurrentAdmin(cookies);
-      console.log('admin', admin)
-      if (!admin) {
-        return NextResponse.json(
-          { success: false, error: 'No autorizado' },
-          { status: 401 }
-        );
-      }
-
-      const { searchParams } = new URL(req.url);
-      const filter: StockMovementFilter = {
-        productId: searchParams.get('productId') || undefined,
-        variationId: searchParams.get('variationId') || undefined,
-        type: searchParams.get('type') as any || undefined,
-        page: parseInt(searchParams.get('page') || '1'),
-        limit: parseInt(searchParams.get('limit') || '20')
-      };
-
-      // Parsear fechas si están presentes
-      if (searchParams.get('startDate')) {
-        filter.startDate = new Date(searchParams.get('startDate')!);
-      }
-      if (searchParams.get('endDate')) {
-        filter.endDate = new Date(searchParams.get('endDate')!);
-      }
-
-      const result = await StockService.getMovements(filter);
-      console.log('return controlador', result)
-      return NextResponse.json({
-        success: true,
-        data: result.movements,
-        pagination: {
-          page: result.page,
-          limit: filter.limit!,
-          total: result.total,
-          pages: result.pages
-        }
-      });
-    } catch (error: any) {
-      console.error('Error getting stock movements:', error);
+  console.log('Obtener movimientos desde getMovements')
+  try {
+    // Obtener cookies de la request
+    const cookies = getCookiesFromRequest(req);
+    
+    // Verificar autenticación usando tu sistema
+    const admin = await getCurrentAdmin(cookies);
+    console.log('admin', admin)
+    if (!admin) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
-        },
-        { status: 500 }
+        { success: false, error: 'No autorizado' },
+        { status: 401 }
       );
     }
+
+    const { searchParams } = new URL(req.url);
+    const filter: StockMovementFilter = {
+      productId: searchParams.get('productId') || undefined,
+      variationId: searchParams.get('variationId') || undefined,
+      type: searchParams.get('type') as any || undefined,
+      page: parseInt(searchParams.get('page') || '1'),
+      limit: parseInt(searchParams.get('limit') || '20')
+    };
+
+    // Parsear fechas si están presentes
+    if (searchParams.get('startDate')) {
+      filter.startDate = new Date(searchParams.get('startDate')!);
+    }
+    if (searchParams.get('endDate')) {
+      filter.endDate = new Date(searchParams.get('endDate')!);
+    }
+
+    const result = await StockService.getMovements(filter);
+    
+    // Transformar los datos para la respuesta
+    const formattedMovements = result.movements.map((movement: any) => ({
+      _id: movement._id,
+      type: movement.type,
+      quantity: movement.quantity,
+      previousStock: movement.previousStock,
+      newStock: movement.newStock,
+      reason: movement.reason,
+      createdAt: movement.createdAt,
+      updatedAt: movement.updatedAt,
+      
+      // Información del producto
+      product: movement.product ? {
+        _id: movement.product._id,
+        codigoPrincipal: movement.product.codigoPrincipal,
+        nombre: movement.product.nombre,
+        categoria: movement.product.categoria,
+        medida: movement.product.medida,
+        tieneVariaciones: movement.product.tieneVariaciones
+      } : null,
+      
+      // Información completa de la variación
+      variation: movement.variation ? {
+        _id: movement.variation._id,
+        codigo: movement.variation.codigo,
+        medida: movement.variation.medida,
+        precio: movement.variation.precio,
+        stock: movement.variation.stock,
+        stockMinimo: movement.variation.stockMinimo,
+        atributos: movement.variation.atributos,
+        imagenes: movement.variation.imagenes,
+        activo: movement.variation.activo
+      } : null,
+      
+      // Información del usuario si existe
+      createdByUser: movement.createdByUser ? {
+        _id: movement.createdByUser._id,
+        email: movement.createdByUser.email,
+        nombre: movement.createdByUser.nombre
+      } : null
+    }));
+
+    console.log('Movimientos formateados:', formattedMovements);
+
+    
+    return NextResponse.json({
+      success: true,
+      data: formattedMovements,
+      pagination: {
+        page: result.page,
+        limit: filter.limit!,
+        total: result.total,
+        pages: result.pages
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('Error getting stock movements:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: error.message || 'Error interno del servidor' 
+      },
+      { status: 500 }
+    );
   }
+}
 
   static async getMovementById(req: NextRequest, id: string) {
     try {

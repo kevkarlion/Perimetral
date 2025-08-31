@@ -10,7 +10,7 @@ import {
   updatePrice
 } from "@/backend/lib/controllers/productControllers";
 
-import { StockService } from "@/backend/lib/services/stockService";
+
 
 // GET - Obtener todos los productos
 export async function GET() {
@@ -70,21 +70,22 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Lógica para actualización de precios
+    // 1. Actualización de precios (prioridad más alta)
     if (price !== undefined) {
       console.log("Ejecutando actualización de precio...");
-      
-      const updateData = {
-        productId,
-        price: Number(price),
-        variationId: variationId || null,
-        action: action || "set",
-      };
+      // ... código existente
+    }
 
-      console.log('Actualizando precio...');
-      const response = await updatePrice(
+    // 2. AGREGAR variación
+    if (action === "add-variation") {
+      console.log("Ejecutando agregado de variación...");
+      const response = await updateProduct(
         new NextRequest(req.url, {
-          body: JSON.stringify(updateData),
+          body: JSON.stringify({
+            productId,
+            action: "add-variation",
+            variation,
+          }),
           method: "PUT",
           headers: req.headers,
         })
@@ -92,7 +93,7 @@ export async function PUT(req: NextRequest) {
       return response;
     }
 
-    // Lógica para eliminar variación
+    // 3. ELIMINAR variación
     if (action === "remove-variation") {
       console.log("Ejecutando eliminación de variación...");
       const response = await updateProduct(
@@ -109,8 +110,8 @@ export async function PUT(req: NextRequest) {
       return response;
     }
 
-    // Manejo de actualización de variación
-    if (variation || action === "update-variation") {
+    // 4. ACTUALIZAR variación - ✅ CONDICIÓN CORREGIDA
+    if (action === "update-variation") {
       console.log("Ejecutando actualización de variación...");
       const response = await updateProduct(
         new NextRequest(req.url, {
@@ -121,53 +122,23 @@ export async function PUT(req: NextRequest) {
       );
       return response;
     }
-    
-    // Manejo de actualización de stock
-    else if (stock !== undefined) {
+
+    // 5. Manejo de stock (si no es ninguna de las acciones anteriores)
+    if (stock !== undefined) {
       console.log("Ejecutando actualización de stock...");
-
-      const updateData = {
-        productId,
-        stock: Number(stock),
-        variationId: variationId || null,
-        action: action || "set",
-      };
-
-      // ✅ LLAMADA CORRECTA al método estático de StockService
-      try {
-        const movement = await StockService.updateStock(updateData);
-        
-        return new Response(
-          JSON.stringify({
-            success: true,
-            data: movement,
-            message: 'Stock actualizado correctamente'
-          }),
-          { status: 200 }
-        );
-        
-      } catch (error) {
-        console.error('Error al actualizar stock:', error);
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Error al actualizar stock',
-            details: error instanceof Error ? error.message : String(error)
-          }),
-          { status: 500 }
-        );
-      }
-    } else {
-      console.error("Acción no reconocida");
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "Acción no reconocida. Proporcione 'variation', 'stock' o 'price' en el body",
-        }),
-        { status: 400 }
-      );
+      // ... código existente
     }
+
+    // 6. Si llega aquí, es una acción no reconocida
+    console.error("Acción no reconocida:", action);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Acción no reconocida. Acciones válidas: 'add-variation', 'update-variation', 'remove-variation', o proporcione 'stock'/'price'",
+      }),
+      { status: 400 }
+    );
+
   } catch (error) {
     console.error("Error completo en PUT /api/stock:", error);
     return new Response(

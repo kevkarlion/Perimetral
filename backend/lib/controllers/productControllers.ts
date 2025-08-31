@@ -608,7 +608,7 @@ export async function getProductById(id: string): PromiseApiResponse<IProduct> {
 }
 
 // Actualizar stock de un producto
-export async function updateStock(req: Request): PromiseApiResponse<IProduct> {
+export async function updateStock(req: Request): PromiseApiResponse<any> {
   try {
     const { productId, variationId, stock, action } = await req.json();
 
@@ -619,9 +619,9 @@ export async function updateStock(req: Request): PromiseApiResponse<IProduct> {
       );
     }
 
-    if (action !== "set" && action !== "increment") {
+    if (action !== "set" && action !== "increment" && action !== "decrement") {
       return NextResponse.json(
-        { success: false, error: 'Acción no válida. Use "set" o "increment"' },
+        { success: false, error: 'Acción no válida. Use "set", "increment" o "decrement"' },
         { status: 400 }
       );
     }
@@ -633,32 +633,27 @@ export async function updateStock(req: Request): PromiseApiResponse<IProduct> {
       );
     }
 
-    if (action === "increment" && !Number.isInteger(Number(stock))) {
+    if ((action === "increment" || action === "decrement") && !Number.isInteger(Number(stock))) {
       return NextResponse.json(
         { success: false, error: "Cantidad no válida" },
         { status: 400 }
       );
     }
 
-    let updatedProduct: IProduct;
-    if (action === "set") {
-      updatedProduct = await productService.incrementProductStock(
-        productId,
-        Number(stock),
-        variationId
-      );
-    } else {
-      updatedProduct = await productService.incrementProductStock(
-        productId,
-        Number(stock),
-        variationId
-      );
-    }
+    // ✅ USA StockService.updateStock QUE YA MANEJA TODO
+    const result = await StockService.updateStock({
+      productId,
+      variationId,
+      stock: Number(stock),
+      action: action as "set" | "increment" | "decrement"
+    });
 
     return NextResponse.json({
       success: true,
-      data: updatedProduct,
+      data: result, // Esto incluye el movimiento de stock creado
+      message: 'Stock actualizado correctamente'
     });
+
   } catch (error) {
     console.error("Error en updateStock:", error);
     return NextResponse.json(
