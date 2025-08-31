@@ -25,6 +25,15 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
     setError('')
 
     try {
+      // Determinar la acción final para la API
+      const finalAction = stockAction === 'increment' 
+        ? (Number(amount) >= 0 ? 'increment' : 'decrement')
+        : 'set';
+
+      const finalAmount = stockAction === 'increment' 
+        ? Math.abs(Number(amount))
+        : Number(amount);
+
       const response = await fetch(`/api/stock?action=update-stock`, {
         method: 'PUT',
         headers: {
@@ -33,8 +42,8 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
         body: JSON.stringify({
           productId: product._id,
           variationId: selectedVariation,
-          stock: Number(amount),
-          action: stockAction
+          stock: finalAmount,
+          action: finalAction
         })
       })
 
@@ -115,8 +124,13 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
           className="border border-gray-300 rounded px-3 py-2 w-full"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder={stockAction === 'increment' ? 'Ej: 5 o -3' : 'Ej: 25'}
+          placeholder={stockAction === 'increment' ? 'Ej: 5 (sumar) o -3 (restar)' : 'Ej: 25'}
         />
+        {stockAction === 'increment' && (
+          <p className="text-xs text-gray-500 mt-1">
+            Use números positivos para sumar, negativos para restar
+          </p>
+        )}
       </div>
 
       {error && (

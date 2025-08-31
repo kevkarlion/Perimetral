@@ -2,6 +2,7 @@
 
 import { IStockMovement } from "@/types/stockTypes";
 import { Types } from "mongoose";
+import { useState } from "react";
 
 interface PopulatedProduct {
   _id: Types.ObjectId;
@@ -51,6 +52,8 @@ export default function StockMovementsTable({
 }: {
   movements: ExtendedStockMovement[];
 }) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("es-ES", {
       year: "numeric",
@@ -70,6 +73,12 @@ export default function StockMovementsTable({
     }).format(amount);
   };
 
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   return (
     <div className="w-full overflow-x-auto">
       {/* Tabla visible en lg+ */}
@@ -79,6 +88,7 @@ export default function StockMovementsTable({
             <th className="border p-2">Fecha</th>
             <th className="border p-2">Producto</th>
             <th className="border p-2">Variación</th>
+            <th className="border p-2">ID Variación</th>
             <th className="border p-2">Medida</th>
             <th className="border p-2">Precio</th>
             <th className="border p-2">Tipo Mov.</th>
@@ -92,6 +102,7 @@ export default function StockMovementsTable({
           {movements.map((m) => {
             const product = m.product;
             const variation = m.variation;
+            const variationId = variation?._id.toString();
             
             return (
               <tr key={m._id.toString()} className="hover:bg-gray-50">
@@ -105,11 +116,8 @@ export default function StockMovementsTable({
                   {product ? (
                     <div>
                       <div className="font-semibold">{product.nombre}</div>
-                      <div className="text-xs text-gray-500 font-mono">
+                      <div className="text-xs text-gray-500">
                         {product.codigoPrincipal}
-                      </div>
-                      <div className="text-xs text-gray-400 font-mono mt-1">
-                        ID: {product._id.toString().slice(-8)}
                       </div>
                     </div>
                   ) : (
@@ -117,14 +125,31 @@ export default function StockMovementsTable({
                   )}
                 </td>
                 
-                {/* Variación */}
+                {/* Variación - Código */}
                 <td className="border p-2">
                   {variation ? (
-                    <div>
-                      <div className="font-medium">{variation.codigo}</div>
-                      <div className="text-xs text-gray-400 font-mono mt-1">
-                        ID: {variation._id.toString().slice(-8)}
-                      </div>
+                    <div className="font-medium">{variation.codigo}</div>
+                  ) : (
+                    "N/A"
+                  )}
+                </td>
+                
+                {/* Variación - ID COMPLETO y copiable */}
+                <td className="border p-2">
+                  {variationId ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => copyToClipboard(variationId, `var-${m._id}`)}
+                        className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all bg-blue-50 px-2 py-1 rounded w-full text-left truncate"
+                        title="Haz clic para copiar el ID completo"
+                      >
+                        {variationId}
+                      </button>
+                      {copiedId === `var-${m._id}` && (
+                        <span className="absolute -top-7 left-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                          ¡Copiado!
+                        </span>
+                      )}
                     </div>
                   ) : (
                     "N/A"
@@ -201,6 +226,7 @@ export default function StockMovementsTable({
             <th className="border p-2">Fecha</th>
             <th className="border p-2">Producto</th>
             <th className="border p-2">Variación</th>
+            <th className="border p-2">ID Var</th>
             <th className="border p-2">Tipo</th>
             <th className="border p-2">Cantidad</th>
             <th className="border p-2">Stock</th>
@@ -210,6 +236,7 @@ export default function StockMovementsTable({
           {movements.map((m) => {
             const product = m.product;
             const variation = m.variation;
+            const variationId = variation?._id.toString();
             
             return (
               <tr key={m._id.toString()} className="hover:bg-gray-50">
@@ -231,6 +258,26 @@ export default function StockMovementsTable({
                     <div>
                       <div className="text-sm">{variation.codigo}</div>
                       <div className="text-xs text-gray-500">{variation.medida}</div>
+                    </div>
+                  ) : (
+                    "N/A"
+                  )}
+                </td>
+                <td className="border p-2">
+                  {variationId ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => copyToClipboard(variationId, `var-md-${m._id}`)}
+                        className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer bg-blue-50 px-1 py-0.5 rounded w-full text-left truncate"
+                        title="Copiar ID"
+                      >
+                        {variationId.slice(0, 8)}...
+                      </button>
+                      {copiedId === `var-md-${m._id}` && (
+                        <span className="absolute -top-6 left-0 bg-green-100 text-green-800 text-xs px-1 py-0.5 rounded">
+                          ¡Copiado!
+                        </span>
+                      )}
                     </div>
                   ) : (
                     "N/A"
@@ -275,6 +322,7 @@ export default function StockMovementsTable({
         {movements.map((m) => {
           const product = m.product;
           const variation = m.variation;
+          const variationId = variation?._id.toString();
           
           return (
             <div
@@ -318,6 +366,21 @@ export default function StockMovementsTable({
                   <div className="text-xs text-green-600 font-semibold">
                     Precio: {formatCurrency(variation.precio)}
                   </div>
+                  
+                  {/* ID Variación copiable en mobile */}
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-500 mb-1">ID Variación:</div>
+                    <button
+                      onClick={() => copyToClipboard(variationId!, `var-mobile-${m._id}`)}
+                      className="w-full font-mono text-xs bg-blue-50 p-1 rounded hover:bg-blue-100 cursor-pointer text-left truncate"
+                      title="Haz clic para copiar el ID completo"
+                    >
+                      {variationId}
+                    </button>
+                    {copiedId === `var-mobile-${m._id}` && (
+                      <div className="text-xs text-green-600 mt-1">¡Copiado!</div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -350,12 +413,6 @@ export default function StockMovementsTable({
                 <span className="text-xs text-gray-600 max-w-[50%] truncate">
                   {m.reason}
                 </span>
-              </div>
-
-              {/* IDs (solo en debug o para admin) */}
-              <div className="mt-2 text-xs text-gray-400 font-mono">
-                {product && `Prod: ${product._id.toString().slice(-8)}`}
-                {variation && ` | Var: ${variation._id.toString().slice(-8)}`}
               </div>
             </div>
           );

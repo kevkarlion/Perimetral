@@ -1,5 +1,6 @@
 //api/stock/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { StockService } from "@/backend/lib/services/stockService";
 
 import {
   getAllProducts,
@@ -110,7 +111,7 @@ export async function PUT(req: NextRequest) {
       return response;
     }
 
-    // 4. ACTUALIZAR variación - ✅ CONDICIÓN CORREGIDA
+    // 4. ACTUALIZAR variación
     if (action === "update-variation") {
       console.log("Ejecutando actualización de variación...");
       const response = await updateProduct(
@@ -123,10 +124,41 @@ export async function PUT(req: NextRequest) {
       return response;
     }
 
-    // 5. Manejo de stock (si no es ninguna de las acciones anteriores)
+    // 5. Manejo de stock - ✅ MANEJO DE INCREMENT/DECREMENT
     if (stock !== undefined) {
       console.log("Ejecutando actualización de stock...");
-      // ... código existente
+
+      const updateData = {
+        productId,
+        stock: Number(stock),
+        variationId: variationId || null,
+        action: action || "set",
+      };
+
+      // ✅ LLAMADA CORRECTA al método estático de StockService
+      try {
+        const movement = await StockService.updateStock(updateData);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: movement,
+            message: 'Stock actualizado correctamente'
+          }),
+          { status: 200 }
+        );
+        
+      } catch (error) {
+        console.error('Error al actualizar stock:', error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Error al actualizar stock',
+            details: error instanceof Error ? error.message : String(error)
+          }),
+          { status: 500 }
+        );
+      }
     }
 
     // 6. Si llega aquí, es una acción no reconocida

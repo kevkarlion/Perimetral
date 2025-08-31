@@ -336,54 +336,72 @@ static async getMovements(filter: StockMovementFilter = {}): Promise<{
   }
 
   // Obtener productos con bajo stock
-  static async getLowStockItems(threshold?: number): Promise<StockLevel[]> {
-    await dbConnect();
+ // En tu StockService.ts
+static async getLowStockItems(threshold?: number): Promise<any[]> {
+  await dbConnect();
 
-    const lowStockItems: StockLevel[] = [];
-    const stockThreshold = threshold ?? 5; // valor por defecto si no viene
+  const lowStockItems: any[] = [];
+  const stockThreshold = threshold ?? 5;
 
-    // Productos sin variaciones
-    const products = await Product.find({
-      tieneVariaciones: false,
-      activo: true,
-      $expr: { $lte: ["$stock", stockThreshold] }, // usamos $expr para comparar con variable JS
+  // Productos sin variaciones
+  const products = await Product.find({
+    tieneVariaciones: false,
+    activo: true,
+    $expr: { $lte: ["$stock", stockThreshold] },
+  }).select('nombre codigoPrincipal stock stockMinimo'); // Seleccionar campos necesarios
+
+  for (const product of products) {
+    lowStockItems.push({
+      productId: product._id,
+      product: { // Añadir datos del producto
+        _id: product._id,
+        nombre: product.nombre,
+        codigoPrincipal: product.codigoPrincipal
+      },
+      currentStock: product.stock || 0,
+      minimumStock: product.stockMinimo || stockThreshold,
     });
-
-    for (const product of products) {
-      lowStockItems.push({
-        productId: product._id,
-        currentStock: product.stock || 0,
-        minimumStock: product.stockMinimo || stockThreshold,
-      });
-    }
-
-    // Productos con variaciones
-    const productsWithVariations = await Product.find({
-      tieneVariaciones: true,
-      activo: true,
-      "variaciones.activo": true,
-    });
-
-    for (const product of productsWithVariations) {
-      for (const variation of product.variaciones) {
-        if (
-          variation.activo &&
-          (variation.stock <= stockThreshold ||
-            variation.stock <= (variation.stockMinimo ?? stockThreshold))
-        ) {
-          lowStockItems.push({
-            productId: product._id,
-            variationId: variation._id,
-            currentStock: variation.stock,
-            minimumStock: variation.stockMinimo ?? stockThreshold,
-          });
-        }
-      }
-    }
-
-    return lowStockItems;
   }
 
+  // Productos con variaciones
+  const productsWithVariations = await Product.find({
+    tieneVariaciones: true,
+    activo: true,
+    "variaciones.activo": true,
+  }).select('nombre codigoPrincipal variaciones'); // Seleccionar campos necesarios
+
+  for (const product of productsWithVariations) {
+    for (const variation of product.variaciones) {
+      if (
+        variation.activo &&
+        (variation.stock <= stockThreshold ||
+          variation.stock <= (variation.stockMinimo ?? stockThreshold))
+      ) {
+        lowStockItems.push({
+          productId: product._id,
+          product: { // Añadir datos del producto
+            _id: product._id,
+            nombre: product.nombre,
+            codigoPrincipal: product.codigoPrincipal
+          },
+          variationId: variation._id,
+          variation: { // Añadir datos de la variación
+            _id: variation._id,
+            codigo: variation.codigo,
+            medida: variation.medida,
+            precio: variation.precio,
+            stock: variation.stock,
+            stockMinimo: variation.stockMinimo
+          },
+          currentStock: variation.stock,
+          minimumStock: variation.stockMinimo ?? stockThreshold,
+        });
+      }
+    }
+  }
+
+  return lowStockItems;
+}
   static async getStockHistory(
     productId: string,
     variationId?: string,
