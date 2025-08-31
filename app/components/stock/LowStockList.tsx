@@ -9,6 +9,8 @@ interface PopulatedProduct {
   _id: Types.ObjectId;
   nombre: string;
   codigoPrincipal: string;
+  precio?: number;
+  medida?: string;
 }
 
 interface Variation {
@@ -61,6 +63,11 @@ export default function LowStockTable() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Función para determinar si es un producto sin variación
+  const isProductWithoutVariation = (item: ExtendedStockLevel) => {
+    return item.variation && item.variation._id.toString() === item.productId?.toString();
+  };
+
   if (isLoading) return (
     <div className="flex justify-center items-center h-40">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -77,8 +84,8 @@ export default function LowStockTable() {
           <thead className="bg-gray-100 text-left">
             <tr>
               <th className="border p-3">Producto</th>
-              <th className="border p-3">Variación</th>
-              <th className="border p-3">ID Variación</th>
+              <th className="border p-3">Código</th>
+              <th className="border p-3">ID</th>
               <th className="border p-3">Medida</th>
               <th className="border p-3">Precio</th>
               <th className="border p-3">Stock Actual</th>
@@ -91,7 +98,8 @@ export default function LowStockTable() {
             {lowStock.map((item) => {
               const product = item.product;
               const variation = item.variation;
-              const variationId = variation?._id.toString();
+              const isWithoutVariation = isProductWithoutVariation(item);
+              const itemId = isWithoutVariation ? product?._id.toString() : variation?._id.toString();
               const difference = item.currentStock - item.minimumStock;
               const isCritical = difference < 0;
               
@@ -105,7 +113,7 @@ export default function LowStockTable() {
                       <div>
                         <div className="font-semibold">{product.nombre}</div>
                         <div className="text-xs text-gray-500">
-                          {product.codigoPrincipal}
+                          {isWithoutVariation ? "Producto simple" : "Con variaciones"}
                         </div>
                       </div>
                     ) : (
@@ -115,27 +123,29 @@ export default function LowStockTable() {
                     )}
                   </td>
                   
-                  {/* Variación - Código */}
+                  {/* Código */}
                   <td className="border p-3">
                     {variation ? (
                       <div className="font-medium">{variation.codigo}</div>
+                    ) : product ? (
+                      <div className="font-medium">{product.codigoPrincipal}</div>
                     ) : (
-                      <span className="text-gray-400">Sin variación</span>
+                      <span className="text-gray-400">N/A</span>
                     )}
                   </td>
                   
-                  {/* Variación - ID COMPLETO y copiable */}
+                  {/* ID copiable */}
                   <td className="border p-3">
-                    {variationId ? (
+                    {itemId ? (
                       <div className="relative">
                         <button
-                          onClick={() => copyToClipboard(variationId, `var-${item.productId}-${variationId}`)}
+                          onClick={() => copyToClipboard(itemId, `id-${item.productId}-${itemId}`)}
                           className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all bg-blue-50 px-2 py-1 rounded w-full text-left truncate"
                           title="Haz clic para copiar el ID completo"
                         >
-                          {variationId}
+                          {itemId}
                         </button>
-                        {copiedId === `var-${item.productId}-${variationId}` && (
+                        {copiedId === `id-${item.productId}-${itemId}` && (
                           <span className="absolute -top-7 left-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
                             ¡Copiado!
                           </span>
@@ -148,12 +158,13 @@ export default function LowStockTable() {
                   
                   {/* Medida */}
                   <td className="border p-3">
-                    {variation?.medida || "N/A"}
+                    {variation?.medida || product?.medida || "N/A"}
                   </td>
                   
                   {/* Precio */}
                   <td className="border p-3 font-mono text-sm">
-                    {variation ? formatCurrency(variation.precio) : "N/A"}
+                    {variation ? formatCurrency(variation.precio) : 
+                     product?.precio ? formatCurrency(product.precio) : "N/A"}
                   </td>
                   
                   {/* Stock Actual */}
@@ -197,7 +208,7 @@ export default function LowStockTable() {
             <thead className="bg-gray-100 text-left">
               <tr>
                 <th className="border p-2">Producto</th>
-                <th className="border p-2">Variación</th>
+                <th className="border p-2">Código</th>
                 <th className="border p-2">Stock</th>
                 <th className="border p-2">Mínimo</th>
                 <th className="border p-2">Estado</th>
@@ -207,7 +218,7 @@ export default function LowStockTable() {
               {lowStock.map((item) => {
                 const product = item.product;
                 const variation = item.variation;
-                const variationId = variation?._id.toString();
+                const isWithoutVariation = isProductWithoutVariation(item);
                 const difference = item.currentStock - item.minimumStock;
                 const isCritical = difference < 0;
                 
@@ -218,7 +229,9 @@ export default function LowStockTable() {
                       {product ? (
                         <div>
                           <div className="font-semibold text-sm">{product.nombre}</div>
-                          <div className="text-xs text-gray-500">{product.codigoPrincipal}</div>
+                          <div className="text-xs text-gray-500">
+                            {isWithoutVariation ? "Simple" : "Con variación"}
+                          </div>
                         </div>
                       ) : (
                         <div className="font-mono text-xs text-gray-400 truncate">
@@ -228,12 +241,11 @@ export default function LowStockTable() {
                     </td>
                     <td className="border p-2">
                       {variation ? (
-                        <div>
-                          <div className="text-sm">{variation.codigo}</div>
-                          <div className="text-xs text-gray-500">{variation.medida}</div>
-                        </div>
+                        <div className="text-sm">{variation.codigo}</div>
+                      ) : product ? (
+                        <div className="text-sm">{product.codigoPrincipal}</div>
                       ) : (
-                        <span className="text-gray-400 text-xs">Sin variación</span>
+                        <span className="text-gray-400 text-xs">N/A</span>
                       )}
                     </td>
                     <td className="border p-2 text-center font-medium">
@@ -267,7 +279,8 @@ export default function LowStockTable() {
         {lowStock.map((item) => {
           const product = item.product;
           const variation = item.variation;
-          const variationId = variation?._id.toString();
+          const isWithoutVariation = isProductWithoutVariation(item);
+          const itemId = isWithoutVariation ? product?._id.toString() : variation?._id.toString();
           const difference = item.currentStock - item.minimumStock;
           const isCritical = difference < 0;
           
@@ -284,9 +297,7 @@ export default function LowStockTable() {
                   {isCritical ? "STOCK CRÍTICO" : "STOCK BAJO"}
                 </span>
                 <span className="text-xs text-gray-500">
-                  Diferencia: <span className={difference >= 0 ? "text-green-600" : "text-red-600"}>
-                    {difference >= 0 ? `+${difference}` : difference}
-                  </span>
+                  {isWithoutVariation ? "Simple" : "Variación"}
                 </span>
               </div>
 
@@ -296,35 +307,41 @@ export default function LowStockTable() {
                   {product?.nombre || "Producto no disponible"}
                 </div>
                 <div className="text-xs text-gray-500">
-                  Código: {product?.codigoPrincipal || item.productId?.toString()}
+                  Código: {variation?.codigo || product?.codigoPrincipal || item.productId?.toString()}
                 </div>
               </div>
 
-              {/* Variación */}
-              {variation && (
-                <div className="mb-3 p-2 bg-gray-50 rounded">
-                  <div className="font-medium text-sm">{variation.codigo}</div>
-                  <div className="text-xs text-gray-600">Medida: {variation.medida}</div>
-                  <div className="text-xs text-green-600 font-semibold">
-                    Precio: {formatCurrency(variation.precio)}
+              {/* Detalles de precio y medida */}
+              <div className="mb-3 p-2 bg-gray-50 rounded">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">Medida: </span>
+                    <span>{variation?.medida || product?.medida || "N/A"}</span>
                   </div>
-                  
-                  {/* ID Variación copiable en mobile */}
-                  <div className="mt-2">
-                    <div className="text-xs text-gray-500 mb-1">ID Variación:</div>
-                    <button
-                      onClick={() => copyToClipboard(variationId!, `var-mobile-${item.productId}-${variationId}`)}
-                      className="w-full font-mono text-xs bg-blue-50 p-1 rounded hover:bg-blue-100 cursor-pointer text-left truncate"
-                      title="Haz clic para copiar el ID completo"
-                    >
-                      {variationId}
-                    </button>
-                    {copiedId === `var-mobile-${item.productId}-${variationId}` && (
-                      <div className="text-xs text-green-600 mt-1">¡Copiado!</div>
-                    )}
+                  <div>
+                    <span className="text-gray-500">Precio: </span>
+                    <span className="text-green-600 font-semibold">
+                      {variation ? formatCurrency(variation.precio) : 
+                       product?.precio ? formatCurrency(product.precio) : "N/A"}
+                    </span>
                   </div>
                 </div>
-              )}
+                
+                {/* ID copiable en mobile */}
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500 mb-1">ID:</div>
+                  <button
+                    onClick={() => copyToClipboard(itemId!, `id-mobile-${item.productId}-${itemId}`)}
+                    className="w-full font-mono text-xs bg-blue-50 p-1 rounded hover:bg-blue-100 cursor-pointer text-left truncate"
+                    title="Haz clic para copiar el ID completo"
+                  >
+                    {itemId}
+                  </button>
+                  {copiedId === `id-mobile-${item.productId}-${itemId}` && (
+                    <div className="text-xs text-green-600 mt-1">¡Copiado!</div>
+                  )}
+                </div>
+              </div>
 
               {/* Stock */}
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -336,6 +353,15 @@ export default function LowStockTable() {
                   <div className="text-xs text-gray-500">Stock Mínimo</div>
                   <div className="font-bold text-lg">{item.minimumStock}</div>
                 </div>
+              </div>
+
+              {/* Diferencia */}
+              <div className="mt-3 text-center">
+                <span className={`text-sm font-semibold ${
+                  difference >= 0 ? "text-green-600" : "text-red-600"
+                }`}>
+                  Diferencia: {difference >= 0 ? `+${difference}` : difference}
+                </span>
               </div>
             </div>
           );
