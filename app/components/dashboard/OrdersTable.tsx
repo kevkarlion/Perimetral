@@ -176,12 +176,11 @@ export default function OrdersTable() {
     setShowConfirmDialog(true);
   };
 
-  const updateOrder = async () => {
+const updateOrder = async () => {
   if (!orderToUpdate) return;
-
   setSaving(orderToUpdate);
   setShowConfirmDialog(false);
-
+  
   try {
     const edits = orderEdits[orderToUpdate];
     const order = orders.find(o => o._id === orderToUpdate);
@@ -199,9 +198,8 @@ export default function OrdersTable() {
       ),
     };
 
-    // 🔥 Usamos accessToken en la URL
     const response = await fetch(`/api/orders/${order.accessToken}`, {
-      method: "PATCH", // PATCH para coincidir con tu API
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -233,7 +231,6 @@ export default function OrdersTable() {
     setOrderToUpdate(null);
   }
 };
-
 
   // Generar números de página para mostrar
   const getPageNumbers = () => {

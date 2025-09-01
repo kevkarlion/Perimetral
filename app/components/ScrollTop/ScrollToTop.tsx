@@ -10,6 +10,7 @@ export default function ScrollToTop() {
     const scrollToTopPaths = [
       '/vaiants/',
       '/detalle/',
+      '/cart/',
     ]
     
     if (scrollToTopPaths.some(path => pathname.includes(path))) {

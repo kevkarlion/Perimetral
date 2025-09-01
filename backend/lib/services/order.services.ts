@@ -1,9 +1,9 @@
 // services/order.services.ts
-import Order from '@/backend/lib/models/Order';
-import { validateCart } from '@/backend/lib/services/validate.cart.services';
-import { MercadoPagoService } from './mercadoPago.services';
-import { sendEmail } from '@/backend/lib/services/emailService';
-import { updateStockViaApi } from '@/backend/lib/services/stockApiService';
+import Order from "@/backend/lib/models/Order";
+import { validateCart } from "@/backend/lib/services/validate.cart.services";
+import { MercadoPagoService } from "./mercadoPago.services";
+import { sendEmail } from "@/backend/lib/services/emailService";
+import { updateStockViaApi } from "@/backend/lib/services/stockApiService";
 
 export class OrderService {
   static async createValidatedOrder(orderData: {
@@ -29,26 +29,26 @@ export class OrderService {
       // 1. Validar el carrito
       const validated = await validateCart({
         items: orderData.items,
-        total: orderData.total
+        total: orderData.total,
       });
 
       // 2. Determinar estado inicial según método de pago
-      const initialStatus = orderData.paymentMethod === 'efectivo' ? 'pending_payment' : 'pending';
-      
+      const initialStatus =
+        orderData.paymentMethod === "efectivo" ? "pending_payment" : "pending";
+
       // 3. Configurar detalles de pago específicos
       const paymentDetails: any = {
-        status: 'pending',
-        method: orderData.paymentMethod
+        status: "pending",
+        method: orderData.paymentMethod,
       };
 
       // Para pagos en efectivo, agregar fecha de expiración
-      if (orderData.paymentMethod === 'efectivo') {
+      if (orderData.paymentMethod === "efectivo") {
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 7); // 7 días para pagar
         paymentDetails.expirationDate = expirationDate;
       }
 
-      
       // 4. Crear la orden en DB
       const order = new Order({
         customer: orderData.customer,
@@ -56,10 +56,10 @@ export class OrderService {
         total: validated.total,
         status: initialStatus,
         paymentMethod: orderData.paymentMethod,
-        paymentDetails
+        paymentDetails,
       });
 
-      console.log('order desde servicio', order)
+      console.log("order desde servicio", order);
 
       await order.save();
 
@@ -67,15 +67,16 @@ export class OrderService {
       await this.sendOrderConfirmationEmail(order, orderData.paymentMethod);
 
       // 6. Si el método es MercadoPago, crear preferencia
-      if (orderData.paymentMethod === 'mercadopago') {
+      if (orderData.paymentMethod === "mercadopago") {
         try {
           const preference = await MercadoPagoService.createPreference(order);
-          
+
           // Manejo seguro de sandbox/producción
-          const paymentUrl = (preference as any).sandbox_init_point || preference.init_point;
-          
+          const paymentUrl =
+            (preference as any).sandbox_init_point || preference.init_point;
+
           if (!paymentUrl) {
-            throw new Error('No se pudo generar URL de pago de MercadoPago');
+            throw new Error("No se pudo generar URL de pago de MercadoPago");
           }
 
           // Actualizar la orden con los detalles de pago de MercadoPago
@@ -83,43 +84,42 @@ export class OrderService {
             ...order.paymentDetails,
             paymentUrl,
             merchantOrderId: preference.id,
-            paymentStatus: 'pending'
+            paymentStatus: "pending",
           };
 
           await order.save();
 
           return {
             ...order.toObject(),
-            paymentUrl
+            paymentUrl,
           };
         } catch (mpError: any) {
           // Manejo específico de errores de MercadoPago
-          console.error('Error en MercadoPago:', mpError);
-          order.status = 'payment_failed';
+          console.error("Error en MercadoPago:", mpError);
+          order.status = "payment_failed";
           order.paymentDetails = {
             ...order.paymentDetails,
             error: mpError.message,
-            paymentStatus: 'failed'
+            paymentStatus: "failed",
           };
           await order.save();
-          
+
           throw new Error(`Error al procesar pago: ${mpError.message}`);
         }
       }
 
       // 7. Para pagos en efectivo, retornar información para redirección
-      if (orderData.paymentMethod === 'efectivo') {
+      if (orderData.paymentMethod === "efectivo") {
         return {
           ...order.toObject(),
-          redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/pago-pendiente/efectivo?orderNumber=${order.orderNumber}&total=${order.total}&token=${order.accessToken}`
+          redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/pago-pendiente/efectivo?orderNumber=${order.orderNumber}&total=${order.total}&token=${order.accessToken}`,
         };
       }
 
       // 8. Para otros métodos de pago, retornar la orden normal
       return order;
-      
     } catch (error: any) {
-      console.error('Error general al crear orden:', error);
+      console.error("Error general al crear orden:", error);
       throw new Error(`Error al crear la orden: ${error.message}`);
     }
   }
@@ -127,15 +127,17 @@ export class OrderService {
   static async sendOrderConfirmationEmail(order: any, paymentMethod: string) {
     try {
       const orderLink = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.accessToken}`;
-      
-      let paymentInstructions = '';
-      let emailSubject = '';
-      
-      if (paymentMethod === 'efectivo') {
+
+      let paymentInstructions = "";
+      let emailSubject = "";
+
+      if (paymentMethod === "efectivo") {
         emailSubject = `Confirmación de pedido #${order.orderNumber} - Pago pendiente`;
         paymentInstructions = `
           <h3 style="color: #d97706; margin-bottom: 16px;">¡Pedido registrado exitosamente!</h3>
-          <p>Tu pedido <strong>#${order.orderNumber}</strong> ha sido registrado correctamente.</p>
+          <p>Tu pedido <strong>#${
+            order.orderNumber
+          }</strong> ha sido registrado correctamente.</p>
           <p><strong>Total a pagar:</strong> $${order.total.toFixed(2)}</p>
           
           <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; border-radius: 4px;">
@@ -143,12 +145,16 @@ export class OrderService {
             <ul style="margin-bottom: 0;">
               <li>Contactanos para completar el pedido</strong></li>
               <li>Horario de atención: <strong>Lunes a Viernes de 8:00 a 18:00</strong></li>
-              <li>Menciona tu número de orden: <strong>${order.orderNumber}</strong></li>
+              <li>Menciona tu número de orden: <strong>${
+                order.orderNumber
+              }</strong></li>
               <li>Abona el monto total en efectivo</li>
             </ul>
           </div>
           
-          <p><strong>Fecha límite para pagar:</strong> ${new Date(order.paymentDetails.expirationDate).toLocaleDateString('es-AR')}</p>
+          <p><strong>Fecha límite para pagar:</strong> ${new Date(
+            order.paymentDetails.expirationDate
+          ).toLocaleDateString("es-AR")}</p>
           <p>Tu pedido se preparará y estará listo para retirar una vez confirmado el pago.</p>
         `;
       } else {
@@ -157,7 +163,7 @@ export class OrderService {
           <p>Puedes completar tu pago a través de Mercado Pago.</p>
         `;
       }
-      
+
       await sendEmail({
         to: order.customer.email,
         subject: emailSubject,
@@ -188,112 +194,116 @@ export class OrderService {
               </p>
             </div>
           </div>
-        `
+        `,
       });
     } catch (emailError) {
-      console.error('Error al enviar email de confirmación:', emailError);
+      console.error("Error al enviar email de confirmación:", emailError);
       // No lanzamos error para no interrumpir el flujo de compra
     }
   }
-static async updateOrderStatus(
-  identifier: string, // token o ID
+
+  static async updateOrderStatus(
+  identifier: string,
   status: string,
   additionalData: any = {},
-  searchBy: "id" | "token" = "id" // por defecto ID
+  identifierType: "id" | "token" = "id"
 ) {
   try {
-    const validStatuses = [
-      "pending",
-      "pending_payment",
-      "processing",
-      "completed",
-      "payment_failed",
-      "cancelled",
-      "rejected",
-    ];
-
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Estado '${status}' no válido`);
+    let query = {};
+    if (identifierType === "id") {
+      query = { _id: identifier };
+    } else {
+      query = { accessToken: identifier };
     }
-
-    // Filtro dinámico
-    const filter = searchBy === "token"
-      ? { accessToken: identifier }
-      : { _id: identifier };
-
-    // Buscar orden
-    const order = await Order.findOne(filter);
-    if (!order) throw new Error("Orden no encontrada");
-
-    const previousStatus = order.status;
-
-    // Datos de actualización
-    const updateData: any = {
+    
+    const updateData: any = { 
       status,
-      updatedAt: new Date(),
-      ...additionalData,
+      updatedAt: new Date()
     };
-
+    
+    // Agregar datos adicionales si existen
     if (additionalData.discount !== undefined) {
       updateData.discount = additionalData.discount;
-      if (additionalData.total !== undefined) {
-        updateData.total = additionalData.total;
-      }
     }
-
-    // Actualizar
-    const updatedOrder = await Order.findOneAndUpdate(filter, updateData, {
-      new: true,
-    });
-
-    // Manejo de stock
-    await this.handleStockManagement(order, status, previousStatus);
-
-    return updatedOrder;
-  } catch (error: any) {
-    console.error("Error al actualizar orden:", error);
-    throw new Error(
-      `Error al actualizar estado de la orden: ${error.message}`
+    
+    if (additionalData.total !== undefined) {
+      updateData.total = additionalData.total;
+    }
+    
+    const order = await Order.findOneAndUpdate(
+      query,
+      updateData,
+      { new: true } // Devuelve el documento actualizado
     );
+    
+    if (!order) {
+      throw new Error("Orden no encontrada");
+    }
+    
+    return order;
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    throw error;
   }
 }
 
-
-  static async handleStockManagement(order: any, newStatus: string, previousStatus: string) {
+  static async handleStockManagement(
+    order: any,
+    newStatus: string,
+    previousStatus: string
+  ) {
     try {
       // Si el pago se confirma (de pending_payment a processing/completed)
-      if ((previousStatus === 'pending_payment' || previousStatus === 'pending') && 
-          (newStatus === 'processing' || newStatus === 'completed')) {
-        console.log(`Confirmando pago y actualizando stock para orden ${order._id}`);
-        await this.adjustOrderStock(order.items, 'decrement');
+      if (
+        (previousStatus === "pending_payment" ||
+          previousStatus === "pending") &&
+        (newStatus === "processing" || newStatus === "completed")
+      ) {
+        console.log(
+          `Confirmando pago y actualizando stock para orden ${order._id}`
+        );
+        await this.adjustOrderStock(order.items, "decrement");
       }
-      
+
       // Si la orden se cancela o rechaza después de haber confirmado stock
-      else if ((previousStatus === 'processing' || previousStatus === 'completed') && 
-               (newStatus === 'cancelled' || newStatus === 'rejected' || newStatus === 'payment_failed')) {
-        console.log(`Cancelando orden y revertiendo stock para orden ${order._id}`);
-        await this.adjustOrderStock(order.items, 'increment');
+      else if (
+        (previousStatus === "processing" || previousStatus === "completed") &&
+        (newStatus === "cancelled" ||
+          newStatus === "rejected" ||
+          newStatus === "payment_failed")
+      ) {
+        console.log(
+          `Cancelando orden y revertiendo stock para orden ${order._id}`
+        );
+        await this.adjustOrderStock(order.items, "increment");
       }
-      
+
       // Si la orden estaba pendiente de pago y se cancela
-      else if (previousStatus === 'pending_payment' && 
-              (newStatus === 'cancelled' || newStatus === 'rejected' || newStatus === 'payment_failed')) {
+      else if (
+        previousStatus === "pending_payment" &&
+        (newStatus === "cancelled" ||
+          newStatus === "rejected" ||
+          newStatus === "payment_failed")
+      ) {
         console.log(`Cancelando orden pendiente de pago ${order._id}`);
         // No es necesario hacer nada con el stock porque nunca se decrementó
       }
     } catch (stockError) {
-      console.error('Error en la gestión de stock:', stockError);
+      console.error("Error en la gestión de stock:", stockError);
       // No lanzamos el error para no interrumpir el flujo principal
     }
   }
 
-  static async adjustOrderStock(items: Array<{
-    productId: string;
-    variationId?: string;
-    quantity: number;
-  }>, operation: 'increment' | 'decrement') {
+  static async adjustOrderStock(
+    items: Array<{
+      productId: string;
+      variationId?: string;
+      quantity: number;
+    }>,
+    operation: "increment" | "decrement"
+  ) {
     const results = [];
-    
+
     for (const item of items) {
       try {
         // Usar el servicio de API para actualizar el stock
@@ -301,34 +311,48 @@ static async updateOrderStatus(
           productId: item.productId,
           variationId: item.variationId,
           stock: item.quantity,
-          action: operation === 'decrement' ? 'decrement' : 'increment'
+          action: operation === "decrement" ? "decrement" : "increment",
         });
-        
+
         results.push({
           productId: item.productId,
           variationId: item.variationId,
           success: true,
-          message: `Stock ${operation === 'decrement' ? 'decrementado' : 'incrementado'} correctamente`
+          message: `Stock ${
+            operation === "decrement" ? "decrementado" : "incrementado"
+          } correctamente`,
         });
-        
-        console.log(`Stock ${operation === 'decrement' ? 'decrementado' : 'incrementado'} para producto ${item.productId}`);
+
+        console.log(
+          `Stock ${
+            operation === "decrement" ? "decrementado" : "incrementado"
+          } para producto ${item.productId}`
+        );
       } catch (error) {
-        console.error(`Error ajustando stock para producto ${item.productId}:`, error);
+        console.error(
+          `Error ajustando stock para producto ${item.productId}:`,
+          error
+        );
         results.push({
           productId: item.productId,
           variationId: item.variationId,
           success: false,
-          error: error instanceof Error ? error.message : 'Error desconocido'
+          error: error instanceof Error ? error.message : "Error desconocido",
         });
       }
     }
 
     // Verificar si hubo errores críticos
-    const failedUpdates = results.filter(r => !r.success);
+    const failedUpdates = results.filter((r) => !r.success);
     if (failedUpdates.length > 0) {
-      console.warn(`${failedUpdates.length} actualizaciones de stock fallaron:`, failedUpdates);
+      console.warn(
+        `${failedUpdates.length} actualizaciones de stock fallaron:`,
+        failedUpdates
+      );
       // Podrías lanzar un error aquí o notificar al administrador
-      throw new Error(`Fallaron ${failedUpdates.length} actualizaciones de stock`);
+      throw new Error(
+        `Fallaron ${failedUpdates.length} actualizaciones de stock`
+      );
     }
 
     return results;
@@ -338,11 +362,11 @@ static async updateOrderStatus(
     try {
       const order = await Order.findById(orderId);
       if (!order) {
-        throw new Error('Orden no encontrada');
+        throw new Error("Orden no encontrada");
       }
       return order;
     } catch (error: any) {
-      console.error('Error al obtener orden:', error);
+      console.error("Error al obtener orden:", error);
       throw new Error(`Error al obtener la orden: ${error.message}`);
     }
   }
@@ -351,23 +375,23 @@ static async updateOrderStatus(
     try {
       const order = await Order.findOne({ accessToken: token });
       if (!order) {
-        throw new Error('Orden no encontrada');
+        throw new Error("Orden no encontrada");
       }
       return order;
     } catch (error: any) {
-      console.error('Error al obtener orden por token:', error);
+      console.error("Error al obtener orden por token:", error);
       throw new Error(`Error al obtener la orden: ${error.message}`);
     }
   }
 
   static async getOrdersByCustomer(email: string) {
     try {
-      const orders = await Order.find({ 'customer.email': email })
+      const orders = await Order.find({ "customer.email": email })
         .sort({ createdAt: -1 })
         .limit(20);
       return orders;
     } catch (error: any) {
-      console.error('Error al obtener órdenes del cliente:', error);
+      console.error("Error al obtener órdenes del cliente:", error);
       throw new Error(`Error al obtener las órdenes: ${error.message}`);
     }
   }
