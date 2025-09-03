@@ -315,7 +315,7 @@ const ProductCard = ({
             onClick={() => onViewDetails(producto)}
             className="flex items-center justify-between w-full text-xs font-medium text-brand hover:text-brandHover transition-colors group"
           >
-            <span>Ver detalles</span>
+            <span>Comprar</span>
             <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
