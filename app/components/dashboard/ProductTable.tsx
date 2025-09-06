@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AddProductModal from "./AddProductModal";
+import AddProductModal from "./AddProductModa/AddProductModal";
 import AddVariationModal from "./AddVariationModal";
 import DetailsProductModal from "./DetailsProductModal";
 import StockManager from "./StockManager";

@@ -11,123 +11,101 @@ import { Types } from "mongoose";
 
 export class StockService {
   static async createMovement(
-    movementData: StockMovementCreateData
-  ): Promise<any> {
-    await dbConnect();
+  movementData: StockMovementCreateData
+): Promise<any> {
+  await dbConnect();
 
-    // Convertir string IDs to ObjectId
-    const productId = new Types.ObjectId(movementData.productId);
-
-    // ✅ CORRECCIÓN CRÍTICA: Para productos SIN variaciones, establecer variationId como null
-    let variationId = null;
-    if (movementData.variationId) {
-      variationId = new Types.ObjectId(movementData.variationId);
-    }
-
-    const createdBy = movementData.createdBy
-      ? new Types.ObjectId(movementData.createdBy)
-      : undefined;
-
-    // Obtener stock actual del producto/variación
-    const product = await Product.findById(productId);
-    if (!product) {
-      throw new Error("Producto no encontrado");
-    }
-
-    // ✅ VALIDACIONES MEJORADAS
-    if (product.tieneVariaciones && !movementData.variationId) {
-      throw new Error(
-        "El producto tiene variaciones, especifique una variación"
-      );
-    }
-
-    if (!product.tieneVariaciones && movementData.variationId) {
-      throw new Error(
-        "El producto no tiene variaciones, no se debe especificar variación"
-      );
-    }
-
-    let previousStock = 0;
-    let newStock = 0;
-
-    if (movementData.variationId) {
-      // Manejar variación
-      const variation = product.variaciones.id(movementData.variationId);
-      if (!variation) {
-        throw new Error("Variación no encontrada");
-      }
-
-      previousStock = variation.stock;
-
-      // Calcular nuevo stock según el tipo de movimiento
-      switch (movementData.type) {
-        case "in":
-          newStock = previousStock + movementData.quantity;
-          break;
-        case "out":
-          newStock = Math.max(0, previousStock - movementData.quantity);
-          break;
-        case "adjustment":
-          newStock = movementData.quantity;
-          break;
-        default:
-          newStock = previousStock;
-      }
-
-      // Actualizar stock de la variación
-      variation.stock = newStock;
-    } else {
-      // Manejar producto sin variaciones
-      previousStock = product.stock || 0;
-
-      switch (movementData.type) {
-        case "in":
-          newStock = previousStock + movementData.quantity;
-          break;
-        case "out":
-          newStock = Math.max(0, previousStock - movementData.quantity);
-          break;
-        case "adjustment":
-          newStock = movementData.quantity;
-          break;
-        default:
-          newStock = previousStock;
-      }
-
-      product.stock = newStock;
-    }
-
-    // Crear el movimiento de stock
-    const movement = new StockMovement({
-      ...movementData,
-      productId,
-      variationId, // ✅ Ahora será null para productos sin variaciones
-      createdBy,
-      previousStock,
-      newStock,
-    });
-
-    // Guardar ambos en una transacción
-    const session = await StockMovement.startSession();
-    session.startTransaction();
-
-    try {
-      await movement.save({ session });
-      await product.save({ session });
-      await session.commitTransaction();
-      session.endSession();
-
-      // Populate después de guardar para devolver datos completos
-      return await StockMovement.findById(movement._id)
-        .populate("productId", "nombre codigoPrincipal")
-        .populate("createdBy", "email nombre")
-        .exec();
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
-    }
+  // ✅ VALIDACIÓN: variationId ahora es REQUERIDO
+  if (!movementData.variationId) {
+    throw new Error("VariationId es requerido para productos con variaciones");
   }
+
+  const productId = new Types.ObjectId(movementData.productId);
+  const variationId = new Types.ObjectId(movementData.variationId);
+  const createdBy = movementData.createdBy
+    ? new Types.ObjectId(movementData.createdBy)
+    : undefined;
+
+  // Obtener producto
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new Error("Producto no encontrado");
+  }
+
+  // ✅ Validar que el producto tenga variaciones
+  if (!product.tieneVariaciones) {
+    throw new Error("El producto no tiene variaciones habilitadas");
+  }
+
+  if (!product.variaciones || product.variaciones.length === 0) {
+    throw new Error("El producto no tiene variaciones registradas");
+  }
+
+  let previousStock = 0;
+  let newStock = 0;
+
+  // 🔹 BÚSQUEDA COMPATIBLE CON INSERTONE - ¡ESTO ES LO MÁS IMPORTANTE!
+  const variation = product.variaciones.find((v: any) => 
+    v._id && v._id.toString() === movementData.variationId
+  );
+
+  if (!variation) {
+    throw new Error(`Variación ${movementData.variationId} no encontrada en el producto`);
+  }
+
+  previousStock = variation.stock || 0;
+
+  // Calcular nuevo stock según el tipo de movimiento
+  switch (movementData.type) {
+    case "in":
+      newStock = previousStock + movementData.quantity;
+      break;
+    case "out":
+      newStock = Math.max(0, previousStock - movementData.quantity);
+      break;
+    case "adjustment":
+      newStock = movementData.quantity;
+      break;
+    default:
+      newStock = previousStock;
+  }
+
+  // Actualizar stock de la variación
+  variation.stock = newStock;
+  
+  // 🔹 ¡CRÍTICO! Marcar el array como modificado
+  product.markModified('variaciones');
+
+  // Crear el movimiento de stock
+  const movement = new StockMovement({
+    ...movementData,
+    productId,
+    variationId,
+    createdBy,
+    previousStock,
+    newStock,
+  });
+
+  // Guardar ambos en una transacción
+  const session = await StockMovement.startSession();
+  session.startTransaction();
+
+  try {
+    await movement.save({ session });
+    await product.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return await StockMovement.findById(movement._id)
+      .populate("productId", "nombre codigoPrincipal")
+      .populate("createdBy", "email nombre")
+      .exec();
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+}
 
   static async getMovements(filter: StockMovementFilter = {}): Promise<{
     movements: any[];

@@ -1,50 +1,44 @@
-// lib/types/productTypes.ts
-import { Types, Document, FlattenMaps, ObjectId } from "mongoose";
+import { Types, Document, FlattenMaps } from "mongoose";
 
 export interface ServiceResponse<T> {
   success: boolean;
-  data?: T; // aquí va tu IProduct completo
+  data?: T;
   error?: string;
   details?: string;
 }
 
-// Tipos base
+
+// 🔹 Tipos base de variación
 export interface IVariationBase {
   codigo: string;
+  productId?: string | Types.ObjectId; // Nueva referencia al producto
+  nombre?: string;
   descripcion?: string;
-  medida: string;
+  medida?: string;
   precio: number;
   stock: number;
   stockMinimo?: number;
   length?: number;
-  atributos?: {
-    longitud?: number;
-    altura?: number;
-    calibre?: string;
-    material?: string;
-    color?: string;
-  };
+  atributos?: IAttribute[]; // Ahora es un array dinámico
   imagenes?: string[];
   activo?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-// Para objetos planos (con _id como string o ObjectId)
 export interface IVariation extends IVariationBase {
   _id?: string | Types.ObjectId;
 }
 
-// Para documentos Mongoose
 export interface IVariationDocument extends IVariationBase, Document {
   _id: Types.ObjectId;
 }
 
-// Tipos base de producto
+// 🔹 Tipos base de producto
 export interface IProductBase {
   _id: Types.ObjectId | string;
   codigoPrincipal: string;
-  medida: string;
+  medida?: string;
   nombre: string;
   categoria?:
     | Types.ObjectId
@@ -70,13 +64,11 @@ export interface IProductBase {
   updatedAt?: Date;
 }
 
-// Para documentos Mongoose completos
 export interface IProductDocument extends IProductBase, Document {
   _id: Types.ObjectId;
   variaciones: Types.Array<IVariationDocument>;
 }
 
-// Para objetos planos (resultados de .lean())
 export interface IProductLean extends Omit<IProductBase, "categoria"> {
   _id: Types.ObjectId;
   variaciones: IVariation[];
@@ -89,10 +81,8 @@ export interface IProductLean extends Omit<IProductBase, "categoria"> {
   __v?: number;
 }
 
-// Tipo combinado para uso general
 export type IProduct = IProductBase | IProductLean | FlattenMaps<IProductLean>;
 
-// Tipo para API (con IDs como strings)
 export interface IProductApi
   extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
   _id: string;
@@ -106,16 +96,17 @@ export type ApiErrorResponse = {
   fieldErrors?: Record<string, string>;
 };
 
+// 🔹 Formularios
 export interface ProductFormData {
   codigoPrincipal: string;
   nombre: string;
-  medida: string;
-  categoria: string; // O podría ser Types.ObjectId si usas MongoDB
+  medida?: string;
+  categoria: string;
   descripcionCorta: string;
   descripcionLarga: string;
   imagenesGenerales: string[];
-  precio?: number; // Opcional porque puede ser undefined
-  stock?: number; // Opcional porque puede ser undefined
+  precio?: number;
+  stock?: number;
   stockMinimo: number;
   tieneVariaciones: boolean;
   variaciones: VariationFormData[];
@@ -126,19 +117,24 @@ export interface ProductFormData {
   activo: boolean;
 }
 
-interface VariationFormData {
-  // Añade aquí los campos de tus variaciones si son necesarios
-  medida: string;
+
+// 🔹 Tipado de Atributo dinámico
+export interface IAttribute {
+  nombre: string;
+  valor: string; // solo string
+}
+
+export interface VariationFormData {
+  codigo?: string;
+  productId?: string;
+  nombre?: string;
+  descripcion?: string;
+  medida?: string;
   precio: number;
   stock?: number;
   stockMinimo?: number;
-  codigo?: string;
   imagenes?: string[];
-  atributos?: {
-    longitud?: number;
-    altura?: number;
-    calibre?: string;
-    material?: string;
-    color?: string;
-  };
+  atributos?: IAttribute[];
 }
+
+

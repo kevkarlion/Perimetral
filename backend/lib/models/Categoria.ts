@@ -16,7 +16,16 @@ const CategoriaSchema = new Schema<ICategoria>({
     unique: true,
     trim: true,
     lowercase: true
-  }
+  },
+  descripcion: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'La descripción no puede exceder los 200 caracteres'],
+    },
+    activo: {
+      type: Boolean,
+      default: true,
+    },
 }, {
   timestamps: true // Agrega createdAt y updatedAt automáticamente
 });
