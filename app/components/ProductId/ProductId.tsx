@@ -211,7 +211,7 @@ export default function ProductId({
   const safeProduct: IProductBase = product || defaultProduct;
   const imagenes = getSafeImages(product);
   const specsToShow = safeProduct.especificacionesTecnicas || [];
-  const variationAttributes = selectedVariation?.atributos || {};
+  const variationAttributes = selectedVariation?.atributos || [];
   const categoryName = getCategoryName();
 
   if (loading) {
@@ -373,8 +373,7 @@ export default function ProductId({
           </div>
 
           {/* Especificaciones técnicas */}
-          {specsToShow.length > 0 ||
-          Object.keys(variationAttributes).length > 0 ? (
+          {specsToShow.length > 0 || variationAttributes.length > 0 ? (
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-gray-900 tracking-tight">
                 Especificaciones técnicas
@@ -393,45 +392,16 @@ export default function ProductId({
                     </div>
                   ) : null}
 
-                  {variationAttributes.altura ? (
-                    <div className="flex items-center">
+                  {/* Renderizado dinámico de atributos */}
+                  {variationAttributes.length > 0 && variationAttributes.map((atributo, index) => (
+                    <div key={index} className="flex items-center">
                       <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
                       <span className="text-gray-700">
-                        <span className="font-medium">Altura:</span>{" "}
-                        {variationAttributes.altura} mm
+                        <span className="font-medium capitalize">{atributo.nombre}:</span>{" "}
+                        {atributo.valor}
                       </span>
                     </div>
-                  ) : null}
-
-                  {variationAttributes.calibre ? (
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-                      <span className="text-gray-700">
-                        <span className="font-medium">Calibre:</span>{" "}
-                        {variationAttributes.calibre}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {variationAttributes.material ? (
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-                      <span className="text-gray-700">
-                        <span className="font-medium">Material:</span>{" "}
-                        {variationAttributes.material}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {variationAttributes.color ? (
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-                      <span className="text-gray-700">
-                        <span className="font-medium">Color:</span>{" "}
-                        {variationAttributes.color}
-                      </span>
-                    </div>
-                  ) : null}
+                  ))}
                 </div>
 
                 {/* Especificaciones técnicas (checklist) */}
