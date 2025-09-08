@@ -8,6 +8,10 @@ export function useStock() {
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
 
+
+
+
+
   const fetchMovements = async (filters: StockMovementFilter = {}) => {
     setLoading(true)
     const params = new URLSearchParams(filters as any).toString()

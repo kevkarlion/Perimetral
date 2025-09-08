@@ -11,101 +11,107 @@ import { Types } from "mongoose";
 
 export class StockService {
   static async createMovement(
-  movementData: StockMovementCreateData
-): Promise<any> {
-  await dbConnect();
+    movementData: StockMovementCreateData
+  ): Promise<any> {
+    await dbConnect();
 
-  // ✅ VALIDACIÓN: variationId ahora es REQUERIDO
-  if (!movementData.variationId) {
-    throw new Error("VariationId es requerido para productos con variaciones");
+
+    console.log('Creating movement with data:', movementData);
+    // ✅ VALIDACIÓN: variationId ahora es REQUERIDO
+    if (!movementData.variationId) {
+      throw new Error(
+        "VariationId es requerido para productos con variaciones"
+      );
+    }
+
+    const productId = new Types.ObjectId(movementData.productId);
+    const variationId = new Types.ObjectId(movementData.variationId);
+    const createdBy = movementData.createdBy
+      ? new Types.ObjectId(movementData.createdBy)
+      : undefined;
+
+    // Obtener producto
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error("Producto no encontrado");
+    }
+
+    // ✅ Validar que el producto tenga variaciones
+    if (!product.tieneVariaciones) {
+      throw new Error("El producto no tiene variaciones habilitadas");
+    }
+
+    if (!product.variaciones || product.variaciones.length === 0) {
+      throw new Error("El producto no tiene variaciones registradas");
+    }
+
+    let previousStock = 0;
+    let newStock = 0;
+
+    // 🔹 BÚSQUEDA COMPATIBLE CON INSERTONE - ¡ESTO ES LO MÁS IMPORTANTE!
+    const variation = product.variaciones.find(
+      (v: any) => v._id && v._id.toString() === movementData.variationId
+    );
+
+    if (!variation) {
+      throw new Error(
+        `Variación ${movementData.variationId} no encontrada en el producto`
+      );
+    }
+
+    previousStock = variation.stock || 0;
+
+    // Calcular nuevo stock según el tipo de movimiento
+    switch (movementData.type) {
+      case "in":
+        newStock = previousStock + movementData.quantity;
+        break;
+      case "out":
+        newStock = Math.max(0, previousStock - movementData.quantity);
+        break;
+      case "adjustment":
+        newStock = movementData.quantity;
+        break;
+      default:
+        newStock = previousStock;
+    }
+
+    // Actualizar stock de la variación
+    variation.stock = newStock;
+
+    // 🔹 ¡CRÍTICO! Marcar el array como modificado
+    product.markModified("variaciones");
+
+    // Crear el movimiento de stock
+    const movement = new StockMovement({
+      ...movementData,
+      productId,
+      variationId,
+      createdBy,
+      previousStock,
+      newStock,
+    });
+
+    // Guardar ambos en una transacción
+    const session = await StockMovement.startSession();
+    session.startTransaction();
+
+    try {
+      await movement.save({ session });
+      await product.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+
+      return await StockMovement.findById(movement._id)
+        .populate("productId", "nombre codigoPrincipal")
+        .populate("createdBy", "email nombre")
+        .exec();
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   }
-
-  const productId = new Types.ObjectId(movementData.productId);
-  const variationId = new Types.ObjectId(movementData.variationId);
-  const createdBy = movementData.createdBy
-    ? new Types.ObjectId(movementData.createdBy)
-    : undefined;
-
-  // Obtener producto
-  const product = await Product.findById(productId);
-  if (!product) {
-    throw new Error("Producto no encontrado");
-  }
-
-  // ✅ Validar que el producto tenga variaciones
-  if (!product.tieneVariaciones) {
-    throw new Error("El producto no tiene variaciones habilitadas");
-  }
-
-  if (!product.variaciones || product.variaciones.length === 0) {
-    throw new Error("El producto no tiene variaciones registradas");
-  }
-
-  let previousStock = 0;
-  let newStock = 0;
-
-  // 🔹 BÚSQUEDA COMPATIBLE CON INSERTONE - ¡ESTO ES LO MÁS IMPORTANTE!
-  const variation = product.variaciones.find((v: any) => 
-    v._id && v._id.toString() === movementData.variationId
-  );
-
-  if (!variation) {
-    throw new Error(`Variación ${movementData.variationId} no encontrada en el producto`);
-  }
-
-  previousStock = variation.stock || 0;
-
-  // Calcular nuevo stock según el tipo de movimiento
-  switch (movementData.type) {
-    case "in":
-      newStock = previousStock + movementData.quantity;
-      break;
-    case "out":
-      newStock = Math.max(0, previousStock - movementData.quantity);
-      break;
-    case "adjustment":
-      newStock = movementData.quantity;
-      break;
-    default:
-      newStock = previousStock;
-  }
-
-  // Actualizar stock de la variación
-  variation.stock = newStock;
-  
-  // 🔹 ¡CRÍTICO! Marcar el array como modificado
-  product.markModified('variaciones');
-
-  // Crear el movimiento de stock
-  const movement = new StockMovement({
-    ...movementData,
-    productId,
-    variationId,
-    createdBy,
-    previousStock,
-    newStock,
-  });
-
-  // Guardar ambos en una transacción
-  const session = await StockMovement.startSession();
-  session.startTransaction();
-
-  try {
-    await movement.save({ session });
-    await product.save({ session });
-    await session.commitTransaction();
-    session.endSession();
-
-    return await StockMovement.findById(movement._id)
-      .populate("productId", "nombre codigoPrincipal")
-      .populate("createdBy", "email nombre")
-      .exec();
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw error;
-  }
-}
 
   static async getMovements(filter: StockMovementFilter = {}): Promise<{
     movements: any[];
@@ -266,6 +272,18 @@ export class StockService {
       .exec();
   }
 
+  
+static async getMovementsByVariationId(variationId: string): Promise<any[]> {
+  await dbConnect();
+  return StockMovement.find({ variationId: new Types.ObjectId(variationId) })
+    .populate("productId", "nombre codigoPrincipal")
+    .populate("createdBy", "email nombre")
+    .populate('variationId')   // incluye datos completos de la variación
+    .sort({ createdAt: 1 }) // opcional: ordena cronológicamente
+    .lean()
+    .exec();
+}
+
   static async getCurrentStock(
     productId: string,
     variationId?: string
@@ -321,83 +339,82 @@ export class StockService {
   // Obtener productos con bajo stock
   // En tu StockService.ts
   // En tu StockService.ts
-static async getLowStockItems(threshold?: number): Promise<any[]> {
-  await dbConnect();
+  static async getLowStockItems(threshold?: number): Promise<any[]> {
+    await dbConnect();
 
-  const lowStockItems: any[] = [];
-  const stockThreshold = threshold ?? 5;
+    const lowStockItems: any[] = [];
+    const stockThreshold = threshold ?? 5;
 
-  // Productos sin variaciones
-  const products = await Product.find({
-    tieneVariaciones: false,
-    activo: true,
-    $expr: { $lte: ["$stock", stockThreshold] },
-  }).select('nombre codigoPrincipal stock stockMinimo precio medida'); // Añadir precio y medida
+    // Productos sin variaciones
+    const products = await Product.find({
+      tieneVariaciones: false,
+      activo: true,
+      $expr: { $lte: ["$stock", stockThreshold] },
+    }).select("nombre codigoPrincipal stock stockMinimo precio medida"); // Añadir precio y medida
 
-  for (const product of products) {
-    lowStockItems.push({
-      productId: product._id,
-      product: {
-        _id: product._id,
-        nombre: product.nombre,
-        codigoPrincipal: product.codigoPrincipal,
-        precio: product.precio,
-        medida: product.medida
-      },
-      // Para productos sin variación, creamos un objeto variation con datos del producto
-      variation: {
-        _id: product._id, // Usamos el ID del producto como ID de variación
-        codigo: product.codigoPrincipal,
-        medida: product.medida,
-        precio: product.precio,
-        stock: product.stock,
-        stockMinimo: product.stockMinimo
-      },
-      currentStock: product.stock || 0,
-      minimumStock: product.stockMinimo || stockThreshold,
-    });
-  }
+    for (const product of products) {
+      lowStockItems.push({
+        productId: product._id,
+        product: {
+          _id: product._id,
+          nombre: product.nombre,
+          codigoPrincipal: product.codigoPrincipal,
+          precio: product.precio,
+          medida: product.medida,
+        },
+        // Para productos sin variación, creamos un objeto variation con datos del producto
+        variation: {
+          _id: product._id, // Usamos el ID del producto como ID de variación
+          codigo: product.codigoPrincipal,
+          medida: product.medida,
+          precio: product.precio,
+          stock: product.stock,
+          stockMinimo: product.stockMinimo,
+        },
+        currentStock: product.stock || 0,
+        minimumStock: product.stockMinimo || stockThreshold,
+      });
+    }
 
-  // Productos con variaciones
-  const productsWithVariations = await Product.find({
-    tieneVariaciones: true,
-    activo: true,
-    "variaciones.activo": true,
-  }).select('nombre codigoPrincipal variaciones');
+    // Productos con variaciones
+    const productsWithVariations = await Product.find({
+      tieneVariaciones: true,
+      activo: true,
+      "variaciones.activo": true,
+    }).select("nombre codigoPrincipal variaciones");
 
-  for (const product of productsWithVariations) {
-    for (const variation of product.variaciones) {
-      if (
-        variation.activo &&
-        (variation.stock <= stockThreshold ||
-          variation.stock <= (variation.stockMinimo ?? stockThreshold))
-      ) {
-        lowStockItems.push({
-          productId: product._id,
-          product: {
-            _id: product._id,
-            nombre: product.nombre,
-            codigoPrincipal: product.codigoPrincipal
-          },
-          variationId: variation._id,
-          variation: {
-            _id: variation._id,
-            codigo: variation.codigo,
-            medida: variation.medida,
-            precio: variation.precio,
-            stock: variation.stock,
-            stockMinimo: variation.stockMinimo
-          },
-          currentStock: variation.stock,
-          minimumStock: variation.stockMinimo ?? stockThreshold,
-        });
+    for (const product of productsWithVariations) {
+      for (const variation of product.variaciones) {
+        if (
+          variation.activo &&
+          (variation.stock <= stockThreshold ||
+            variation.stock <= (variation.stockMinimo ?? stockThreshold))
+        ) {
+          lowStockItems.push({
+            productId: product._id,
+            product: {
+              _id: product._id,
+              nombre: product.nombre,
+              codigoPrincipal: product.codigoPrincipal,
+            },
+            variationId: variation._id,
+            variation: {
+              _id: variation._id,
+              codigo: variation.codigo,
+              medida: variation.medida,
+              precio: variation.precio,
+              stock: variation.stock,
+              stockMinimo: variation.stockMinimo,
+            },
+            currentStock: variation.stock,
+            minimumStock: variation.stockMinimo ?? stockThreshold,
+          });
+        }
       }
     }
+
+    return lowStockItems;
   }
-
-  return lowStockItems;
-}
-
 
   static async getStockHistory(
     productId: string,

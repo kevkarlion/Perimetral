@@ -20,12 +20,14 @@ export class StockController {
         );
       }
 
+      
       const body = await req.json();
+      console.log('Admin creating movement:', body);
       const movementData: StockMovementCreateData = {
         ...body,
         createdBy: admin._id.toString()
       };
-
+      console.log('movementData', movementData);
       // Validaciones básicas
       if (!movementData.productId || !movementData.type || !movementData.quantity || !movementData.reason) {
         return NextResponse.json(
@@ -164,43 +166,44 @@ export class StockController {
   }
 }
 
-  static async getMovementById(req: NextRequest, id: string) {
-    try {
-      // Obtener cookies de la request
-      const cookies = getCookiesFromRequest(req);
-      
-      // Verificar autenticación usando tu sistema
-      const admin = await getCurrentAdmin(cookies);
-      if (!admin) {
-        return NextResponse.json(
-          { success: false, error: 'No autorizado' },
-          { status: 401 }
-        );
-      }
+  static async getMovementsByVariationId(req: NextRequest, variationId: string) {
+  try {
+    // Obtener cookies de la request
+    const cookies = getCookiesFromRequest(req);
 
-      const movement = await StockService.getMovementById(id);
-      if (!movement) {
-        return NextResponse.json(
-          { success: false, error: 'Movimiento no encontrado' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: movement
-      });
-    } catch (error: any) {
-      console.error('Error getting stock movement:', error);
+    // Verificar autenticación usando tu sistema
+    const admin = await getCurrentAdmin(cookies);
+    if (!admin) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
-        },
-        { status: 500 }
+        { success: false, error: "No autorizado" },
+        { status: 401 }
       );
     }
+
+    const movements = await StockService.getMovementsByVariationId(variationId);
+
+    if (!movements || movements.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "No se encontraron movimientos para esta variación" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: movements,
+    });
+  } catch (error: any) {
+    console.error("Error getting stock movements:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || "Error interno del servidor",
+      },
+      { status: 500 }
+    );
   }
+}
 
   static async getCurrentStock(req: NextRequest) {
     try {

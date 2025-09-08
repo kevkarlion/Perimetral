@@ -7,7 +7,8 @@ interface Context {
 }
 
 // GET - Obtener movimiento específico por ID
+// GET - Obtener todos los movimientos de una variación
 export async function GET(req: NextRequest, context: Context) {
-  const { id } = context.params;
-  return StockController.getMovementById(req, id);
+  const { id } = context.params; // ojo: el nombre del parámetro en la ruta debe coincidir
+  return StockController.getMovementsByVariationId(req, id);
 }
