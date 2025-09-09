@@ -74,6 +74,7 @@ const validateProductData = (data: Partial<IProduct>): ApiError | null => {
 };
 
 // Validación de variaciones
+// Validación de variaciones (ACTUALIZADA)
 const validateVariations = (variations: IVariation[]): ApiError | null => {
   if (!variations || variations.length === 0) {
     return {
@@ -83,12 +84,14 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
   }
 
   for (const [index, variation] of variations.entries()) {
-    if (!variation.medida?.trim()) {
+    // ✅ Cambio importante: Ahora acepta medida O uMedida
+    if (!variation.medida?.trim() && !variation.uMedida?.trim()) {
       return {
-        error: "Medida es requerida",
+        error: "Medida descriptiva o Unidad de medida es requerida",
         field: `variaciones[${index}].medida`,
       };
     }
+    
     if (variation.precio <= 0) {
       return {
         error: "Precio debe ser mayor a 0",
@@ -99,7 +102,6 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
 
   return null;
 };
-
 // Obtener todos los productos
 export async function getAllProducts() {
   const result = await productService.getAllProducts();

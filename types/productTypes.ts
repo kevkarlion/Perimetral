@@ -7,20 +7,20 @@ export interface ServiceResponse<T> {
   details?: string;
 }
 
-
-// 🔹 Tipos base de variación
+// 🔹 Tipos base de variación (ACTUALIZADO - imágenes en variaciones)
 export interface IVariationBase {
   codigo: string;
-  productId?: string | Types.ObjectId; // Nueva referencia al producto
+  productId?: string | Types.ObjectId;
   nombre?: string;
   descripcion?: string;
   medida?: string;
+  uMedida?: string;
   precio: number;
   stock: number;
   stockMinimo?: number;
   length?: number;
-  atributos?: IAttribute[]; // Ahora es un array dinámico
-  imagenes?: string[];
+  atributos?: IAttribute[];
+  imagenes: string[]; // ✅ Ahora requerido en variaciones
   activo?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -34,19 +34,14 @@ export interface IVariationDocument extends IVariationBase, Document {
   _id: Types.ObjectId;
 }
 
-// 🔹 Tipos base de producto
+// 🔹 Tipos base de producto (ACTUALIZADO - imagenesGenerales ELIMINADO)
 export interface IProductBase {
   _id: Types.ObjectId | string;
   codigoPrincipal: string;
   medida?: string;
+  uMedida?: string;
   nombre: string;
-  categoria?:
-    | Types.ObjectId
-    | {
-        _id: Types.ObjectId | string;
-        nombre: string;
-      }
-    | null;
+  categoria?: Types.ObjectId | { _id: Types.ObjectId | string; nombre: string } | null;
   descripcionCorta: string;
   descripcionLarga?: string;
   precio?: number;
@@ -56,7 +51,7 @@ export interface IProductBase {
   variaciones?: IVariation[];
   especificacionesTecnicas?: string[];
   caracteristicas?: string[];
-  imagenesGenerales?: string[];
+  // ❌ imagenesGenerales ELIMINADO
   proveedor?: string;
   destacado?: boolean;
   activo?: boolean;
@@ -72,19 +67,13 @@ export interface IProductDocument extends IProductBase, Document {
 export interface IProductLean extends Omit<IProductBase, "categoria"> {
   _id: Types.ObjectId;
   variaciones: IVariation[];
-  categoria?:
-    | Types.ObjectId
-    | {
-        _id: Types.ObjectId;
-        nombre: string;
-      };
+  categoria?: Types.ObjectId | { _id: Types.ObjectId; nombre: string };
   __v?: number;
 }
 
 export type IProduct = IProductBase | IProductLean | FlattenMaps<IProductLean>;
 
-export interface IProductApi
-  extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
+export interface IProductApi extends Omit<IProductBase, "_id" | "categoria" | "variaciones"> {
   _id: string;
   categoria: { _id: string; nombre: string } | null;
   variaciones: Array<IVariation & { _id: string }>;
@@ -96,15 +85,36 @@ export type ApiErrorResponse = {
   fieldErrors?: Record<string, string>;
 };
 
-// 🔹 Formularios
+// 🔹 Tipado de Atributo dinámico
+export interface IAttribute {
+  nombre: string;
+  valor: string;
+}
+
+// 🔹 Formularios (ACTUALIZADO)
+export interface VariationFormData {
+  codigo?: string;
+  productId?: string;
+  nombre?: string;
+  descripcion?: string;
+  medida?: string;
+  uMedida?: string;
+  precio: number;
+  stock?: number;
+  stockMinimo?: number;
+  imagenes: string[]; // ✅ Ahora requerido
+  atributos?: IAttribute[];
+}
+
 export interface ProductFormData {
   codigoPrincipal: string;
   nombre: string;
   medida?: string;
+  uMedida?: string;
   categoria: string;
   descripcionCorta: string;
   descripcionLarga: string;
-  imagenesGenerales: string[];
+  // ❌ imagenesGenerales ELIMINADO
   precio?: number;
   stock?: number;
   stockMinimo: number;
@@ -116,25 +126,3 @@ export interface ProductFormData {
   proveedor: string;
   activo: boolean;
 }
-
-
-// 🔹 Tipado de Atributo dinámico
-export interface IAttribute {
-  nombre: string;
-  valor: string; // solo string
-}
-
-export interface VariationFormData {
-  codigo?: string;
-  productId?: string;
-  nombre?: string;
-  descripcion?: string;
-  medida?: string;
-  precio: number;
-  stock?: number;
-  stockMinimo?: number;
-  imagenes?: string[];
-  atributos?: IAttribute[];
-}
-
-

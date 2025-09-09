@@ -21,9 +21,9 @@
 //     precio: "Desde $65.000",
 //     tieneVariaciones: true,
 //     variaciones: [
-//       { medida: "1.50 × 10 m", precio: "$65.000" },
-//       { medida: "1.80 × 10 m", precio: "$80.000" },
-//       { medida: "2.00 × 10 m", precio: "$98.500" }
+//       { medida: "1.50m × 10 m", precio: "65000" },
+//       { medida: "1.80m × 10 m", precio: "80000" },
+//       { medida: "2.00m × 10 m", precio: "98500" }
 //     ],
 //     destacado: true,
 //     especificaciones: [
@@ -163,7 +163,7 @@
 //     imagenes: [
 //       { src: '/Productos/accesorios/ganchos.webp', alt: 'Gancho J vista frontal' },
 //     ],
-//     precio: "$1.160 c/u",
+//     precio: "$1160 c/u",
 //     destacado: true,
 //     especificaciones: [
 //       "Diámetro: 5/16\" (8 mm)",

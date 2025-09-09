@@ -2,7 +2,6 @@
 
 import {
   Star,
-  Check,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -43,28 +42,14 @@ const CustomArrow = ({ direction, onClick }: CustomArrowProps) => {
 
 export default function CatalogoPage() {
   const router = useRouter();
-  const {
-    products,
-    loading,
-    error,
-    initialized,
-    setError,
-    initializeProducts,
-  } = useProductStore();
-
+  const { products, loading, error, initialized } = useProductStore();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
     checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkIsMobile);
-    };
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
   const sliderSettings = {
@@ -83,16 +68,11 @@ export default function CatalogoPage() {
   };
 
   const handleViewDetails = (producto: IProduct) => {
-    const variants = producto.nombre
-      .toLowerCase()
-      .replace(/[^\w\s]/gi, "")
-      .replace(/\s+/g, "-");
-
     if (producto.tieneVariaciones) {
       router.push(
-        `/catalogo/variants?productId=${
-          producto._id
-        }&productName=${encodeURIComponent(producto.nombre)}`
+        `/catalogo/variants?productId=${producto._id}&productName=${encodeURIComponent(
+          producto.nombre
+        )}`
       );
     } else {
       router.push(`/catalogo/${producto._id}`);
@@ -120,9 +100,7 @@ export default function CatalogoPage() {
     );
   }
 
-  if (!initialized || loading) {
-    return <CatalogLoading />;
-  }
+  if (!initialized || loading) return <CatalogLoading />;
 
   return (
     <div className="container mx-auto py-11 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
@@ -190,20 +168,48 @@ const ProductCard = ({
   onViewDetails,
   isMobile,
 }: ProductCardProps) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-AR", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
     }).format(price);
+
+  const getProductImages = (producto: IProduct): string[] => {
+    if (!producto.variaciones || producto.variaciones.length === 0) return [];
+
+    if (producto.tieneVariaciones) {
+      const variacionActiva = producto.variaciones.find(
+        (v) => v.activo !== false && v.imagenes?.length > 0
+      );
+      if (variacionActiva) return variacionActiva.imagenes;
+
+      const variacionConImg = producto.variaciones.find(
+        (v) => v.imagenes?.length > 0
+      );
+      if (variacionConImg) return variacionConImg.imagenes;
+    } else {
+      const variacionConImg = producto.variaciones.find(
+        (v) => v.imagenes?.length > 0
+      );
+      if (variacionConImg) return variacionConImg.imagenes;
+    }
+
+    return [];
   };
+
+  const imagenesProducto = getProductImages(producto);
+  const variacionesConNombre =
+    producto.variaciones?.filter((v) => v.nombre?.trim()) || [];
+  const mostrarVariacionesDisponibles =
+    producto.tieneVariaciones && variacionesConNombre.length > 0;
 
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
       <div className="relative h-40 sm:h-48 bg-gray-100">
-        {producto.imagenesGenerales && producto.imagenesGenerales.length > 0 ? (
-          producto.imagenesGenerales.length > 1 ? (
+        {imagenesProducto.length > 0 ? (
+          imagenesProducto.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
-              {producto.imagenesGenerales.map((imagen, index) => (
+              {imagenesProducto.map((imagen, index) => (
                 <div key={index} className="relative h-40 sm:h-48 w-full">
                   <button
                     onClick={() => onViewDetails(producto)}
@@ -211,7 +217,7 @@ const ProductCard = ({
                   >
                     <Image
                       src={imagen}
-                      alt={producto.nombre}
+                      alt={`${producto.nombre} - Imagen ${index + 1}`}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -228,7 +234,7 @@ const ProductCard = ({
                 className="block h-full w-full"
               >
                 <Image
-                  src={producto.imagenesGenerales[0]}
+                  src={imagenesProducto[0]}
                   alt={producto.nombre}
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-500"
@@ -243,6 +249,7 @@ const ProductCard = ({
             <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
         )}
+
         {producto.destacado && (
           <div className="absolute top-2 left-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm z-10">
             <Star className="h-3 w-3 mr-1" /> DESTACADO
@@ -256,7 +263,6 @@ const ProductCard = ({
       </div>
 
       <div className="p-3 flex-grow flex flex-col">
-        {/* Categoría ahora arriba del nombre para mejor organización */}
         {producto.categoria &&
           typeof producto.categoria === "object" &&
           "nombre" in producto.categoria && (
@@ -276,40 +282,50 @@ const ProductCard = ({
           </h2>
         </button>
 
-        {/* Sección de medidas y precios */}
         <div className="mt-auto">
-          {producto.tieneVariaciones && producto.variaciones ? (
+          {mostrarVariacionesDisponibles ? (
             <div className="mb-3">
-              <h4 className="text-xs text-gray-500 mb-1">Medidas disponibles</h4>
+              <h4 className="text-xs text-gray-500 mb-1">
+                Variaciones disponibles
+              </h4>
               <div className="flex flex-wrap gap-1">
-                {producto.variaciones.slice(0, isMobile ? 2 : 3).map((variacion, index) => (
-                  <span
-                    key={index}
-                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full break-all"
-                  >
-                    {variacion.medida}
-                  </span>
-                ))}
-                {producto.variaciones.length > (isMobile ? 2 : 3) && (
+                {variacionesConNombre
+                  .slice(0, isMobile ? 2 : 3)
+                  .map((variacion, index) => (
+                    <span
+                      key={index}
+                      className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full break-all"
+                      title={variacion.nombre}
+                    >
+                      {variacion.nombre}
+                    </span>
+                  ))}
+                {variacionesConNombre.length > (isMobile ? 2 : 3) && (
                   <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                    +{producto.variaciones.length - (isMobile ? 2 : 3)}
+                    +{variacionesConNombre.length - (isMobile ? 2 : 3)}
                   </span>
                 )}
               </div>
+            </div>
+          ) : producto.tieneVariaciones ? (
+            <div className="text-xs text-gray-500 italic mb-3">
+              Múltiples variaciones disponibles
             </div>
           ) : (
             producto.precio && (
               <div className="flex flex-col mb-3">
                 <span className="text-xs text-gray-500">Precio</span>
                 <span className="text-lg font-bold text-brand break-all">
-                  {formatPrice(producto.precio)}/<span className="text-xs">  {producto.medida} </span>
+                  {formatPrice(producto.precio)}
+                  {producto.medida && (
+                    <span className="text-xs">/{producto.medida}</span>
+                  )}
                 </span>
               </div>
             )
           )}
         </div>
 
-        {/* Botón de compra siempre visible en la parte inferior */}
         <div className="mt-auto pt-3 border-t border-gray-100">
           <button
             onClick={() => onViewDetails(producto)}

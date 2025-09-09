@@ -59,7 +59,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     variaciones = [],
     categoria,
     especificacionesTecnicas = [],
-    imagenesGenerales = [],
+    // ❌ imagenesGenerales ELIMINADO
   } = product;
 
   const sliderSettings = {
@@ -98,14 +98,54 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     }
   };
 
+  // ✅ Obtener imágenes de las variaciones
+  const getProductImages = () => {
+    // Si tiene variaciones, usar imágenes de la primera variación activa
+    if (tieneVariaciones && variaciones.length > 0) {
+      const primeraVariacionActiva = variaciones.find(v => v.activo !== false);
+      return primeraVariacionActiva?.imagenes || [];
+    }
+    
+    // Si no tiene variaciones pero tiene precio (producto simple)
+    if (!tieneVariaciones && precio !== undefined) {
+      // Buscar en todas las variaciones por si acaso
+      const algunaVariacionConImagenes = variaciones.find(v => v.imagenes && v.imagenes.length > 0);
+      return algunaVariacionConImagenes?.imagenes || [];
+    }
+    
+    return [];
+  };
+
+  const imagenesProducto = getProductImages();
+
+  // Filtrar variaciones activas
+  const variacionesActivas = variaciones.filter(v => v.activo !== false);
+  
+  // Determinar si mostrar la sección de variaciones disponibles
+  const mostrarVariacionesDisponibles = tieneVariaciones && variacionesActivas.length > 0;
+
+  // Función para determinar qué texto mostrar en cada variación
+  const getTextoVariacion = (variacion: any) => {
+    // Si tiene medida y no está vacía, mostrar la medida
+    if (variacion.medida && variacion.medida.trim() !== '') {
+      return variacion.medida;
+    }
+    // Si no tiene medida pero tiene nombre, mostrar el nombre
+    if (variacion.nombre && variacion.nombre.trim() !== '') {
+      return variacion.nombre;
+    }
+    // Si no tiene ni medida ni nombre, mostrar el precio como fallback
+    return formatPrice(variacion.precio || 0);
+  };
+
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
       {/* Contenedor de imagen */}
       <div className="relative h-48 bg-gray-100">
-        {imagenesGenerales.length > 0 ? (
-          imagenesGenerales.length > 1 ? (
+        {imagenesProducto.length > 0 ? (
+          imagenesProducto.length > 1 ? (
             <Slider {...sliderSettings} className="h-full">
-              {imagenesGenerales.map((imagen, index) => (
+              {imagenesProducto.map((imagen, index) => (
                 <div key={index} className="relative h-48 w-full">
                   <button
                     onClick={handleViewDetails}
@@ -130,7 +170,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
                 className="block h-full w-full"
               >
                 <Image
-                  src={imagenesGenerales[0]}
+                  src={imagenesProducto[0]}
                   alt={nombre}
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-500"
@@ -183,27 +223,33 @@ export default function ProductCardMain({ product }: ProductCardProps) {
         </div>
 
         <div className="mt-2 mb-3">
-          {tieneVariaciones ? (
+          {mostrarVariacionesDisponibles ? (
             <>
               <h4 className="text-xs text-gray-500 mb-1">
-                Medidas disponibles
+                Variaciones disponibles
               </h4>
               <div className="flex flex-wrap gap-1">
-                {variaciones.slice(0, 3).map((variacion, index) => (
+                {variacionesActivas.slice(0, 4).map((variacion, index) => (
                   <span
                     key={index}
                     className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                    title={getTextoVariacion(variacion)} // Tooltip con el texto completo
                   >
-                    {variacion.medida}
+                    {getTextoVariacion(variacion)}
                   </span>
                 ))}
-                {variaciones.length > 3 && (
+                {variacionesActivas.length > 4 && (
                   <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                    +{variaciones.length - 3}
+                    +{variacionesActivas.length - 4}
                   </span>
                 )}
               </div>
             </>
+          ) : tieneVariaciones ? (
+            // Si tiene variaciones pero ninguna está activa
+            <div className="text-xs text-gray-500 italic">
+              Variaciones no disponibles
+            </div>
           ) : (
             precio && (
               <div className="flex flex-col mt-2">

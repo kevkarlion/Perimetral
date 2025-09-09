@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { formatPriceWithUnit } from '@/app/utils/formatUnits';
+ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ChevronRight,
@@ -70,6 +71,11 @@ export default function ProductId({
 
   const addItem = useCartStore((state) => state.addItem);
 
+  // Obtener categoría directamente del producto (ya viene poblada)
+  const category = product?.categoria && typeof product.categoria === 'object' && 'nombre' in product.categoria
+    ? product.categoria
+    : null;
+
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
     if (!product) {
       return [
@@ -104,22 +110,6 @@ export default function ProductId({
         minimumFractionDigits: 0,
       }) || "$ --"
     );
-  };
-
-  // Helper function to safely get category name
-  const getCategoryName = () => {
-    if (!product?.categoria) return "";
-
-    // If categoria is an object with nombre property
-    if (
-      typeof product.categoria === "object" &&
-      "nombre" in product.categoria
-    ) {
-      return product.categoria.nombre;
-    }
-
-    // If it's just an ObjectId or string, return empty
-    return "";
   };
 
   useEffect(() => {
@@ -185,13 +175,14 @@ export default function ProductId({
         : product._id!,
       name:
         product.nombre +
-        (selectedVariation ? ` - ${selectedVariation.medida}` : ""),
+        (selectedVariation ? ` - ${selectedVariation.nombre}` : ""), // Cambiado de medida a nombre
       price: selectedVariation ? selectedVariation.precio : product.precio || 0,
       image: imagenes[0]?.src || "/placeholder-product.jpg",
       variation: selectedVariation
         ? {
             medida: selectedVariation.medida,
             codigo: selectedVariation.codigo,
+            nombre: selectedVariation.nombre, // Añadido nombre de variación
           }
         : undefined,
     };
@@ -212,7 +203,8 @@ export default function ProductId({
   const imagenes = getSafeImages(product);
   const specsToShow = safeProduct.especificacionesTecnicas || [];
   const variationAttributes = selectedVariation?.atributos || [];
-  const categoryName = getCategoryName();
+
+  console.log("ProductId render:", { product, selectedVariation, variationId });
 
   if (loading) {
     return <ProductIdSkeleton />;
@@ -240,14 +232,52 @@ export default function ProductId({
 
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
+      {/* Breadcrumb de navegación */}
       <div className="mb-6">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-8"
+          className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mb-2"
         >
           <ArrowLeft size={16} className="mr-2" />
           Volver
         </button>
+        
+        {/* Breadcrumb: Categoría > Producto > Variación */}
+        <div className="flex items-center text-sm text-gray-600 mb-4">
+          <Link href="/" className="hover:text-brand transition-colors">
+            Inicio
+          </Link>
+          
+          {category && (
+            <>
+              <ChevronRight className="h-4 w-4 mx-2" />
+              <Link 
+                href={`/categoria/${category._id}`} 
+                className="hover:text-brand transition-colors"
+              >
+                {category.nombre}
+              </Link>
+            </>
+          )}
+          
+          {safeProduct.nombre && (
+            <>
+              <ChevronRight className="h-4 w-4 mx-2" />
+              <span className="text-gray-900 font-medium">
+                {safeProduct.nombre}
+              </span>
+            </>
+          )}
+          
+          {selectedVariation && (
+            <>
+              <ChevronRight className="h-4 w-4 mx-2" />
+              <span className="text-gray-900 font-medium">
+                {selectedVariation.nombre}
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="md:hidden space-y-4 mb-6">
@@ -258,11 +288,11 @@ export default function ProductId({
         )}
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           {safeProduct.nombre}
-          {selectedVariation && ` - ${selectedVariation.medida}`}
+          {selectedVariation && ` - ${selectedVariation.nombre}`} {/* Cambiado de medida a nombre */}
         </h1>
-        {categoryName && (
+        {category && (
           <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
-            {categoryName}
+            {category.nombre}
           </span>
         )}
       </div>
@@ -318,11 +348,11 @@ export default function ProductId({
             )}
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               {safeProduct.nombre}
-              {selectedVariation && ` - ${selectedVariation.medida}`}
+              {selectedVariation && ` - ${selectedVariation.nombre}`} {/* Cambiado de medida a nombre */}
             </h1>
-            {categoryName && (
+            {category && (
               <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                {categoryName}
+                {category.nombre}
               </span>
             )}
           </div>
@@ -331,16 +361,10 @@ export default function ProductId({
           <div className="space-y-6">
             <div className="flex items-baseline gap-3">
               <p className="text-3xl font-bold text-brand">
-                {formatPrice(
-                  selectedVariation
-                    ? selectedVariation.precio
-                    : safeProduct.precio
-                )}
-                {safeProduct.medida && (
-                  <span className="text-sm text-brand">
-                    /{product?.medida}
-                  </span>
-                )}
+                {formatPriceWithUnit(
+  selectedVariation ? selectedVariation.precio : safeProduct.precio || 0,
+  selectedVariation?.uMedida || safeProduct.uMedida
+)}
                 <span className="text-sm text-black"> + IVA</span>
               </p>
             </div>
@@ -446,7 +470,7 @@ export default function ProductId({
             <Link
               href={`/contacto?producto=${encodeURIComponent(
                 safeProduct.nombre +
-                  (selectedVariation ? ` - ${selectedVariation.medida}` : "")
+                  (selectedVariation ? ` - ${selectedVariation.nombre}` : "") // Cambiado de medida a nombre
               )}&codigo=${
                 selectedVariation?.codigo || safeProduct.codigoPrincipal
               }`}
@@ -480,7 +504,7 @@ export default function ProductId({
           <Link
             href={`/contacto?producto=${encodeURIComponent(
               safeProduct.nombre +
-                (selectedVariation ? ` - ${selectedVariation.medida}` : "")
+                (selectedVariation ? ` - ${selectedVariation.nombre}` : "") // Cambiado de medida a nombre
             )}&codigo=${
               selectedVariation?.codigo || safeProduct.codigoPrincipal
             }`}

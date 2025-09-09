@@ -52,32 +52,11 @@ export default function VariantPage() {
   const productName = searchParams.get("productName");
   const product = products.find((p) => p._id === productId);
 
-  const sliderSettings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    nextArrow: <CustomArrow direction="next" />,
-    prevArrow: <CustomArrow direction="prev" />,
-    adaptiveHeight: true,
-    autoplay: false,
-    autoplaySpeed: 5000,
-    pauseOnHover: true,
-    arrows: true,
-  };
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-    }).format(price);
-  };
-  if (loading) {
-    return <SkeletonVariantPage productName={productName} />;
-  }
-
-  if (error || !product) {
+  if (loading) return <SkeletonVariantPage productName={productName} />;
+  if (error || !product)
     return (
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -97,7 +76,12 @@ export default function VariantPage() {
         </div>
       </div>
     );
-  }
+
+  // Función para obtener la primera imagen disponible de la variación
+  const getFirstImage = (variacion: any) => {
+    if (variacion.imagenes && variacion.imagenes.length > 0) return variacion.imagenes[0];
+    return null;
+  };
 
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
@@ -109,35 +93,31 @@ export default function VariantPage() {
         Volver
       </button>
 
-      {/* Sección de variantes */}
-      {product.tieneVariaciones &&
-        product.variaciones &&
-        product.variaciones.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-3xl md:text-2xl font-bold text-gray-900 mb-6">
-              Variantes de {productName || product.nombre}
-            </h2>
+      {product.tieneVariaciones && product.variaciones && product.variaciones.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-3xl md:text-2xl font-bold text-gray-900 mb-6">
+            Variantes de {productName || product.nombre}
+          </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {product.variaciones.map((variante) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {product.variaciones.map((variante) => {
+              const firstImage = getFirstImage(variante);
+              return (
                 <div
                   key={variante._id?.toString()}
                   className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full"
                 >
                   <div className="relative h-48 bg-gray-100">
-                    {product.imagenesGenerales?.[0] ? (
+                    {firstImage ? (
                       <Link
                         href={{
                           pathname: `/catalogo/variants/${variante._id}`,
-                          query: {
-                            productId: productId,
-                            productName: productName || product.nombre,
-                          },
+                          query: { productId, productName: productName || product.nombre },
                         }}
                         className="block h-full w-full"
                       >
                         <Image
-                          src={product.imagenesGenerales[0]}
+                          src={firstImage}
                           alt={`${product.nombre} - ${variante.medida}`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -156,16 +136,11 @@ export default function VariantPage() {
                       <Link
                         href={{
                           pathname: `/catalogo/variants/${variante._id}`,
-                          query: {
-                            productId: productId,
-                            productName: productName || product.nombre,
-                          },
+                          query: { productId, productName: productName || product.nombre },
                         }}
                         className="group-hover:text-brandHover transition-colors flex-grow"
                       >
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          {product.nombre}
-                        </h3>
+                        <h3 className="text-sm font-semibold text-gray-900">{product.nombre}</h3>
                       </Link>
                     </div>
 
@@ -179,9 +154,7 @@ export default function VariantPage() {
                     {variante.precio && (
                       <div className="flex flex-col mt-2">
                         <span className="text-xs text-black">Precio</span>
-                        <span className="text-lg font-bold text-brand mt-1">
-                          {formatPrice(variante.precio)}
-                        </span>
+                        <span className="text-lg font-bold text-brand mt-1">{formatPrice(variante.precio)}</span>
                       </div>
                     )}
 
@@ -189,10 +162,7 @@ export default function VariantPage() {
                       <Link
                         href={{
                           pathname: `/catalogo/variants/${variante._id}`,
-                          query: {
-                            productId: productId,
-                            productName: productName || product.nombre,
-                          },
+                          query: { productId, productName: productName || product.nombre },
                         }}
                         className="flex items-center text-xs font-medium text-brand hover:text-brandHover transition-colors group"
                       >
@@ -202,25 +172,22 @@ export default function VariantPage() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+      )}
 
-      {/* Sección de contacto */}
       <div className="mt-8 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-lg shadow-md">
         <div className="bg-white rounded-lg p-6 text-center">
           <h3 className="text-lg font-bold text-gray-900 mb-2">
             ¿Necesitas más información?
           </h3>
           <p className="text-gray-600 mb-4 max-w-2xl mx-auto text-sm">
-            Nuestros especialistas están disponibles para responder todas tus
-            consultas.
+            Nuestros especialistas están disponibles para responder todas tus consultas.
           </p>
           <a
-            href={`https://wa.me/5492984392148?text=Hola,%20me%20interesa%20el%20producto:%20${encodeURIComponent(
-              product.nombre
-            )}`}
+            href={`https://wa.me/5492984392148?text=Hola,%20me%20interesa%20el%20producto:%20${encodeURIComponent(product.nombre)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-1 bg-brand hover:bg-brandHover text-white font-bold py-2 px-6 rounded-md transition-all shadow-sm hover:shadow-md text-sm"

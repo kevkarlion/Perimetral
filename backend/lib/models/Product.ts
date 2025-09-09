@@ -13,30 +13,31 @@ type IProductDoc = IProductType & Document;
 const AttributeSchema = new Schema<IAttribute>(
   {
     nombre: { type: String, required: true, trim: true },
-    valor: { type: Schema.Types.Mixed, required: true }, // Puede ser string o número
+    valor: { type: Schema.Types.Mixed, required: true },
   },
   { _id: false }
 );
 
-// 🔹 Sub-esquema de Variaciones
+// 🔹 Sub-esquema de Variaciones (ACTUALIZADO - imágenes movidas aquí)
 const VariationSchema = new Schema<IVariationDoc>(
   {
     codigo: { type: String, required: true, unique: true, sparse: true },
-    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },// Relación al producto
+    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
     nombre: { type: String, trim: true },
     descripcion: String,
     medida: { type: String },
+    uMedida: { type: String },
     precio: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0, default: 0 },
     stockMinimo: { type: Number, min: 0, default: 5 },
     atributos: { type: [AttributeSchema], default: [] },
-    imagenes: [String],
+    imagenes: [String], // ✅ Imágenes ahora en variaciones
     activo: { type: Boolean, default: true },
   },
   { _id: true, timestamps: true }
 );
 
-// 🔹 Esquema principal de Producto
+// 🔹 Esquema principal de Producto (ACTUALIZADO - imagenesGenerales ELIMINADO)
 const ProductSchema = new Schema<IProductDoc>(
   {
     codigoPrincipal: { type: String, required: true, unique: true },
@@ -47,6 +48,7 @@ const ProductSchema = new Schema<IProductDoc>(
       required: true,
     },
     medida: { type: String },
+    uMedida: { type: String },
     precio: { type: Number, min: 0 },
     stock: { type: Number, min: 0, default: 0 },
     stockMinimo: { type: Number, min: 0, default: 5 },
@@ -56,7 +58,7 @@ const ProductSchema = new Schema<IProductDoc>(
     descripcionLarga: String,
     especificacionesTecnicas: [String],
     caracteristicas: [String],
-    imagenesGenerales: [String],
+    // ❌ imagenesGenerales ELIMINADO - ahora las imágenes están en variaciones
     proveedor: String,
     destacado: { type: Boolean, default: false },
     activo: { type: Boolean, default: true },
@@ -88,7 +90,6 @@ ProductSchema.pre("save", function (this: HydratedDocument<IProductDoc>, next) {
   next();
 });
 
-const Product =
-  models.Product || model<IProductDoc>("Product", ProductSchema);
+const Product = models.Product || model<IProductDoc>("Product", ProductSchema);
 
 export default Product;
