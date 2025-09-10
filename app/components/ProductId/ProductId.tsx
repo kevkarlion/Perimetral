@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatPriceWithUnit } from '@/app/utils/formatUnits';
- import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { formatPriceWithUnit } from "@/app/utils/formatUnits";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ChevronRight,
@@ -72,9 +72,12 @@ export default function ProductId({
   const addItem = useCartStore((state) => state.addItem);
 
   // Obtener categoría directamente del producto (ya viene poblada)
-  const category = product?.categoria && typeof product.categoria === 'object' && 'nombre' in product.categoria
-    ? product.categoria
-    : null;
+  const category =
+    product?.categoria &&
+    typeof product.categoria === "object" &&
+    "nombre" in product.categoria
+      ? product.categoria
+      : null;
 
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
     if (!product) {
@@ -241,25 +244,25 @@ export default function ProductId({
           <ArrowLeft size={16} className="mr-2" />
           Volver
         </button>
-        
+
         {/* Breadcrumb: Categoría > Producto > Variación */}
         <div className="flex items-center text-sm text-gray-600 mb-4">
           <Link href="/" className="hover:text-brand transition-colors">
             Inicio
           </Link>
-          
+
           {category && (
             <>
               <ChevronRight className="h-4 w-4 mx-2" />
-              <Link 
-                href={`/categoria/${category._id}`} 
+              <Link
+                href={`/categoria/${category._id}`}
                 className="hover:text-brand transition-colors"
               >
                 {category.nombre}
               </Link>
             </>
           )}
-          
+
           {safeProduct.nombre && (
             <>
               <ChevronRight className="h-4 w-4 mx-2" />
@@ -268,7 +271,7 @@ export default function ProductId({
               </span>
             </>
           )}
-          
+
           {selectedVariation && (
             <>
               <ChevronRight className="h-4 w-4 mx-2" />
@@ -288,7 +291,8 @@ export default function ProductId({
         )}
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           {safeProduct.nombre}
-          {selectedVariation && ` - ${selectedVariation.nombre}`} {/* Cambiado de medida a nombre */}
+          {selectedVariation && ` - ${selectedVariation.nombre}`}{" "}
+          {/* Cambiado de medida a nombre */}
         </h1>
         {category && (
           <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
@@ -348,7 +352,8 @@ export default function ProductId({
             )}
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               {safeProduct.nombre}
-              {selectedVariation && ` - ${selectedVariation.nombre}`} {/* Cambiado de medida a nombre */}
+              {selectedVariation && ` - ${selectedVariation.nombre}`}{" "}
+              {/* Cambiado de medida a nombre */}
             </h1>
             {category && (
               <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -361,11 +366,39 @@ export default function ProductId({
           <div className="space-y-6">
             <div className="flex items-baseline gap-3">
               <p className="text-3xl font-bold text-brand">
-                {formatPriceWithUnit(
-  selectedVariation ? selectedVariation.precio : safeProduct.precio || 0,
-  selectedVariation?.uMedida || safeProduct.uMedida
-)}
-                <span className="text-sm text-black"> + IVA</span>
+                {selectedVariation ? (
+                  selectedVariation.medida &&
+                  selectedVariation.medida.trim() !== "" ? (
+                    // Caso con medida → precio limpio
+                    <>
+                      $
+                      {selectedVariation.precio?.toLocaleString("es-AR", {
+                        minimumFractionDigits: 0,
+                      })}{" "}
+                      <span className="text-sm text-black">+ IVA</span>
+                    </>
+                  ) : (
+                    // Caso sin medida → precio/uMedida
+                    <>
+                      $
+                      {selectedVariation.precio?.toLocaleString("es-AR", {
+                        minimumFractionDigits: 0,
+                      })}
+                      /{selectedVariation.uMedida}{" "}
+                      <span className="text-sm text-black">+ IVA</span>
+                    </>
+                  )
+                ) : (
+                  // Si no hay variación seleccionada, usar el producto base
+                  <>
+                    $
+                    {safeProduct.precio?.toLocaleString("es-AR", {
+                      minimumFractionDigits: 0,
+                    })}{" "}
+                    {safeProduct.uMedida ? `/${safeProduct.uMedida}` : ""}
+                    <span className="text-sm text-black"> + IVA</span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -417,15 +450,18 @@ export default function ProductId({
                   ) : null}
 
                   {/* Renderizado dinámico de atributos */}
-                  {variationAttributes.length > 0 && variationAttributes.map((atributo, index) => (
-                    <div key={index} className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
-                      <span className="text-gray-700">
-                        <span className="font-medium capitalize">{atributo.nombre}:</span>{" "}
-                        {atributo.valor}
-                      </span>
-                    </div>
-                  ))}
+                  {variationAttributes.length > 0 &&
+                    variationAttributes.map((atributo, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3"></div>
+                        <span className="text-gray-700">
+                          <span className="font-medium capitalize">
+                            {atributo.nombre}:
+                          </span>{" "}
+                          {atributo.valor}
+                        </span>
+                      </div>
+                    ))}
                 </div>
 
                 {/* Especificaciones técnicas (checklist) */}
@@ -494,11 +530,13 @@ export default function ProductId({
           disabled={isAddedToCart || !product}
         >
           {isAddedToCart ? (
-            <Check className="h-5 w-5"/>
+            <Check className="h-5 w-5" />
           ) : (
-            <ShoppingCart className="h-5 w-5 text-black"/>
+            <ShoppingCart className="h-5 w-5 text-black" />
           )}
-          <span className="ml-2 text-black">{isAddedToCart ? "Añadido" : "Comprar"}</span>
+          <span className="ml-2 text-black">
+            {isAddedToCart ? "Añadido" : "Comprar"}
+          </span>
         </Button>
         <Button asChild variant="outline" className="flex-1 h-12">
           <Link

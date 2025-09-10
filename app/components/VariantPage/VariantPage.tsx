@@ -83,6 +83,8 @@ export default function VariantPage() {
     return null;
   };
 
+  console.log("Producto cargado en VariantPage:", product);
+
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       <button
@@ -101,79 +103,111 @@ export default function VariantPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {product.variaciones.map((variante) => {
-              const firstImage = getFirstImage(variante);
-              return (
-                <div
-                  key={variante._id?.toString()}
-                  className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full"
+  const firstImage = getFirstImage(variante);
+  
+  return (
+    <div
+      key={variante._id?.toString()}
+      className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full"
+    >
+      <div className="relative h-48 bg-gray-100">
+        {firstImage ? (
+          <Link
+            href={{
+              pathname: `/catalogo/variants/${variante._id}`,
+              query: { productId, productName: productName || product.nombre },
+            }}
+            className="block h-full w-full"
+          >
+            <Image
+              src={firstImage}
+              alt={`${variante.nombre || product.nombre}`}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </Link>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            Imagen no disponible
+          </div>
+        )}
+      </div>
+
+      <div className="p-3 flex-grow flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <Link
+            href={{
+              pathname: `/catalogo/variants/${variante._id}`,
+              query: { productId, productName: productName || product.nombre },
+            }}
+            className="group-hover:text-brandHover transition-colors flex-grow"
+          >
+            <h3 className="text-sm font-semibold text-gray-900">
+              {variante.nombre}
+            </h3>
+          </Link>
+        </div>
+
+        {/* Mostrar medida solo si existe y no está vacía */}
+        {variante.medida && variante.medida.trim() !== "" && (
+          <div className="mb-2">
+            <h4 className="text-xs text-gray-500 mb-1">Medida</h4>
+            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
+              {variante.medida}
+            </span>
+          </div>
+        )}
+
+        {/* Mostrar atributos dinámicos si no hay medida */}
+        {(!variante.medida || variante.medida.trim() === "") && 
+         variante.atributos && variante.atributos.length > 0 && (
+          <div className="mb-2">
+            <h4 className="text-xs text-gray-500 mb-1">Especificaciones</h4>
+            <div className="flex flex-wrap gap-1">
+              {variante.atributos.map((atributo, index) => (
+                <span 
+                  key={index}
+                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
                 >
-                  <div className="relative h-48 bg-gray-100">
-                    {firstImage ? (
-                      <Link
-                        href={{
-                          pathname: `/catalogo/variants/${variante._id}`,
-                          query: { productId, productName: productName || product.nombre },
-                        }}
-                        className="block h-full w-full"
-                      >
-                        <Image
-                          src={firstImage}
-                          alt={`${product.nombre} - ${variante.medida}`}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                      </Link>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                        Imagen no disponible
-                      </div>
-                    )}
-                  </div>
+                  {atributo.nombre}: {atributo.valor}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
-                  <div className="p-3 flex-grow flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                      <Link
-                        href={{
-                          pathname: `/catalogo/variants/${variante._id}`,
-                          query: { productId, productName: productName || product.nombre },
-                        }}
-                        className="group-hover:text-brandHover transition-colors flex-grow"
-                      >
-                        <h3 className="text-sm font-semibold text-gray-900">{product.nombre}</h3>
-                      </Link>
-                    </div>
+        {variante.precio && (
+          <div className="flex flex-col mt-2">
+            <span className="text-xs text-black">Precio</span>
+            <div className="flex items-center gap-1">
+              <span className="text-lg font-bold text-brand">
+                {formatPrice(variante.precio)}
+              </span>
+              {/* Mostrar uMedida si existe y no hay medida */}
+              {(!variante.medida || variante.medida.trim() === "") && variante.uMedida && (
+                <span className="text-xs text-gray-500">/{variante.uMedida}</span>
+              )}
+            </div>
+          </div>
+        )}
 
-                    <div className="mb-2">
-                      <h4 className="text-xs text-gray-500 mb-1">Medida</h4>
-                      <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                        {variante.medida}
-                      </span>
-                    </div>
-
-                    {variante.precio && (
-                      <div className="flex flex-col mt-2">
-                        <span className="text-xs text-black">Precio</span>
-                        <span className="text-lg font-bold text-brand mt-1">{formatPrice(variante.precio)}</span>
-                      </div>
-                    )}
-
-                    <div className="mt-auto pt-3 border-t border-gray-100">
-                      <Link
-                        href={{
-                          pathname: `/catalogo/variants/${variante._id}`,
-                          query: { productId, productName: productName || product.nombre },
-                        }}
-                        className="flex items-center text-xs font-medium text-brand hover:text-brandHover transition-colors group"
-                      >
-                        <span>Comprar</span>
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        <div className="mt-auto pt-3 border-t border-gray-100">
+          <Link
+            href={{
+              pathname: `/catalogo/variants/${variante._id}`,
+              query: { productId, productName: productName || product.nombre },
+            }}
+            className="flex items-center text-xs font-medium text-brand hover:text-brandHover transition-colors group"
+          >
+            <span>Comprar</span>
+            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+})}
           </div>
         </div>
       )}

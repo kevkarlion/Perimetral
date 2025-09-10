@@ -198,10 +198,29 @@ const ProductCard = ({
   };
 
   const imagenesProducto = getProductImages(producto);
-  const variacionesConNombre =
-    producto.variaciones?.filter((v) => v.nombre?.trim()) || [];
-  const mostrarVariacionesDisponibles =
-    producto.tieneVariaciones && variacionesConNombre.length > 0;
+  
+  // Filtrar variaciones activas y determinar qué mostrar (medidas o nombres)
+  const variacionesActivas = producto.variaciones?.filter((v) => v.activo !== false) || [];
+  
+  // Verificar si alguna variación tiene medida
+  const tieneMedidas = variacionesActivas.some(v => v.medida && v.medida.trim() !== "");
+  
+  // Preparar los datos a mostrar
+  const elementosAMostrar = variacionesActivas
+    .filter(v => {
+      if (tieneMedidas) {
+        return v.medida && v.medida.trim() !== "";
+      } else {
+        return v.nombre && v.nombre.trim() !== "";
+      }
+    })
+    .map(v => ({
+      texto: tieneMedidas ? v.medida : v.nombre,
+      title: tieneMedidas ? v.nombre || v.medida : v.nombre
+    }));
+
+  const mostrarVariacionesDisponibles = 
+    producto.tieneVariaciones && elementosAMostrar.length > 0;
 
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
@@ -286,23 +305,23 @@ const ProductCard = ({
           {mostrarVariacionesDisponibles ? (
             <div className="mb-3">
               <h4 className="text-xs text-gray-500 mb-1">
-                Variaciones disponibles
+                {tieneMedidas ? 'Medidas disponibles' : 'Variaciones disponibles'}
               </h4>
               <div className="flex flex-wrap gap-1">
-                {variacionesConNombre
+                {elementosAMostrar
                   .slice(0, isMobile ? 2 : 3)
-                  .map((variacion, index) => (
+                  .map((elemento, index) => (
                     <span
                       key={index}
                       className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full break-all"
-                      title={variacion.nombre}
+                      title={elemento.title}
                     >
-                      {variacion.nombre}
+                      {elemento.texto}
                     </span>
                   ))}
-                {variacionesConNombre.length > (isMobile ? 2 : 3) && (
+                {elementosAMostrar.length > (isMobile ? 2 : 3) && (
                   <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                    +{variacionesConNombre.length - (isMobile ? 2 : 3)}
+                    +{elementosAMostrar.length - (isMobile ? 2 : 3)}
                   </span>
                 )}
               </div>
