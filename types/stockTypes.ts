@@ -6,8 +6,8 @@ export interface IStockMovementBase {
   variationId?: Types.ObjectId | string;
   type: 'in' | 'out' | 'adjustment' | 'transfer' | 'initial';
   quantity: number;
-  previousStock: number;
-  newStock: number;
+  previousStock: number; // ✅ Hacer obligatorio
+  newStock: number; // ✅ Hacer obligatorio
   reason: string;
   reference?: {
     type: 'order' | 'purchase' | 'adjustment' | 'transfer';
@@ -15,6 +15,13 @@ export interface IStockMovementBase {
   };
   notes?: string;
   createdBy?: Types.ObjectId | string;
+  
+  // NUEVOS CAMPOS - Información rápida
+  productName?: string;
+  productCode?: string;
+  categoryName?: string;
+  variationName?: string;
+  variationCode?: string;
 }
 
 export interface IStockMovement extends IStockMovementBase {
@@ -30,27 +37,39 @@ export interface IStockMovementDocument extends IStockMovementBase, Document {
 }
 
 export interface StockMovementCreateData {
-  productId: string; // Ahora acepta string
-  variationId?: string; // Ahora acepta string
+  productId: string;
+  variationId?: string;
   type: 'in' | 'out' | 'adjustment' | 'transfer' | 'initial';
   quantity: number;
+  previousStock: number; // ✅ Añadir este campo
+  newStock: number; // ✅ Añadir este campo
   reason: string;
   reference?: {
     type: 'order' | 'purchase' | 'adjustment' | 'transfer';
-    id: string; // Ahora acepta string
+    id: string;
   };
   notes?: string;
-  createdBy?: string; // Ahora acepta string
+  createdBy?: string;
+  
+  // NUEVOS CAMPOS - Información rápida
+  productName?: string;
+  productCode?: string;
+  categoryName?: string;
+  variationName?: string;
+  variationCode?: string;
 }
 
 export interface StockMovementFilter {
-  productId?: string; // Ahora acepta string
-  variationId?: string; // Ahora acepta string
+  productId?: string;
+  variationId?: string;
   type?: string;
+  productName?: string;
+  categoryName?: string;
+  variationName?: string;
   startDate?: Date;
   endDate?: Date;
-  page?: number;
-  limit?: number;
+  page?: number;        // ← Este es el problema
+  limit?: number;       // ← Este es el problema
 }
 
 export interface StockMovementResponse {

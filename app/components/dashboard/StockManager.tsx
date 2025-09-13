@@ -1,5 +1,6 @@
 'use client'
 
+import { Types } from 'mongoose'
 import { useState } from 'react'
 import { IProduct, IVariation } from '@/types/productTypes'
 
@@ -15,55 +16,103 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleStockUpdate = async () => {
-    if (!amount || isNaN(Number(amount))) {
-      setError('Ingrese una cantidad válida')
-      return
-    }
 
-    setIsLoading(true)
-    setError('')
 
-    try {
-      // Determinar la acción final para la API
-      const finalAction = stockAction === 'increment' 
-        ? (Number(amount) >= 0 ? 'increment' : 'decrement')
-        : 'set';
+  function isCategoryObject(
+  categoria: unknown
+): categoria is { _id: Types.ObjectId | string; nombre: string } {
+  return (
+    typeof categoria === "object" &&
+    categoria !== null &&
+    "nombre" in categoria
+  );
+}
 
-      const finalAmount = stockAction === 'increment' 
-        ? Math.abs(Number(amount))
-        : Number(amount);
+  // Obtener información de la categoría
+  const categoryName = product.categoria && isCategoryObject(product.categoria)
+    ? product.categoria.nombre
+    : '';
 
-      const response = await fetch(`/api/stock?action=update-stock`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product._id,
-          variationId: selectedVariation,
-          stock: finalAmount,
-          action: finalAction
-        })
-      })
+  // Obtener la variación seleccionada completa
+  const getSelectedVariation = (): IVariation | null => {
+    if (!selectedVariation || !product.variaciones) return null;
+    return product.variaciones.find(v => v._id?.toString() === selectedVariation) || null;
+  };
 
-      if (!response.ok) {
-        throw new Error(await response.text())
-      }
-
-      const result = await response.json()
-      if (!result.success) {
-        throw new Error(result.error || 'Error al actualizar stock')
-      }
-
-      onStockUpdated()
-      setAmount('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-    } finally {
-      setIsLoading(false)
-    }
+const handleStockUpdate = async () => {
+  if (!amount || isNaN(Number(amount))) {
+    setError('Ingrese una cantidad válida')
+    return
   }
+
+  setIsLoading(true)
+  setError('')
+
+  try {
+    // Obtener información de la variación seleccionada
+    const variation = getSelectedVariation();
+    const currentStock = variation ? variation.stock : product.stock || 0;
+    
+    // Determinar la acción final
+    let finalAction: 'set' | 'increment' | 'decrement' = 'set';
+    let finalAmount = Number(amount);
+    
+    if (stockAction === 'increment') {
+      finalAction = finalAmount >= 0 ? 'increment' : 'decrement';
+      finalAmount = Math.abs(finalAmount);
+    }
+
+    // Preparar los datos para enviar
+    const requestData: any = {
+      productId: product._id,
+      stock: finalAmount,
+      action: finalAction,
+      productName: product.nombre,
+      productCode: product.codigoPrincipal,
+      categoryName: categoryName,
+      // ✅ Incluir el stock actual para referencia
+      currentStock: currentStock,
+    };
+
+    // ✅ Añadir información de la variación si existe
+    if (variation) {
+      requestData.variationId = variation._id?.toString();
+      requestData.variationName = variation.nombre || '';
+      requestData.variationCode = variation.codigo || '';
+    }
+
+    console.log('Enviando datos de stock update:', requestData);
+
+    const response = await fetch(`/api/stock?action=update-stock`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    })
+
+    if (!response.ok) {
+      throw new Error(await response.text())
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || 'Error al actualizar stock')
+    }
+
+    // ✅ LLAMAR A onStockUpdated PARA CERRAR EL MODAL Y ACTUALIZAR LA UI
+    onStockUpdated()
+    
+    // ✅ LIMPIAR EL FORMULARIO
+    setAmount('')
+    setSelectedVariation(null)
+    
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    setIsLoading(false)
+  }
+}
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
@@ -82,10 +131,19 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
             <option value="">Seleccione una variación</option>
             {product.variaciones?.map((v) => (
               <option key={v._id?.toString()} value={v._id?.toString()}>
-                {v.medida} (Stock actual: {v.stock})
+                {v.nombre || v.medida} - Stock: {v.stock} - Código: {v.codigo}
               </option>
             ))}
           </select>
+          
+          {/* Mostrar información adicional de la variación seleccionada */}
+          {getSelectedVariation() && (
+            <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+              <p><strong>Variación:</strong> {getSelectedVariation()?.nombre}</p>
+              <p><strong>Código:</strong> {getSelectedVariation()?.codigo}</p>
+              <p><strong>Stock actual:</strong> {getSelectedVariation()?.stock}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -133,6 +191,8 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
         )}
       </div>
 
+     
+
       {error && (
         <div className="text-red-500 text-sm mb-4">{error}</div>
       )}
@@ -144,12 +204,6 @@ export default function StockManager({ product, onStockUpdated }: StockManagerPr
       >
         {isLoading ? 'Actualizando...' : 'Actualizar stock'}
       </button>
-
-      {!product.tieneVariaciones && (
-        <div className="mt-4 text-sm text-gray-500">
-          Stock actual: {product.stock}
-        </div>
-      )}
     </div>
   )
 }

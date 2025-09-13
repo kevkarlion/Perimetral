@@ -15,6 +15,14 @@ export interface IStockMovement extends Document {
   };
   notes?: string;
   createdBy?: Types.ObjectId | string;
+  
+  // NUEVOS CAMPOS - Información rápida
+  productName?: string;
+  productCode?: string;
+  categoryName?: string;
+  variationName?: string;
+  variationCode?: string;
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -72,6 +80,33 @@ const StockMovementSchema = new Schema<IStockMovement>({
     type: Schema.Types.ObjectId,
     ref: 'Admin',
     required: false
+  },
+  
+  // NUEVOS CAMPOS - Información rápida
+  productName: {
+    type: String,
+    trim: true,
+    required: false
+  },
+  productCode: {
+    type: String,
+    trim: true,
+    required: false
+  },
+  categoryName: {
+    type: String,
+    trim: true,
+    required: false
+  },
+  variationName: {
+    type: String,
+    trim: true,
+    required: false
+  },
+  variationCode: {
+    type: String,
+    trim: true,
+    required: false
   }
 }, {
   timestamps: true
@@ -82,5 +117,10 @@ StockMovementSchema.index({ productId: 1, createdAt: -1 });
 StockMovementSchema.index({ variationId: 1, createdAt: -1 });
 StockMovementSchema.index({ type: 1, createdAt: -1 });
 StockMovementSchema.index({ 'reference.type': 1, 'reference.id': 1 });
+
+// Nuevos índices para los campos de búsqueda rápida
+StockMovementSchema.index({ productName: 1 });
+StockMovementSchema.index({ categoryName: 1 });
+StockMovementSchema.index({ variationName: 1 });
 
 export default models.StockMovement || model<IStockMovement>('StockMovement', StockMovementSchema);

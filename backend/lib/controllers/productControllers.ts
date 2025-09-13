@@ -5,7 +5,6 @@ import productService from "@/backend/lib/services/productService";
 import Product from "@/backend/lib/models/Product";
 import { IProduct, IVariation } from "@/types/productTypes";
 import { StockService } from "@/backend/lib/services/stockService";
-// import { dbConnect } from '../dbConnect/dbConnect';
 
 // Tipos para respuestas
 type ApiError = {
@@ -74,7 +73,6 @@ const validateProductData = (data: Partial<IProduct>): ApiError | null => {
 };
 
 // Validación de variaciones
-// Validación de variaciones (ACTUALIZADA)
 const validateVariations = (variations: IVariation[]): ApiError | null => {
   if (!variations || variations.length === 0) {
     return {
@@ -84,7 +82,6 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
   }
 
   for (const [index, variation] of variations.entries()) {
-    // ✅ Cambio importante: Ahora acepta medida O uMedida
     if (!variation.medida?.trim() && !variation.uMedida?.trim()) {
       return {
         error: "Medida descriptiva o Unidad de medida es requerida",
@@ -102,6 +99,7 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
 
   return null;
 };
+
 // Obtener todos los productos
 export async function getAllProducts() {
   const result = await productService.getAllProducts();
@@ -117,15 +115,13 @@ export async function getAllProducts() {
     );
   }
 
-  // Transformar ObjectId a string y otros campos si hace falta
   const transformedProducts = result.data?.map((product) => {
-    // Chequear que categoria es un objeto y no un string u ObjectId
     const categoriaObj =
       product.categoria &&
       typeof product.categoria === "object" &&
       "nombre" in product.categoria
         ? {
-            _id: (product.categoria._id as any).toString(), // Si es ObjectId, usar toString
+            _id: (product.categoria._id as any).toString(),
             nombre: product.categoria.nombre,
           }
         : null;
@@ -151,18 +147,15 @@ export async function getAllProducts() {
 }
 
 // Crear un nuevo producto
-// Crear un nuevo producto
 export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
   try {
     console.log("Body recibido en createProduct:", body);
 
-    // 1. VALIDACIÓN DE DATOS BÁSICOS DEL PRODUCTO
     const productValidationError = validateProductData(body);
     if (productValidationError) {
       return errorResponse(productValidationError, 400);
     }
 
-    // 2. VALIDACIÓN DE CATEGORÍA
     if (body.categoria === null || body.categoria === undefined) {
       return errorResponse(
         {
@@ -173,7 +166,6 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       );
     }
 
-    // 3. VALIDACIÓN DE VARIACIONES
     if (body.tieneVariaciones) {
       const variationValidationError = validateVariations(
         body.variaciones || []
@@ -202,7 +194,6 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       }
     }
 
-    // Convertir string ID a ObjectId para la categoría
     let categoriaId: Types.ObjectId | null = null;
 
     if (
@@ -228,8 +219,6 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       );
     }
 
-    // 🔹 SOLUCIÓN DEFINITIVA: Usar updateOne en lugar de save para evitar hooks
-    // Preparar los datos del producto base
     const productData: any = {
       ...body,
       categoria: categoriaId,
@@ -238,51 +227,42 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       destacado: body.destacado || false,
     };
 
-    // Para productos con variaciones, preparar las variaciones con productId
     let variationsWithProductId: any[] = [];
     if (
       body.tieneVariaciones &&
       body.variaciones &&
       body.variaciones.length > 0
     ) {
-      // Primero crear el producto sin variaciones
       productData.variaciones = [];
       productData.precio = undefined;
       productData.stock = undefined;
       productData.stockMinimo = undefined;
 
-      // Preparar variaciones con productId (aunque aún no existe)
       variationsWithProductId = body.variaciones.map((variation: any) => ({
         ...variation,
-        // Asegurar tipos numéricos
         precio: Number(variation.precio) || 0,
         stock: Number(variation.stock) || 0,
         stockMinimo: Number(variation.stockMinimo) || 5,
       }));
     } else {
-      // Para productos sin variaciones
       productData.variaciones = [];
       productData.precio = Number(body.precio) || 0;
       productData.stock = Number(body.stock) || 0;
     }
 
-    // 🔹 CREAR PRODUCTO USANDO insertOne para evitar hooks de Mongoose
     const ProductCollection = Product.collection;
     const result = await ProductCollection.insertOne(productData);
 
     const productId = result.insertedId;
     console.log("Producto base creado con ID:", productId);
 
-    // 🔹 ACTUALIZAR CON VARIACIONES SI ES NECESARIO
     if (body.tieneVariaciones && variationsWithProductId.length > 0) {
-      // ✅ GENERAR _id MANUALMENTE para cada variación
       const finalVariations = variationsWithProductId.map((variation) => ({
         ...variation,
         productId: productId,
-        _id: new Types.ObjectId(), // ✅ ESTO ES CRÍTICO
+        _id: new Types.ObjectId(),
       }));
 
-      // Actualizar el producto con las variaciones usando updateOne
       await ProductCollection.updateOne(
         { _id: productId },
         {
@@ -295,7 +275,6 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       console.log("Variaciones agregadas al producto");
     }
 
-    // 🔹 OBTENER EL PRODUCTO COMPLETO
     const product = await Product.findById(productId);
     if (!product) {
       return errorResponse(
@@ -308,31 +287,48 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
 
     console.log("Producto completo obtenido:", product);
 
-    // 🔹 MOVIMIENTOS DE STOCK
-    if (
-      body.tieneVariaciones &&
-      product.variaciones &&
-      product.variaciones.length > 0
-    ) {
+    // 🔹 MOVIMIENTOS DE STOCK CORREGIDOS - CON previousStock Y newStock
+    if (product.variaciones && product.variaciones.length > 0) {
       for (const variation of product.variaciones) {
+        const categoryName = product.categoria && typeof product.categoria === 'object' 
+          ? product.categoria.nombre 
+          : '';
+        
+        // ✅ CORRECCIÓN: Incluir previousStock y newStock obligatorios
         await StockService.createMovement({
           productId: product._id.toString(),
           variationId: variation._id.toString(),
-          type: "adjustment",
+          type: "initial" as const,
           quantity: variation.stock || 0,
-          reason: "initial",
+          previousStock: 0, // ✅ Stock anterior (0 porque es inicial)
+          newStock: variation.stock || 0, // ✅ Stock nuevo
+          reason: "initial_stock",
+          productName: product.nombre,
+          productCode: product.codigoPrincipal,
+          categoryName: categoryName,
+          variationName: variation.nombre || '',
+          variationCode: variation.codigo || ''
         });
       }
-    } else if (!body.tieneVariaciones) {
+    } else if (!product.tieneVariaciones) {
+      // ✅ MOVIMIENTO DE STOCK PARA PRODUCTOS SIN VARIACIONES
+      const categoryName = product.categoria && typeof product.categoria === 'object' 
+        ? product.categoria.nombre 
+        : '';
+      
       await StockService.createMovement({
         productId: product._id.toString(),
-        type: "adjustment",
-        quantity: body.stock || 0,
-        reason: "initial",
+        type: "initial" as const,
+        quantity: product.stock || 0,
+        previousStock: 0, // ✅ Stock anterior
+        newStock: product.stock || 0, // ✅ Stock nuevo
+        reason: "initial_stock",
+        productName: product.nombre,
+        productCode: product.codigoPrincipal,
+        categoryName: categoryName
       });
     }
 
-    // 🔹 Preparar respuesta
     const responseData: IProduct = {
       ...product.toObject(),
       _id: product._id.toString(),
@@ -358,7 +354,6 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
   } catch (error) {
     console.error("Error creating product:", error);
 
-    // Manejar error de duplicado de código
     if (error instanceof Error && "code" in error && error.code === 11000) {
       return errorResponse(
         {
@@ -413,13 +408,12 @@ export async function deleteProductById(
   }
 }
 
-//Actualizar precio
+// Actualizar precio
 export async function updatePrice(req: Request): Promise<NextResponse> {
   try {
     const body = await req.json();
     const { productId, price, variationId, action } = body;
 
-    // Validación básica del ID del producto
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, error: "ID de producto no válido" },
@@ -427,7 +421,6 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
       );
     }
 
-    // Validación del precio
     if (price === undefined || isNaN(Number(price))) {
       return NextResponse.json(
         { success: false, error: "Precio no válido" },
@@ -435,7 +428,6 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
       );
     }
 
-    // Validación de la acción
     if (action && action !== "set" && action !== "increment") {
       return NextResponse.json(
         { success: false, error: 'Acción no válida. Use "set" o "increment"' },
@@ -443,7 +435,6 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
       );
     }
 
-    // Llamar al servicio correspondiente
     let updatedProduct;
     if (action === "increment") {
       updatedProduct = await productService.incrementProductPrice(
@@ -485,7 +476,6 @@ export async function updateProduct(
     const { searchParams } = new URL(req.url);
     const body = await req.json();
 
-    // Obtener productId de query params o body
     const productId = searchParams.get("id") || body.productId;
     const { action, variation, variationId } = body;
 
@@ -496,7 +486,6 @@ export async function updateProduct(
       variationId,
     });
 
-    // Validación básica del ID del producto
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, error: "ID de producto no válido" },
@@ -504,7 +493,6 @@ export async function updateProduct(
       );
     }
 
-    // Validación de la acción requerida
     if (
       !action ||
       (action !== "add-variation" && action !== "remove-variation")
@@ -518,7 +506,6 @@ export async function updateProduct(
       );
     }
 
-    // Lógica para AGREGAR variación
     if (action === "add-variation") {
       if (!variation) {
         return NextResponse.json(
@@ -583,15 +570,27 @@ export async function updateProduct(
         );
       }
 
-      // 🔹 CREAR MOVIMIENTO DE STOCK INICIAL PARA LA NUEVA VARIACIÓN
+      // 🔹 MOVIMIENTO DE STOCK CORREGIDO PARA NUEVA VARIACIÓN
       if (variation.stock && variation.stock > 0 && result.variationId) {
         try {
+          const product = await Product.findById(productId);
+          const categoryName = product?.categoria && typeof product.categoria === 'object' 
+            ? product.categoria.nombre 
+            : '';
+          
           await StockService.createMovement({
             productId: productId,
-            variationId: result.variationId, // ← Usamos el ID de la nueva variación
-            type: "adjustment",
+            variationId: result.variationId,
+            type: "initial" as const,
             quantity: variation.stock,
+            previousStock: 0, // ✅ Stock anterior (0 porque es nueva)
+            newStock: variation.stock, // ✅ Stock nuevo
             reason: "initial_variation_stock",
+            productName: product?.nombre || '',
+            productCode: product?.codigoPrincipal || '',
+            categoryName: categoryName,
+            variationName: variation.nombre || '',
+            variationCode: variation.codigo || ''
           });
           console.log("Movimiento de stock creado para la nueva variación");
         } catch (stockError) {
@@ -599,7 +598,6 @@ export async function updateProduct(
             "Error al crear movimiento de stock para variación:",
             stockError
           );
-          // No fallar la operación principal por error en stock
         }
       }
 
@@ -608,7 +606,7 @@ export async function updateProduct(
         data: result.product,
       });
     }
-    // Lógica para ELIMINAR variación
+
     if (action === "remove-variation") {
       if (!variationId) {
         return NextResponse.json(
@@ -651,7 +649,6 @@ export async function updateProduct(
     );
   }
 
-  // Retorno por defecto (no debería alcanzarse)
   return NextResponse.json(
     { success: false, error: "Acción no reconocida" },
     { status: 400 }
@@ -734,7 +731,6 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
       );
     }
 
-    // ✅ USA StockService.updateStock QUE YA MANEJA TODO
     const result = await StockService.updateStock({
       productId,
       variationId,
@@ -744,7 +740,7 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
 
     return NextResponse.json({
       success: true,
-      data: result, // Esto incluye el movimiento de stock creado
+      data: result,
       message: "Stock actualizado correctamente",
     });
   } catch (error) {

@@ -58,7 +58,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     console.log("Body recibido:", JSON.stringify(body, null, 2));
 
-    const { productId, action, variation, stock, variationId, price } = body;
+    const { productId, action, variation, stock, variationId, price, productName, productCode, categoryName, variationName, variationCode } = body;
 
     if (!productId) {
       console.error("Faltan parámetros requeridos");
@@ -133,6 +133,12 @@ export async function PUT(req: NextRequest) {
         stock: Number(stock),
         variationId: variationId || null,
         action: action || "set",
+        // ✅ NUEVOS CAMPOS para información rápida
+        productName: productName || undefined,
+        productCode: productCode || undefined,
+        categoryName: categoryName || undefined,
+        variationName: variationName || undefined,
+        variationCode: variationCode || undefined,
       };
 
       // ✅ LLAMADA CORRECTA al método estático de StockService

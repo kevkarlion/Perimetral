@@ -5,10 +5,12 @@ import { Types } from "mongoose";
 import { useState } from "react";
 
 interface ExtendedStockMovement extends IStockMovement {
+  // Campos originales (mantenidos por compatibilidad)
   product?: {
     _id: Types.ObjectId;
     nombre: string;
     codigoPrincipal: string;
+    categoria?: string;
   };
   variation?: {
     _id: Types.ObjectId;
@@ -22,6 +24,13 @@ interface ExtendedStockMovement extends IStockMovement {
     activo: boolean;
   };
   createdByUser?: any;
+  
+  // NUEVOS CAMPOS - Información rápida
+  productName?: string;
+  productCode?: string;
+  categoryName?: string;
+  variationName?: string;
+  variationCode?: string;
 }
 
 interface StockMovementsTableProps {
@@ -35,6 +44,8 @@ export default function StockMovementsTable({
 }: StockMovementsTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+
+  console.log('Movimientos recibidos en StockMovementsTable:', movements);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("es-ES", {
       year: "numeric",
@@ -66,9 +77,32 @@ export default function StockMovementsTable({
       case "out": return "Salida";
       case "adjustment": return "Ajuste";
       case "transfer": return "Transferencia";
+      case "initial": return "Inicial";
       default: return type;
     }
   };
+
+  // Función para obtener información del producto (usa nuevos campos primero)
+  const getProductInfo = (movement: ExtendedStockMovement) => {
+    return {
+      nombre: movement.productName || movement.product?.nombre || 'N/A',
+      codigo: movement.productCode || movement.product?.codigoPrincipal || 'N/A',
+      categoria: movement.categoryName || movement.product?.categoria || 'N/A'
+    };
+  };
+
+  // Función para obtener información de la variación (usa nuevos campos primero)
+  const getVariationInfo = (movement: ExtendedStockMovement) => {
+    if (!movement.variationId && !movement.variation) return null;
+    
+    return {
+      nombre: movement.variationName || movement.variation?.codigo || 'N/A',
+      codigo: movement.variationCode || movement.variation?.codigo || 'N/A',
+      medida: movement.variation?.medida || 'N/A'
+    };
+  };
+
+  console.log('Movimientos recibidos en StockMovementsTable:', movements);
 
   return (
     <div className="w-full">
@@ -80,6 +114,7 @@ export default function StockMovementsTable({
               <tr>
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">Fecha</th>
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">Producto</th>
+                <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">Categoría</th>
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">ID Producto</th>
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">Variación</th>
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">ID Variación</th>
@@ -93,8 +128,10 @@ export default function StockMovementsTable({
             <tbody className="divide-y divide-gray-200">
               {movements.map((m) => {
                 const productId = getSafeId(m.productId);
-                const variationId = getSafeId(m.variation?._id);
+                const variationId = getSafeId(m.variationId);
                 const movementId = getSafeId(m._id);
+                const productInfo = getProductInfo(m);
+                const variationInfo = getVariationInfo(m);
                 
                 return (
                   <tr key={movementId} className="hover:bg-gray-50 transition-colors">
@@ -103,20 +140,23 @@ export default function StockMovementsTable({
                       {formatDate(m.createdAt.toString())}
                     </td>
                     
-                    {/* Producto - Nombre */}
+                    {/* Producto - Nombre y Código */}
                     <td className="p-3 max-w-[180px]">
-                      {m.product ? (
-                        <div className="truncate">
-                          <div className="font-medium text-gray-900 truncate" title={m.product.nombre}>
-                            {m.product.nombre}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate" title={m.product.codigoPrincipal}>
-                            {m.product.codigoPrincipal}
-                          </div>
+                      <div className="truncate">
+                        <div className="font-medium text-gray-900 truncate" title={productInfo.nombre}>
+                          {productInfo.nombre}
                         </div>
-                      ) : (
-                        <span className="text-gray-500">ID: {productId.slice(0, 8)}...</span>
-                      )}
+                        <div className="text-xs text-gray-500 truncate" title={productInfo.codigo}>
+                          {productInfo.codigo}
+                        </div>
+                      </div>
+                    </td>
+                    
+                    {/* Categoría */}
+                    <td className="p-3 max-w-[120px]">
+                      <div className="text-xs text-gray-600 truncate" title={productInfo.categoria}>
+                        {productInfo.categoria}
+                      </div>
                     </td>
                     
                     {/* Producto - ID */}
@@ -137,36 +177,42 @@ export default function StockMovementsTable({
                       </div>
                     </td>
                     
-                    {/* Variación - Código */}
+                    {/* Variación - Nombre y Código */}
                     <td className="p-3 max-w-[120px]">
-                      {m.variation ? (
+                      {variationInfo ? (
                         <div className="truncate">
-                          <div className="font-medium text-gray-900 truncate" title={m.variation.codigo}>
-                            {m.variation.codigo}
+                          <div className="font-medium text-gray-900 truncate" title={variationInfo.nombre}>
+                            {variationInfo.nombre}
                           </div>
-                          <div className="text-xs text-gray-500 truncate" title={m.variation.medida}>
-                            {m.variation.medida}
+                          <div className="text-xs text-gray-500 truncate" title={variationInfo.codigo}>
+                            {variationInfo.codigo}
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-500">ID: {variationId.slice(0, 8)}...</span>
+                        <span className="text-gray-500 text-xs">Sin variación</span>
                       )}
                     </td>
                     
                     {/* Variación - ID */}
                     <td className="p-3">
                       <div className="relative max-w-[100px]">
-                        <button
-                          onClick={() => copyToClipboard(variationId, `var-${movementId}`)}
-                          className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all bg-blue-50 px-2 py-1 rounded w-full text-left truncate"
-                          title="Haz clic para copiar el ID completo"
-                        >
-                          {showRawIds ? variationId : `${variationId.slice(0, 8)}...`}
-                        </button>
-                        {copiedId === `var-${movementId}` && (
-                          <span className="absolute -top-7 left-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded shadow-sm">
-                            ¡Copiado!
-                          </span>
+                        {variationId !== "N/A" ? (
+                          <>
+                            <button
+                              onClick={() => copyToClipboard(variationId, `var-${movementId}`)}
+                              className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all bg-blue-50 px-2 py-1 rounded w-full text-left truncate"
+                              title="Haz clic para copiar el ID completo"
+                            >
+                              {showRawIds ? variationId : `${variationId.slice(0, 8)}...`}
+                            </button>
+                            {copiedId === `var-${movementId}` && (
+                              <span className="absolute -top-7 left-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded shadow-sm">
+                                ¡Copiado!
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-400 text-xs">N/A</span>
                         )}
                       </div>
                     </td>
@@ -180,6 +226,7 @@ export default function StockMovementsTable({
                           ${m.type === "out" && "bg-red-100 text-red-800"}
                           ${m.type === "adjustment" && "bg-blue-100 text-blue-800"}
                           ${m.type === "transfer" && "bg-purple-100 text-purple-800"}
+                          ${m.type === "initial" && "bg-gray-100 text-gray-800"}
                         `}
                       >
                         {getMovementType(m.type)}
@@ -189,14 +236,14 @@ export default function StockMovementsTable({
                     {/* Cantidad */}
                     <td
                       className={`p-3 font-medium text-center whitespace-nowrap ${
-                        m.type === "in"
+                        m.type === "in" || m.type === "initial"
                           ? "text-green-600"
                           : m.type === "out"
                           ? "text-red-600"
                           : "text-gray-600"
                       }`}
                     >
-                      {m.type === "in" ? "+" : m.type === "out" ? "-" : ""}
+                      {m.type === "in" || m.type === "initial" ? "+" : m.type === "out" ? "-" : ""}
                       {m.quantity}
                     </td>
                     
@@ -213,6 +260,11 @@ export default function StockMovementsTable({
                     {/* Razón */}
                     <td className="p-3 text-sm text-gray-700 max-w-[200px] truncate" title={m.reason}>
                       {m.reason}
+                      {m.notes && (
+                        <div className="text-xs text-gray-500 mt-1" title={m.notes}>
+                          {m.notes.length > 50 ? `${m.notes.substring(0, 50)}...` : m.notes}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -227,8 +279,10 @@ export default function StockMovementsTable({
         <div className="space-y-3">
           {movements.map((m) => {
             const productId = getSafeId(m.productId);
-            const variationId = getSafeId(m.variation?._id);
+            const variationId = getSafeId(m.variationId);
             const movementId = getSafeId(m._id);
+            const productInfo = getProductInfo(m);
+            const variationInfo = getVariationInfo(m);
             
             return (
               <div key={movementId} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -246,6 +300,7 @@ export default function StockMovementsTable({
                         ${m.type === "out" && "bg-red-100 text-red-800"}
                         ${m.type === "adjustment" && "bg-blue-100 text-blue-800"}
                         ${m.type === "transfer" && "bg-purple-100 text-purple-800"}
+                        ${m.type === "initial" && "bg-gray-100 text-gray-800"}
                       `}
                     >
                       {getMovementType(m.type)}
@@ -253,28 +308,47 @@ export default function StockMovementsTable({
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Producto</div>
-                    <div className="text-sm font-medium truncate" title={m.product ? m.product.nombre : `ID: ${productId}`}>
-                      {m.product ? m.product.nombre : `ID: ${productId.slice(0, 8)}...`}
+                    <div className="text-sm font-medium truncate" title={productInfo.nombre}>
+                      {productInfo.nombre}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate" title={productInfo.codigo}>
+                      {productInfo.codigo}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Variación</div>
-                    <div className="text-sm font-medium truncate" title={m.variation ? m.variation.codigo : `ID: ${variationId}`}>
-                      {m.variation ? m.variation.codigo : `ID: ${variationId.slice(0, 8)}...`}
+                    <div className="text-xs text-gray-500 mb-1">Categoría</div>
+                    <div className="text-sm text-gray-600 truncate" title={productInfo.categoria}>
+                      {productInfo.categoria}
                     </div>
                   </div>
+                  {variationInfo && (
+                    <>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Variación</div>
+                        <div className="text-sm font-medium truncate" title={variationInfo.nombre}>
+                          {variationInfo.nombre}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Código Var.</div>
+                        <div className="text-sm text-gray-600 truncate" title={variationInfo.codigo}>
+                          {variationInfo.codigo}
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Cantidad</div>
                     <div
                       className={`text-sm font-medium ${
-                        m.type === "in"
+                        m.type === "in" || m.type === "initial"
                           ? "text-green-600"
                           : m.type === "out"
                           ? "text-red-600"
                           : "text-gray-600"
                       }`}
                     >
-                      {m.type === "in" ? "+" : m.type === "out" ? "-" : ""}
+                      {m.type === "in" || m.type === "initial" ? "+" : m.type === "out" ? "-" : ""}
                       {m.quantity}
                     </div>
                   </div>
@@ -289,6 +363,11 @@ export default function StockMovementsTable({
                     <div className="text-sm text-gray-700 break-words" title={m.reason}>
                       {m.reason}
                     </div>
+                    {m.notes && (
+                      <div className="text-xs text-gray-500 mt-1" title={m.notes}>
+                        {m.notes.length > 50 ? `${m.notes.substring(0, 50)}...` : m.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -302,8 +381,10 @@ export default function StockMovementsTable({
         <div className="space-y-3">
           {movements.map((m) => {
             const productId = getSafeId(m.productId);
-            const variationId = getSafeId(m.variation?._id);
+            const variationId = getSafeId(m.variationId);
             const movementId = getSafeId(m._id);
+            const productInfo = getProductInfo(m);
+            const variationInfo = getVariationInfo(m);
             
             return (
               <div key={movementId} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -315,6 +396,7 @@ export default function StockMovementsTable({
                       ${m.type === "out" && "bg-red-100 text-red-800"}
                       ${m.type === "adjustment" && "bg-blue-100 text-blue-800"}
                       ${m.type === "transfer" && "bg-purple-100 text-purple-800"}
+                      ${m.type === "initial" && "bg-gray-100 text-gray-800"}
                     `}
                   >
                     {getMovementType(m.type)}
@@ -324,31 +406,46 @@ export default function StockMovementsTable({
                 
                 <div className="mb-2">
                   <div className="text-xs text-gray-500">Producto</div>
-                  <div className="text-sm font-medium truncate" title={m.product ? m.product.nombre : `ID: ${productId}`}>
-                    {m.product ? m.product.nombre : `ID: ${productId.slice(0, 8)}...`}
+                  <div className="text-sm font-medium truncate" title={productInfo.nombre}>
+                    {productInfo.nombre}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate" title={productInfo.codigo}>
+                    {productInfo.codigo}
                   </div>
                 </div>
                 
                 <div className="mb-2">
-                  <div className="text-xs text-gray-500">Variación</div>
-                  <div className="text-sm font-medium truncate" title={m.variation ? m.variation.codigo : `ID: ${variationId}`}>
-                    {m.variation ? m.variation.codigo : `ID: ${variationId.slice(0, 8)}...`}
+                  <div className="text-xs text-gray-500">Categoría</div>
+                  <div className="text-sm text-gray-600 truncate" title={productInfo.categoria}>
+                    {productInfo.categoria}
                   </div>
                 </div>
+                
+                {variationInfo && (
+                  <div className="mb-2">
+                    <div className="text-xs text-gray-500">Variación</div>
+                    <div className="text-sm font-medium truncate" title={variationInfo.nombre}>
+                      {variationInfo.nombre}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate" title={variationInfo.codigo}>
+                      {variationInfo.codigo}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="flex justify-between mb-2">
                   <div>
                     <div className="text-xs text-gray-500">Cantidad</div>
                     <div
                       className={`text-sm font-medium ${
-                        m.type === "in"
+                        m.type === "in" || m.type === "initial"
                           ? "text-green-600"
                           : m.type === "out"
                           ? "text-red-600"
                           : "text-gray-600"
                       }`}
                     >
-                      {m.type === "in" ? "+" : m.type === "out" ? "-" : ""}
+                      {m.type === "in" || m.type === "initial" ? "+" : m.type === "out" ? "-" : ""}
                       {m.quantity}
                     </div>
                   </div>
@@ -366,6 +463,11 @@ export default function StockMovementsTable({
                   <div className="text-sm text-gray-700 break-words" title={m.reason}>
                     {m.reason}
                   </div>
+                  {m.notes && (
+                    <div className="text-xs text-gray-500 mt-1" title={m.notes}>
+                      {m.notes.length > 50 ? `${m.notes.substring(0, 50)}...` : m.notes}
+                    </div>
+                  )}
                 </div>
               </div>
             );

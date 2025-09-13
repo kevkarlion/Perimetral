@@ -15,74 +15,38 @@ export class StockService {
   ): Promise<any> {
     await dbConnect();
 
-
-    console.log('Creating movement with data:', movementData);
-    // ✅ VALIDACIÓN: variationId ahora es REQUERIDO
-    if (!movementData.variationId) {
-      throw new Error(
-        "VariationId es requerido para productos con variaciones"
-      );
-    }
+    console.log("Creating movement with data:", movementData);
 
     const productId = new Types.ObjectId(movementData.productId);
-    const variationId = new Types.ObjectId(movementData.variationId);
     const createdBy = movementData.createdBy
       ? new Types.ObjectId(movementData.createdBy)
       : undefined;
 
     // Obtener producto
     const product = await Product.findById(productId);
-    if (!product) {
-      throw new Error("Producto no encontrado");
-    }
+    if (!product) throw new Error("Producto no encontrado");
 
-    // ✅ Validar que el producto tenga variaciones
-    if (!product.tieneVariaciones) {
-      throw new Error("El producto no tiene variaciones habilitadas");
-    }
+    // Manejar variación si existe
+    let variationId: Types.ObjectId | undefined;
+    let variation: any = null;
 
-    if (!product.variaciones || product.variaciones.length === 0) {
-      throw new Error("El producto no tiene variaciones registradas");
-    }
-
-    let previousStock = 0;
-    let newStock = 0;
-
-    // 🔹 BÚSQUEDA COMPATIBLE CON INSERTONE - ¡ESTO ES LO MÁS IMPORTANTE!
-    const variation = product.variaciones.find(
-      (v: any) => v._id && v._id.toString() === movementData.variationId
-    );
-
-    if (!variation) {
+    if (movementData.variationId) {
+      variationId = new Types.ObjectId(movementData.variationId);
+      variation = product.variaciones.find(
+        (v: any) => v._id && v._id.toString() === movementData.variationId
+      );
+      if (!variation) throw new Error("Variación no encontrada");
+    } else if (product.tieneVariaciones) {
       throw new Error(
-        `Variación ${movementData.variationId} no encontrada en el producto`
+        "VariationId es requerido para productos con variaciones"
       );
     }
 
-    previousStock = variation.stock || 0;
+    // ✅ Usar los valores proporcionados directamente
+    const previousStock = movementData.previousStock;
+    const newStock = movementData.newStock;
 
-    // Calcular nuevo stock según el tipo de movimiento
-    switch (movementData.type) {
-      case "in":
-        newStock = previousStock + movementData.quantity;
-        break;
-      case "out":
-        newStock = Math.max(0, previousStock - movementData.quantity);
-        break;
-      case "adjustment":
-        newStock = movementData.quantity;
-        break;
-      default:
-        newStock = previousStock;
-    }
-
-    // Actualizar stock de la variación
-    variation.stock = newStock;
-
-    // 🔹 ¡CRÍTICO! Marcar el array como modificado
-    product.markModified("variaciones");
-
-    // Crear el movimiento de stock
+    // ✅ Crear el movimiento con la información completa
     const movement = new StockMovement({
       ...movementData,
       productId,
@@ -90,15 +54,32 @@ export class StockService {
       createdBy,
       previousStock,
       newStock,
+      productName: movementData.productName || product.nombre,
+      productCode: movementData.productCode || product.codigoPrincipal,
+      categoryName:
+        movementData.categoryName ||
+        (product.categoria && typeof product.categoria === "object"
+          ? product.categoria.nombre
+          : ""),
+      variationName: movementData.variationName || variation?.nombre || "",
+      variationCode: movementData.variationCode || variation?.codigo || "",
     });
 
-    // Guardar ambos en una transacción
     const session = await StockMovement.startSession();
     session.startTransaction();
 
     try {
       await movement.save({ session });
+
+      // ✅ Actualizar el stock en el producto/variación
+      if (variation) {
+        variation.stock = newStock;
+      } else {
+        product.stock = newStock;
+      }
+
       await product.save({ session });
+
       await session.commitTransaction();
       session.endSession();
 
@@ -109,6 +90,7 @@ export class StockService {
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
+      console.error("Error saving stock movement:", error);
       throw error;
     }
   }
@@ -125,6 +107,9 @@ export class StockService {
       productId,
       variationId,
       type,
+      productName,
+      categoryName,
+      variationName,
       startDate,
       endDate,
       page = 1,
@@ -133,10 +118,20 @@ export class StockService {
 
     const matchStage: any = {};
 
+    // Filtros por IDs
     if (productId) matchStage.productId = new Types.ObjectId(productId);
     if (variationId) matchStage.variationId = new Types.ObjectId(variationId);
     if (type) matchStage.type = type;
 
+    // Filtros por nombres (búsqueda case-insensitive)
+    if (productName)
+      matchStage.productName = { $regex: productName, $options: "i" };
+    if (categoryName)
+      matchStage.categoryName = { $regex: categoryName, $options: "i" };
+    if (variationName)
+      matchStage.variationName = { $regex: variationName, $options: "i" };
+
+    // Filtros por fecha
     if (startDate || endDate) {
       matchStage.createdAt = {};
       if (startDate) matchStage.createdAt.$gte = new Date(startDate);
@@ -145,98 +140,9 @@ export class StockService {
 
     const skip = (page - 1) * limit;
 
-    // Pipeline de agregación corregido
+    // Pipeline MUY SIMPLIFICADO - solo filtros y paginación
     const pipeline: any[] = [
       { $match: matchStage },
-      {
-        $lookup: {
-          from: "products",
-          localField: "productId",
-          foreignField: "_id",
-          as: "productData",
-        },
-      },
-      {
-        $addFields: {
-          product: { $arrayElemAt: ["$productData", 0] },
-        },
-      },
-      {
-        $addFields: {
-          // Para productos CON variaciones: buscar la variación específica
-          variation: {
-            $cond: {
-              if: { $eq: ["$product.tieneVariaciones", true] },
-              then: {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: "$product.variaciones",
-                      as: "variacion",
-                      cond: { $eq: ["$$variacion._id", "$variationId"] },
-                    },
-                  },
-                  0,
-                ],
-              },
-              // Para productos SIN variaciones: crear objeto con datos del producto
-              else: {
-                $cond: {
-                  if: { $ne: ["$variationId", null] },
-                  then: null, // Si hay variationId pero el producto no tiene variaciones, es inconsistencia
-                  else: {
-                    codigo: "$product.codigoPrincipal",
-                    medida: "$product.medida",
-                    precio: "$product.precio",
-                    stock: "$product.stock",
-                    stockMinimo: "$product.stockMinimo",
-                    atributos: {},
-                    imagenes: [],
-                    activo: "$product.activo",
-                    _id: "$product._id",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          productData: 0,
-          "product.variaciones": 0,
-          // NO eliminar estos campos aquí, se necesitan para la lógica anterior
-          // "product.precio": 0,
-          // "product.stock": 0,
-          // "product.stockMinimo": 0,
-          // "product.medida": 0
-        },
-      },
-      // Ahora sí, después de usar los campos, podemos limpiar el producto
-      {
-        $project: {
-          product: {
-            _id: 1,
-            codigoPrincipal: 1,
-            nombre: 1,
-            categoria: 1,
-            tieneVariaciones: 1,
-            descripcionCorta: 1,
-            // Mantener solo los campos esenciales del producto
-          },
-          variation: 1,
-          productId: 1,
-          variationId: 1,
-          type: 1,
-          quantity: 1,
-          previousStock: 1,
-          newStock: 1,
-          reason: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          __v: 1,
-        },
-      },
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit },
@@ -246,14 +152,6 @@ export class StockService {
       StockMovement.aggregate(pipeline).exec(),
       StockMovement.countDocuments(matchStage),
     ]);
-
-    console.log("Movimientos procesados:", movements);
-    console.log(
-      "Ejemplo movimiento sin variación:",
-      movements.find(
-        (m) => !m.variation && m.product && !m.product.tieneVariaciones
-      )
-    );
 
     return {
       movements,
@@ -272,17 +170,16 @@ export class StockService {
       .exec();
   }
 
-  
-static async getMovementsByVariationId(variationId: string): Promise<any[]> {
-  await dbConnect();
-  return StockMovement.find({ variationId: new Types.ObjectId(variationId) })
-    .populate("productId", "nombre codigoPrincipal")
-    .populate("createdBy", "email nombre")
-    .populate('variationId')   // incluye datos completos de la variación
-    .sort({ createdAt: 1 }) // opcional: ordena cronológicamente
-    .lean()
-    .exec();
-}
+  static async getMovementsByVariationId(variationId: string): Promise<any[]> {
+    await dbConnect();
+    return StockMovement.find({ variationId: new Types.ObjectId(variationId) })
+      .populate("productId", "nombre codigoPrincipal")
+      .populate("createdBy", "email nombre")
+      .populate("variationId") // incluye datos completos de la variación
+      .sort({ createdAt: 1 }) // opcional: ordena cronológicamente
+      .lean()
+      .exec();
+  }
 
   static async getCurrentStock(
     productId: string,
@@ -448,70 +345,128 @@ static async getMovementsByVariationId(variationId: string): Promise<any[]> {
     variationId?: string;
     stock: number;
     action?: "set" | "increment" | "decrement";
+    productName?: string;
+    productCode?: string;
+    categoryName?: string;
+    variationName?: string;
+    variationCode?: string;
+    currentStock?: number;
   }): Promise<any> {
     try {
-      const { productId, variationId, stock, action = "set" } = body;
-
-      console.log("Datos para actualizar stock:", {
+      const {
         productId,
         variationId,
         stock,
-        action,
-      });
+        action = "set",
+        productName,
+        productCode,
+        categoryName,
+        variationName,
+        variationCode,
+        currentStock,
+      } = body;
 
-      // Validaciones básicas
-      if (!productId) {
-        throw new Error("ID de producto requerido");
-      }
-
-      if (stock === undefined || stock === null) {
-        throw new Error("Valor de stock requerido");
-      }
-
-      const numericStock = Number(stock);
-      if (isNaN(numericStock) || numericStock < 0) {
-        throw new Error("Stock debe ser un número válido mayor o igual a 0");
-      }
-
-      // Obtener el producto para verificar si tiene variaciones
       await dbConnect();
+
       const product = await Product.findById(productId);
       if (!product) {
         throw new Error("Producto no encontrado");
       }
 
-      let movementData: any = {
-        productId,
-        type: "adjustment" as const,
-        quantity: numericStock,
-        reason: "manual_adjustment",
-      };
+      let targetStock: number;
+      let previousStock: number;
 
-      // Determinar el tipo de movimiento basado en la acción
-      if (action === "increment") {
-        movementData.type = "in";
-        movementData.reason = "manual_increment";
-      } else if (action === "decrement") {
-        movementData.type = "out";
-        movementData.reason = "manual_decrement";
-      }
-
-      // Si es una variación, agregar el variationId
+      // ✅ Manejar productos con y sin variaciones
       if (variationId) {
-        // Verificar que la variación existe
         const variation = product.variaciones.id(variationId);
         if (!variation) {
           throw new Error("Variación no encontrada");
         }
-        movementData.variationId = variationId;
-      } else if (product.tieneVariaciones) {
-        throw new Error(
-          "El producto tiene variaciones, especifique una variación"
-        );
+
+        previousStock =
+          currentStock !== undefined ? currentStock : variation.stock;
+
+        // ✅ Calcular nuevo stock según la acción
+        if (action === "set") {
+          targetStock = Number(stock);
+        } else if (action === "increment") {
+          targetStock = previousStock + Number(stock);
+        } else if (action === "decrement") {
+          targetStock = Math.max(0, previousStock - Number(stock));
+        } else {
+          throw new Error("Acción no válida");
+        }
+
+        // ✅ Actualizar el stock
+        variation.stock = targetStock;
+      } else {
+        // ✅ Producto sin variaciones
+        if (product.tieneVariaciones) {
+          throw new Error(
+            "El producto tiene variaciones, debe especificar variationId"
+          );
+        }
+
+        previousStock =
+          currentStock !== undefined ? currentStock : product.stock || 0;
+
+        if (action === "set") {
+          targetStock = Number(stock);
+        } else if (action === "increment") {
+          targetStock = previousStock + Number(stock);
+        } else if (action === "decrement") {
+          targetStock = Math.max(0, previousStock - Number(stock));
+        } else {
+          throw new Error("Acción no válida");
+        }
+
+        product.stock = targetStock;
       }
 
-      // Crear el movimiento de stock
-      return await StockService.createMovement(movementData);
+      await product.save();
+
+      // ✅ Registrar el movimiento con información completa
+      const movementData: StockMovementCreateData = {
+        productId,
+        variationId,
+        type:
+          action === "increment"
+            ? "in"
+            : action === "decrement"
+            ? "out"
+            : "adjustment",
+        quantity: Math.abs(Number(stock)),
+        reason:
+          action === "increment"
+            ? "manual_increment"
+            : action === "decrement"
+            ? "manual_decrement"
+            : "manual_adjustment",
+        previousStock: previousStock, // ✅ Stock anterior
+        newStock: targetStock, // ✅ Stock nuevo
+        productName: productName || product.nombre,
+        productCode: productCode || product.codigoPrincipal,
+        categoryName:
+          categoryName ||
+          (product.categoria && typeof product.categoria === "object"
+            ? product.categoria.nombre
+            : ""),
+        variationName:
+          variationName ||
+          (variationId ? product.variaciones.id(variationId)?.nombre : ""),
+        variationCode:
+          variationCode ||
+          (variationId ? product.variaciones.id(variationId)?.codigo : ""),
+      };
+
+      const movement = await StockService.createMovement(movementData);
+
+      return {
+        success: true,
+        previousStock,
+        newStock: targetStock,
+        movement,
+      };
     } catch (error) {
       console.error("Error en updateStock:", error);
       throw error;

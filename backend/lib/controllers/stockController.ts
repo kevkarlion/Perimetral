@@ -1,44 +1,55 @@
 // backend/lib/controllers/stockController.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { StockService } from '@/backend/lib/services/stockService';
-import { getCurrentAdmin } from '@/backend/lib/auth/auth';
-import { getCookiesFromRequest } from '@/backend/lib/utils/requestUtils';
-import { StockMovementCreateData, StockMovementFilter } from '@/types/stockTypes';
+import { Types } from "mongoose";
+import StockMovement from "@/backend/lib/models/StockMovement";
+import { NextRequest, NextResponse } from "next/server";
+import { StockService } from "@/backend/lib/services/stockService";
+import { getCurrentAdmin } from "@/backend/lib/auth/auth";
+import { getCookiesFromRequest } from "@/backend/lib/utils/requestUtils";
+import {
+  StockMovementCreateData,
+  StockMovementFilter,
+} from "@/types/stockTypes";
 
 export class StockController {
   static async createMovement(req: NextRequest) {
     try {
       // Obtener cookies de la request
       const cookies = getCookiesFromRequest(req);
-      
+
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
       if (!admin) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 }
         );
       }
 
-      
       const body = await req.json();
-      console.log('Admin creating movement:', body);
+      console.log("Admin creating movement:", body);
+
       const movementData: StockMovementCreateData = {
         ...body,
-        createdBy: admin._id.toString()
+        createdBy: admin._id.toString(),
       };
-      console.log('movementData', movementData);
+      console.log("movementData", movementData);
+      
       // Validaciones básicas
-      if (!movementData.productId || !movementData.type || !movementData.quantity || !movementData.reason) {
+      if (
+        !movementData.productId ||
+        !movementData.type ||
+        !movementData.quantity ||
+        !movementData.reason
+      ) {
         return NextResponse.json(
-          { success: false, error: 'Datos incompletos' },
+          { success: false, error: "Datos incompletos" },
           { status: 400 }
         );
       }
 
       if (movementData.quantity <= 0) {
         return NextResponse.json(
-          { success: false, error: 'La cantidad debe ser mayor a 0' },
+          { success: false, error: "La cantidad debe ser mayor a 0" },
           { status: 400 }
         );
       }
@@ -47,128 +58,24 @@ export class StockController {
 
       return NextResponse.json({
         success: true,
-        data: movement
+        data: movement,
       });
     } catch (error: any) {
-      console.error('Error creating stock movement:', error);
+      console.error("Error creating stock movement:", error);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
+        {
+          success: false,
+          error: error.message || "Error interno del servidor",
         },
         { status: 500 }
       );
     }
   }
 
-
-  
-  static async getMovements(req: NextRequest) {
-  console.log('Obtener movimientos desde getMovements')
+  // backend/lib/controllers/stockController.ts
+static async getMovements(filter: StockMovementFilter, req: NextRequest) {
   try {
-    // Obtener cookies de la request
-    const cookies = getCookiesFromRequest(req);
-    
-    // Verificar autenticación usando tu sistema
-    const admin = await getCurrentAdmin(cookies);
-    console.log('admin', admin)
-    if (!admin) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(req.url);
-    const filter: StockMovementFilter = {
-      productId: searchParams.get('productId') || undefined,
-      variationId: searchParams.get('variationId') || undefined,
-      type: searchParams.get('type') as any || undefined,
-      page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '20')
-    };
-
-    // Parsear fechas si están presentes
-    if (searchParams.get('startDate')) {
-      filter.startDate = new Date(searchParams.get('startDate')!);
-    }
-    if (searchParams.get('endDate')) {
-      filter.endDate = new Date(searchParams.get('endDate')!);
-    }
-
-    const result = await StockService.getMovements(filter);
-    
-    // Transformar los datos para la respuesta
-    const formattedMovements = result.movements.map((movement: any) => ({
-      _id: movement._id,
-      type: movement.type,
-      quantity: movement.quantity,
-      previousStock: movement.previousStock,
-      newStock: movement.newStock,
-      reason: movement.reason,
-      createdAt: movement.createdAt,
-      updatedAt: movement.updatedAt,
-      
-      // Información del producto
-      product: movement.product ? {
-        _id: movement.product._id,
-        codigoPrincipal: movement.product.codigoPrincipal,
-        nombre: movement.product.nombre,
-        categoria: movement.product.categoria,
-        medida: movement.product.medida,
-        tieneVariaciones: movement.product.tieneVariaciones
-      } : null,
-      
-      // Información completa de la variación
-      variation: movement.variation ? {
-        _id: movement.variation._id,
-        codigo: movement.variation.codigo,
-        medida: movement.variation.medida,
-        precio: movement.variation.precio,
-        stock: movement.variation.stock,
-        stockMinimo: movement.variation.stockMinimo,
-        atributos: movement.variation.atributos,
-        imagenes: movement.variation.imagenes,
-        activo: movement.variation.activo
-      } : null,
-      
-      // Información del usuario si existe
-      createdByUser: movement.createdByUser ? {
-        _id: movement.createdByUser._id,
-        email: movement.createdByUser.email,
-        nombre: movement.createdByUser.nombre
-      } : null
-    }));
-
-    console.log('Movimientos formateados:', formattedMovements);
-
-    
-    return NextResponse.json({
-      success: true,
-      data: formattedMovements,
-      pagination: {
-        page: result.page,
-        limit: filter.limit!,
-        total: result.total,
-        pages: result.pages
-      }
-    });
-    
-  } catch (error: any) {
-    console.error('Error getting stock movements:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Error interno del servidor' 
-      },
-      { status: 500 }
-    );
-  }
-}
-
-  static async getMovementsByVariationId(req: NextRequest, variationId: string) {
-  try {
-    // Obtener cookies de la request
+    // Obtener cookies de la request desde el NextRequest
     const cookies = getCookiesFromRequest(req);
 
     // Verificar autenticación usando tu sistema
@@ -180,18 +87,75 @@ export class StockController {
       );
     }
 
-    const movements = await StockService.getMovementsByVariationId(variationId);
+    console.log("Admin autorizado, obteniendo movimientos con filter:", filter);
 
-    if (!movements || movements.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "No se encontraron movimientos para esta variación" },
-        { status: 404 }
-      );
-    }
+    // Usar el servicio para obtener los movimientos
+    const result = await StockService.getMovements(filter);
+
+    // Transformar los datos para la respuesta
+    const formattedMovements = result.movements.map((movement: any) => ({
+      _id: movement._id,
+      productId: movement.productId,
+      variationId: movement.variationId,
+      type: movement.type,
+      quantity: movement.quantity,
+      previousStock: movement.previousStock,
+      newStock: movement.newStock,
+      reason: movement.reason,
+      notes: movement.notes,
+      reference: movement.reference,
+      createdAt: movement.createdAt,
+      updatedAt: movement.updatedAt,
+      productName: movement.productName,
+      productCode: movement.productCode,
+      categoryName: movement.categoryName,
+      variationName: movement.variationName,
+      variationCode: movement.variationCode,
+
+      // MANTENER COMPATIBILIDAD
+      productInfo: {
+        _id: movement.productId,
+        nombre: movement.productName,
+        codigoPrincipal: movement.productCode,
+        categoria: movement.categoryName,
+      },
+      variationInfo: movement.variationId ? {
+        _id: movement.variationId,
+        nombre: movement.variationName,
+        codigo: movement.variationCode,
+      } : null,
+      product: {
+        _id: movement.productId,
+        codigoPrincipal: movement.productCode,
+        nombre: movement.productName,
+        categoria: movement.categoryName,
+        medida: "",
+        tieneVariaciones: true,
+      },
+      variation: movement.variationId ? {
+        _id: movement.variationId,
+        codigo: movement.variationCode,
+        medida: "",
+        precio: 0,
+        stock: movement.newStock,
+        stockMinimo: 0,
+        atributos: [],
+        imagenes: [],
+        activo: true,
+      } : null,
+    }));
+
+    console.log("Movimientos formateados:", formattedMovements.length, "encontrados");
 
     return NextResponse.json({
       success: true,
-      data: movements,
+      data: formattedMovements,
+      pagination: {
+        page: result.page,
+        limit: filter.limit!,
+        total: result.total,
+        pages: result.pages,
+      },
     });
   } catch (error: any) {
     console.error("Error getting stock movements:", error);
@@ -205,27 +169,82 @@ export class StockController {
   }
 }
 
-  static async getCurrentStock(req: NextRequest) {
+
+
+
+  static async getMovementsByVariationId(req: NextRequest) {
     try {
       // Obtener cookies de la request
       const cookies = getCookiesFromRequest(req);
-      
+
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
       if (!admin) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 }
         );
       }
 
       const { searchParams } = new URL(req.url);
-      const productId = searchParams.get('productId');
-      const variationId = searchParams.get('variationId') || undefined;
+      const variationId = searchParams.get("variationId");
+      
+      if (!variationId) {
+        return NextResponse.json(
+          { success: false, error: "variationId es requerido" },
+          { status: 400 }
+        );
+      }
+
+      const movements = await StockService.getMovementsByVariationId(variationId);
+
+      if (!movements || movements.length === 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "No se encontraron movimientos para esta variación",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: movements,
+      });
+    } catch (error: any) {
+      console.error("Error getting stock movements:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message || "Error interno del servidor",
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  static async getCurrentStock(req: NextRequest) {
+    try {
+      // Obtener cookies de la request
+      const cookies = getCookiesFromRequest(req);
+
+      // Verificar autenticación usando tu sistema
+      const admin = await getCurrentAdmin(cookies);
+      if (!admin) {
+        return NextResponse.json(
+          { success: false, error: "No autorizado" },
+          { status: 401 }
+        );
+      }
+
+      const { searchParams } = new URL(req.url);
+      const productId = searchParams.get("productId");
+      const variationId = searchParams.get("variationId") || undefined;
 
       if (!productId) {
         return NextResponse.json(
-          { success: false, error: 'productId es requerido' },
+          { success: false, error: "productId es requerido" },
           { status: 400 }
         );
       }
@@ -234,14 +253,14 @@ export class StockController {
 
       return NextResponse.json({
         success: true,
-        data: stockLevel
+        data: stockLevel,
       });
     } catch (error: any) {
-      console.error('Error getting current stock:', error);
+      console.error("Error getting current stock:", error);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
+        {
+          success: false,
+          error: error.message || "Error interno del servidor",
         },
         { status: 500 }
       );
@@ -251,34 +270,34 @@ export class StockController {
   static async getLowStockItems(req: NextRequest) {
     try {
       // Obtener cookies de la request
-      const cookies = getCookiesFromRequest(req); 
-      
+      const cookies = getCookiesFromRequest(req);
+
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
-      console.log('Admin:', admin);
+      console.log("Admin:", admin);
       if (!admin) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 }
         );
       }
 
       const { searchParams } = new URL(req.url);
-      const threshold = parseInt(searchParams.get('threshold') || '5');
+      const threshold = parseInt(searchParams.get("threshold") || "5");
 
       const lowStockItems = await StockService.getLowStockItems(threshold);
 
       return NextResponse.json({
         success: true,
         data: lowStockItems,
-        count: lowStockItems.length
+        count: lowStockItems.length,
       });
     } catch (error: any) {
-      console.error('Error getting low stock items:', error);
+      console.error("Error getting low stock items:", error);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
+        {
+          success: false,
+          error: error.message || "Error interno del servidor",
         },
         { status: 500 }
       );
@@ -289,24 +308,24 @@ export class StockController {
     try {
       // Obtener cookies de la request
       const cookies = getCookiesFromRequest(req);
-      
+
       // Verificar autenticación usando tu sistema
       const admin = await getCurrentAdmin(cookies);
       if (!admin) {
         return NextResponse.json(
-          { success: false, error: 'No autorizado' },
+          { success: false, error: "No autorizado" },
           { status: 401 }
         );
       }
 
       const { searchParams } = new URL(req.url);
-      const productId = searchParams.get('productId');
-      const variationId = searchParams.get('variationId') || undefined;
-      const days = parseInt(searchParams.get('days') || '30');
+      const productId = searchParams.get("productId");
+      const variationId = searchParams.get("variationId") || undefined;
+      const days = parseInt(searchParams.get("days") || "30");
 
       if (!productId) {
         return NextResponse.json(
-          { success: false, error: 'productId es requerido' },
+          { success: false, error: "productId es requerido" },
           { status: 400 }
         );
       }
@@ -315,14 +334,14 @@ export class StockController {
 
       return NextResponse.json({
         success: true,
-        data: history
+        data: history,
       });
     } catch (error: any) {
-      console.error('Error getting stock history:', error);
+      console.error("Error getting stock history:", error);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message || 'Error interno del servidor' 
+        {
+          success: false,
+          error: error.message || "Error interno del servidor",
         },
         { status: 500 }
       );
