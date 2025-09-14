@@ -341,135 +341,172 @@ export class StockService {
   }
 
   static async updateStock(body: {
-    productId: string;
-    variationId?: string;
-    stock: number;
-    action?: "set" | "increment" | "decrement";
-    productName?: string;
-    productCode?: string;
-    categoryName?: string;
-    variationName?: string;
-    variationCode?: string;
-    currentStock?: number;
-  }): Promise<any> {
-    try {
-      const {
-        productId,
-        variationId,
-        stock,
-        action = "set",
-        productName,
-        productCode,
-        categoryName,
-        variationName,
-        variationCode,
-        currentStock,
-      } = body;
+  productId: string;
+  variationId?: string;
+  stock: number;
+  action?: "set" | "increment" | "decrement";
+  productName?: string;
+  productCode?: string;
+  categoryName?: string;
+  variationName?: string;
+  variationCode?: string;
+  currentStock?: number;
+}): Promise<any> {
+  try {
+    const {
+      productId,
+      variationId,
+      stock,
+      action = "set",
+      productName,
+      productCode,
+      categoryName,
+      variationName,
+      variationCode,
+      currentStock,
+    } = body;
 
-      await dbConnect();
+    await dbConnect();
 
-      const product = await Product.findById(productId);
-      if (!product) {
-        throw new Error("Producto no encontrado");
-      }
+    // ✅ Log de entrada
+    console.log('📦 updateStock called with:', {
+      productId,
+      variationId,
+      stock,
+      action,
+      hasVariationId: !!variationId
+    });
 
-      let targetStock: number;
-      let previousStock: number;
-
-      // ✅ Manejar productos con y sin variaciones
-      if (variationId) {
-        const variation = product.variaciones.id(variationId);
-        if (!variation) {
-          throw new Error("Variación no encontrada");
-        }
-
-        previousStock =
-          currentStock !== undefined ? currentStock : variation.stock;
-
-        // ✅ Calcular nuevo stock según la acción
-        if (action === "set") {
-          targetStock = Number(stock);
-        } else if (action === "increment") {
-          targetStock = previousStock + Number(stock);
-        } else if (action === "decrement") {
-          targetStock = Math.max(0, previousStock - Number(stock));
-        } else {
-          throw new Error("Acción no válida");
-        }
-
-        // ✅ Actualizar el stock
-        variation.stock = targetStock;
-      } else {
-        // ✅ Producto sin variaciones
-        if (product.tieneVariaciones) {
-          throw new Error(
-            "El producto tiene variaciones, debe especificar variationId"
-          );
-        }
-
-        previousStock =
-          currentStock !== undefined ? currentStock : product.stock || 0;
-
-        if (action === "set") {
-          targetStock = Number(stock);
-        } else if (action === "increment") {
-          targetStock = previousStock + Number(stock);
-        } else if (action === "decrement") {
-          targetStock = Math.max(0, previousStock - Number(stock));
-        } else {
-          throw new Error("Acción no válida");
-        }
-
-        product.stock = targetStock;
-      }
-
-      await product.save();
-
-      // ✅ Registrar el movimiento con información completa
-      const movementData: StockMovementCreateData = {
-        productId,
-        variationId,
-        type:
-          action === "increment"
-            ? "in"
-            : action === "decrement"
-            ? "out"
-            : "adjustment",
-        quantity: Math.abs(Number(stock)),
-        reason:
-          action === "increment"
-            ? "manual_increment"
-            : action === "decrement"
-            ? "manual_decrement"
-            : "manual_adjustment",
-        previousStock: previousStock, // ✅ Stock anterior
-        newStock: targetStock, // ✅ Stock nuevo
-        productName: productName || product.nombre,
-        productCode: productCode || product.codigoPrincipal,
-        categoryName:
-          categoryName ||
-          (product.categoria && typeof product.categoria === "object"
-            ? product.categoria.nombre
-            : ""),
-        variationName:
-          variationName ||
-          (variationId ? product.variaciones.id(variationId)?.nombre : ""),
-        variationCode:
-          variationCode ||
-          (variationId ? product.variaciones.id(variationId)?.codigo : ""),
-      };
-
-      const movement = await StockService.createMovement(movementData);
-
-      return {
-        success: true,
-        previousStock,
-        newStock: targetStock,
-        movement,
-      };
-    } catch (error) {
-      console.error("Error en updateStock:", error);
-      throw error;
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error("Producto no encontrado");
     }
+
+    // ✅ Log del producto
+    console.log('📊 Product data:', {
+      name: product.nombre,
+      tieneVariaciones: product.tieneVariaciones,
+      variacionesCount: product.variaciones?.length || 0,
+      variaciones: product.variaciones?.map(v => ({
+        _id: v._id?.toString(),
+        nombre: v.nombre,
+        codigo: v.codigo
+      }))
+    });
+
+    let targetStock: number;
+    let previousStock: number;
+    let finalVariationId = variationId;
+
+    // ✅ NUEVA LÓGICA: Si el producto tiene variaciones pero no se proporciona variationId,
+    // usar la primera variación como default
+    if (product.tieneVariaciones && !variationId) {
+      console.log('🔄 Producto tiene variaciones pero variationId es undefined');
+      if (product.variaciones && product.variaciones.length > 0) {
+        finalVariationId = product.variaciones[0]._id?.toString();
+        console.log(`✅ Usando primera variación como default: ${finalVariationId}`);
+      } else {
+        console.log('❌ Producto marca tener variaciones pero no tiene variaciones');
+        throw new Error("El producto marca tener variaciones pero no tiene ninguna variación registrada");
+      }
+    }
+
+    console.log('🎯 finalVariationId:', finalVariationId);
+
+    // ✅ Manejar productos con variaciones
+    if (finalVariationId) {
+      const variation = product.variaciones.id(finalVariationId);
+      if (!variation) {
+        throw new Error("Variación no encontrada");
+      }
+
+      previousStock =
+        currentStock !== undefined ? currentStock : variation.stock;
+
+      // ✅ Calcular nuevo stock según la acción
+      if (action === "set") {
+        targetStock = Number(stock);
+      } else if (action === "increment") {
+        targetStock = previousStock + Number(stock);
+      } else if (action === "decrement") {
+        targetStock = Math.max(0, previousStock - Number(stock));
+      } else {
+        throw new Error("Acción no válida");
+      }
+
+      // ✅ Actualizar el stock
+      variation.stock = targetStock;
+    } else {
+      // ✅ Producto sin variaciones
+      if (product.tieneVariaciones) {
+        throw new Error(
+          "El producto tiene variaciones, debe especificar variationId"
+        );
+      }
+
+      previousStock =
+        currentStock !== undefined ? currentStock : product.stock || 0;
+
+      if (action === "set") {
+        targetStock = Number(stock);
+      } else if (action === "increment") {
+        targetStock = previousStock + Number(stock);
+      } else if (action === "decrement") {
+        targetStock = Math.max(0, previousStock - Number(stock));
+      } else {
+        throw new Error("Acción no válida");
+      }
+
+      product.stock = targetStock;
+    }
+
+    await product.save();
+
+    // ✅ Registrar el movimiento con información completa
+    const movementData: StockMovementCreateData = {
+      productId,
+      variationId: finalVariationId, // ✅ Usar finalVariationId en lugar de variationId
+      type:
+        action === "increment"
+          ? "in"
+          : action === "decrement"
+          ? "out"
+          : "adjustment",
+      quantity: Math.abs(Number(stock)),
+      reason:
+        action === "increment"
+          ? "manual_increment"
+          : action === "decrement"
+          ? "manual_decrement"
+          : "manual_adjustment",
+      previousStock: previousStock, // ✅ Stock anterior
+      newStock: targetStock, // ✅ Stock nuevo
+      productName: productName || product.nombre,
+      productCode: productCode || product.codigoPrincipal,
+      categoryName:
+        categoryName ||
+        (product.categoria && typeof product.categoria === "object"
+          ? product.categoria.nombre
+          : ""),
+      variationName:
+        variationName ||
+        (finalVariationId ? product.variaciones.id(finalVariationId)?.nombre : ""),
+      variationCode:
+        variationCode ||
+        (finalVariationId ? product.variaciones.id(finalVariationId)?.codigo : ""),
+    };
+
+    const movement = await StockService.createMovement(movementData);
+
+    return {
+      success: true,
+      previousStock,
+      newStock: targetStock,
+      movement,
+    };
+  } catch (error) {
+    console.error("Error en updateStock:", error);
+    throw error;
   }
+}
 }

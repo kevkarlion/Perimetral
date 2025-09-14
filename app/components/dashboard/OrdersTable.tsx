@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import React from "react";
-import { IOrder } from "@/types/orderTypes";
+import { IOrder, IOrderItem } from "@/types/orderTypes";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -20,7 +20,17 @@ import {
   Save,
   Percent,
   DollarSign,
+  Package,
 } from "lucide-react";
+import { Types } from "mongoose";
+
+// Extender la interfaz IOrderItem para incluir los campos opcionales
+interface ExtendedOrderItem extends IOrderItem {
+  variationName?: string;
+  variationCode?: string;
+  productName?: string;
+  productCode?: string;
+}
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -35,6 +45,7 @@ export default function OrdersTable() {
   const [saving, setSaving] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [orderToUpdate, setOrderToUpdate] = useState<string | null>(null);
+  const [updatingStock, setUpdatingStock] = useState<string | null>(null);
   const ordersPerPage = 10;
 
   useEffect(() => {
@@ -171,67 +182,176 @@ export default function OrdersTable() {
     return originalTotal - (originalTotal * discount / 100);
   };
 
+  // ✅ NUEVA FUNCIÓN: Actualizar stock cuando se completa una orden
+ const updateStockFromOrder = async (order: IOrder) => {
+  setUpdatingStock(order._id);
+  console.log('order desdeORders', order)
+  
+  try {
+    // Procesar cada item de la orden
+    for (const item of order.items) {
+      try {
+        // Convertir ObjectId a string si es necesario - PARA productId
+        const productId = safeIdToString(item.productId);
+        
+        // ✅ CONVERTIR variationId DE FORMA SEGURA - ESTA ES LA CLAVE
+        let variationId: string | undefined = undefined;
+        
+        if (item.variationId) {
+          variationId = safeIdToString(item.variationId);
+        } else {
+          // ✅ SI NO HAY variationId, USAR EL productId COMO variationId
+          // Esto funciona si manejas productos sin variaciones como una variación única
+          variationId = productId;
+          console.log(`ℹ️  Usando productId como variationId para: ${item.name}`);
+        }
+
+        const updateData = {
+          productId,
+          variationId, // ✅ Ahora siempre tendrá un valor
+          stock: item.quantity,
+          action: 'decrement' as const,
+          productName: item.name,
+          productCode: item.sku,
+        };
+
+        console.log('Enviando actualización de stock:', updateData);
+
+        const response = await fetch('/api/stock', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Error al actualizar stock para: ${item.name} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || 'Error al actualizar stock');
+        }
+
+        console.log(`✅ Stock actualizado para: ${item.name}`);
+
+      } catch (itemError) {
+        console.error(`❌ Error procesando item "${item.name}":`, itemError);
+        // Continuar con los siguientes items aunque falle uno
+        continue;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error en updateStockFromOrder:', error);
+    throw error;
+  } finally {
+    setUpdatingStock(null);
+  }
+};
+
+
   const confirmUpdateOrder = (orderId: string) => {
+    console.log("Preparing to update order:", orderId);
     setOrderToUpdate(orderId);
     setShowConfirmDialog(true);
   };
 
-const updateOrder = async () => {
-  if (!orderToUpdate) return;
-  setSaving(orderToUpdate);
-  setShowConfirmDialog(false);
-  
-  try {
-    const edits = orderEdits[orderToUpdate];
-    const order = orders.find(o => o._id === orderToUpdate);
+  const updateOrder = async () => {
+    if (!orderToUpdate) return;
+    setSaving(orderToUpdate);
+    setShowConfirmDialog(false);
+    
+    try {
+      const edits = orderEdits[orderToUpdate];
+      const order = orders.find(o => o._id === orderToUpdate);
 
-    if (!order) {
-      throw new Error("Orden no encontrada");
-    }
+      if (!order) {
+        throw new Error("Orden no encontrada");
+      }
 
-    const updatedData = {
-      status: edits.status,
-      discount: edits.discount,
-      total: calculateDiscountedTotal(
-        orderToUpdate,
-        edits.originalTotal || order.total
-      ),
-    };
+      const updatedData = {
+        status: edits.status,
+        discount: edits.discount,
+        total: calculateDiscountedTotal(
+          orderToUpdate,
+          edits.originalTotal || order.total
+        ),
+      };
 
-    const response = await fetch(`/api/orders/${order.accessToken}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: updatedData.status,
-        additionalData: {
-          discount: updatedData.discount,
-          total: updatedData.total,
+      // ✅ ACTUALIZAR STOCK SI EL ESTADO CAMBIA A "COMPLETED"
+      if (edits.status === 'completed' && order.status !== 'completed') {
+        console.log('Orden completada, actualizando stock...');
+        await updateStockFromOrder(order);
+      }
+
+      const response = await fetch(`/api/orders/${order.accessToken}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          status: updatedData.status,
+          additionalData: {
+            discount: updatedData.discount,
+            total: updatedData.total,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error("Error al actualizar la orden");
+      if (!response.ok) {
+        throw new Error("Error al actualizar la orden");
+      }
+
+      await fetchOrders();
+
+      setEditingOrder(null);
+      const newEdits = { ...orderEdits };
+      delete newEdits[orderToUpdate];
+      setOrderEdits(newEdits);
+
+      alert('Orden actualizada y stock modificado correctamente');
+
+    } catch (error) {
+      console.error("Error updating order:", error);
+      alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
+    } finally {
+      setSaving(null);
+      setOrderToUpdate(null);
     }
+  };
 
-    await fetchOrders();
-
-    setEditingOrder(null);
-    const newEdits = { ...orderEdits };
-    delete newEdits[orderToUpdate];
-    setOrderEdits(newEdits);
-
-  } catch (error) {
-    console.error("Error updating order:", error);
-    alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
-  } finally {
-    setSaving(null);
-    setOrderToUpdate(null);
+  // Función para convertir ObjectId a string de forma segura
+  // ✅ MEJORAR LA FUNCIÓN safeIdToString PARA MANEJAR MÁS CASOS
+const safeIdToString = (id: any): string => {
+  if (!id) {
+    console.warn('⚠️ safeIdToString recibió valor null/undefined');
+    return '';
   }
+  
+  if (typeof id === 'string') {
+    // Verificar si es un ObjectId string válido (24 caracteres hex)
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      return id;
+    }
+    return id; // Devolver igual aunque no sea ObjectId válido
+  }
+  
+  if (typeof id === 'object') {
+    if ('_id' in id && id._id) {
+      return id._id.toString();
+    }
+    if ('toString' in id) {
+      return id.toString();
+    }
+  }
+  
+  console.warn('⚠️ safeIdToString: tipo no manejado', typeof id, id);
+  return String(id);
 };
-
   // Generar números de página para mostrar
   const getPageNumbers = () => {
     const pageNumbers = [];
@@ -504,11 +624,11 @@ const updateOrder = async () => {
                               <>
                                 <button
                                   onClick={() => confirmUpdateOrder(order._id)}
-                                  disabled={saving === order._id}
+                                  disabled={saving === order._id || updatingStock === order._id}
                                   className="text-green-600 hover:text-green-900 disabled:opacity-50"
                                   title="Guardar cambios"
                                 >
-                                  {saving === order._id ? (
+                                  {saving === order._id || updatingStock === order._id ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
                                   ) : (
                                     <Save className="h-5 w-5" />
@@ -516,7 +636,7 @@ const updateOrder = async () => {
                                 </button>
                                 <button
                                   onClick={() => cancelEditing(order._id)}
-                                  disabled={saving === order._id}
+                                  disabled={saving === order._id || updatingStock === order._id}
                                   className="text-red-600 hover:text-red-900 disabled:opacity-50"
                                   title="Cancelar edición"
                                 >
@@ -760,6 +880,12 @@ const updateOrder = async () => {
                                       <tr key={index}>
                                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                           {item.name}
+                                          {item.productId && (
+                                            <div className="text-xs text-gray-500 mt-1">
+                                              ID: {safeIdToString(item.productId)}
+                                              {item.variationId && ` | Variación: ${safeIdToString(item.variationId)}`}
+                                            </div>
+                                          )}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-500">
                                           {item.quantity}
@@ -1003,6 +1129,12 @@ const updateOrder = async () => {
                               <span>Cantidad: {item.quantity}</span>
                               <span>${item.price.toLocaleString("es-AR")} c/u</span>
                             </div>
+                            {item.productId && (
+                              <div className="text-xs text-gray-500 mt-2">
+                                <div>Product ID: {safeIdToString(item.productId)}</div>
+                                {item.variationId && <div>Variation ID: {safeIdToString(item.variationId)}</div>}
+                              </div>
+                            )}
                           </li>
                         ))}
                       </ul>
