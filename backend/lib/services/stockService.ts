@@ -387,7 +387,7 @@ export class StockService {
       name: product.nombre,
       tieneVariaciones: product.tieneVariaciones,
       variacionesCount: product.variaciones?.length || 0,
-      variaciones: product.variaciones?.map(v => ({
+      variaciones: product.variaciones?.map((v: any) => ({
         _id: v._id?.toString(),
         nombre: v.nombre,
         codigo: v.codigo
