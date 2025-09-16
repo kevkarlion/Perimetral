@@ -196,9 +196,13 @@ export default function ProductTable() {
                             key={index}
                             className="pb-2 border-b border-gray-200 last:border-b-0 last:pb-0"
                           >
-                            <div className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>{variation.medida || "Sin medida"}</span>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {variation.nombre || "Sin nombre"}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {variation.medida || "Sin medida"}
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -421,14 +425,17 @@ export default function ProductTable() {
                   {product.variaciones?.map((variation, index) => (
                     <div
                       key={index}
-                      className={`flex justify-between items-center p-2 rounded ${
+                      className={`flex flex-col p-2 rounded ${
                         variation.stock <= 0 ? "bg-red-50" : "bg-gray-50"
                       }`}
                     >
                       <span className="text-sm font-medium">
+                        {variation.nombre || "Sin nombre"}
+                      </span>
+                      <span className="text-xs text-gray-500">
                         {variation.medida || "Sin medida"}
                       </span>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 mt-1">
                         <span
                           className={`text-sm ${
                             variation.stock <= 0
@@ -478,7 +485,7 @@ export default function ProductTable() {
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4 mr-1"
                   viewBox="0 0 20 20"
-                  fill="currentColor"
+                  fill="CurrentColor"
                 >
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path

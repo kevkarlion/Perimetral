@@ -79,6 +79,19 @@ export default function ProductId({
       ? product.categoria
       : null;
 
+  // Función para verificar si no hay stock (4 unidades o menos)
+  const hasNoStock = (): boolean => {
+    if (!product) return false;
+    
+    // Si tiene variaciones, verificar la variación seleccionada
+    if (product.tieneVariaciones && selectedVariation) {
+      return selectedVariation.stock !== undefined && selectedVariation.stock <= 4;
+    }
+    
+    // Si no tiene variaciones, verificar el stock del producto base
+    return product.stock !== undefined && product.stock <= 4;
+  };
+
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
     if (!product) {
       return [
@@ -169,7 +182,7 @@ export default function ProductId({
   }, [id, initialProduct, getProductById, setCurrentProduct]);
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product || hasNoStock()) return;
 
     const imagenes = getSafeImages(product);
     const itemToAdd = {
@@ -289,6 +302,14 @@ export default function ProductId({
             <Star className="h-4 w-4 mr-1.5" /> DESTACADO
           </div>
         )}
+        
+        {/* Cartel de Sin Stock en móvil */}
+        {hasNoStock() && (
+          <div className="inline-flex items-center bg-red-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
+            SIN STOCK
+          </div>
+        )}
+        
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           {safeProduct.nombre}
           {selectedVariation && ` - ${selectedVariation.nombre}`}{" "}
@@ -316,6 +337,13 @@ export default function ProductId({
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
+              
+              {/* Cartel de Sin Stock en desktop */}
+              {hasNoStock() && (
+                <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10 shadow">
+                  SIN STOCK
+                </div>
+              )}
             </div>
           </div>
 
@@ -350,6 +378,14 @@ export default function ProductId({
                 <Star className="h-4 w-4 mr-1.5" /> DESTACADO
               </div>
             )}
+            
+            {/* Cartel de Sin Stock en desktop */}
+            {hasNoStock() && (
+              <div className="inline-flex items-center bg-red-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                SIN STOCK
+              </div>
+            )}
+            
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               {safeProduct.nombre}
               {selectedVariation && ` - ${selectedVariation.nombre}`}{" "}
@@ -405,9 +441,11 @@ export default function ProductId({
             <Button
               onClick={handleAddToCart}
               className="w-full h-12 text-base font-medium bg-balckHero hover:bg-blackCharcoal"
-              disabled={isAddedToCart || !product}
+              disabled={isAddedToCart || !product || hasNoStock()}
             >
-              {isAddedToCart ? (
+              {hasNoStock() ? (
+                "SIN STOCK"
+              ) : isAddedToCart ? (
                 <>
                   <Check className="h-5 w-5 mr-2" /> Añadido al carrito
                 </>
@@ -527,15 +565,17 @@ export default function ProductId({
         <Button
           onClick={handleAddToCart}
           className="flex-1 h-12 bg-brand"
-          disabled={isAddedToCart || !product}
+          disabled={isAddedToCart || !product || hasNoStock()}
         >
-          {isAddedToCart ? (
+          {hasNoStock() ? (
+            "SIN STOCK"
+          ) : isAddedToCart ? (
             <Check className="h-5 w-5" />
           ) : (
             <ShoppingCart className="h-5 w-5 text-black" />
           )}
           <span className="ml-2 text-black">
-            {isAddedToCart ? "Añadido" : "Comprar"}
+            {hasNoStock() ? "" : isAddedToCart ? "Añadido" : "Comprar"}
           </span>
         </Button>
         <Button asChild variant="outline" className="flex-1 h-12">

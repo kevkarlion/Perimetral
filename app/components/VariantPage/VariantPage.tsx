@@ -83,8 +83,6 @@ export default function VariantPage() {
     return null;
   };
 
-  console.log("Producto cargado en VariantPage:", product);
-
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
       <button
@@ -103,111 +101,120 @@ export default function VariantPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {product.variaciones.map((variante) => {
-  const firstImage = getFirstImage(variante);
-  
-  return (
-    <div
-      key={variante._id?.toString()}
-      className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full"
-    >
-      <div className="relative h-48 bg-gray-100">
-        {firstImage ? (
-          <Link
-            href={{
-              pathname: `/catalogo/variants/${variante._id}`,
-              query: { productId, productName: productName || product.nombre },
-            }}
-            className="block h-full w-full"
-          >
-            <Image
-              src={firstImage}
-              alt={`${variante.nombre || product.nombre}`}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </Link>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            Imagen no disponible
-          </div>
-        )}
-      </div>
+              const firstImage = getFirstImage(variante);
 
-      <div className="p-3 flex-grow flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <Link
-            href={{
-              pathname: `/catalogo/variants/${variante._id}`,
-              query: { productId, productName: productName || product.nombre },
-            }}
-            className="group-hover:text-brandHover transition-colors flex-grow"
-          >
-            <h3 className="text-sm font-semibold text-gray-900">
-              {variante.nombre}
-            </h3>
-          </Link>
-        </div>
+              // NUEVO: determinar si tiene poco stock
+              const sinStock = variante.stock !== undefined && variante.stock <= 3;
 
-        {/* Mostrar medida solo si existe y no está vacía */}
-        {variante.medida && variante.medida.trim() !== "" && (
-          <div className="mb-2">
-            <h4 className="text-xs text-gray-500 mb-1">Medida</h4>
-            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
-              {variante.medida}
-            </span>
-          </div>
-        )}
-
-        {/* Mostrar atributos dinámicos si no hay medida */}
-        {(!variante.medida || variante.medida.trim() === "") && 
-         variante.atributos && variante.atributos.length > 0 && (
-          <div className="mb-2">
-            <h4 className="text-xs text-gray-500 mb-1">Especificaciones</h4>
-            <div className="flex flex-wrap gap-1">
-              {variante.atributos.map((atributo, index) => (
-                <span 
-                  key={index}
-                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+              return (
+                <div
+                  key={variante._id?.toString()}
+                  className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full"
                 >
-                  {atributo.nombre}: {atributo.valor}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+                  <div className="relative h-48 bg-gray-100">
+                    {firstImage ? (
+                      <Link
+                        href={{
+                          pathname: `/catalogo/variants/${variante._id}`,
+                          query: { productId, productName: productName || product.nombre },
+                        }}
+                        className="block h-full w-full"
+                      >
+                        <Image
+                          src={firstImage}
+                          alt={`${variante.nombre || product.nombre}`}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      </Link>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                        Imagen no disponible
+                      </div>
+                    )}
 
-        {variante.precio && (
-          <div className="flex flex-col mt-2">
-            <span className="text-xs text-black">Precio</span>
-            <div className="flex items-center gap-1">
-              <span className="text-lg font-bold text-brand">
-                {formatPrice(variante.precio)}
-              </span>
-              {/* Mostrar uMedida si existe y no hay medida */}
-              {(!variante.medida || variante.medida.trim() === "") && variante.uMedida && (
-                <span className="text-xs text-gray-500">/{variante.uMedida}</span>
-              )}
-            </div>
-          </div>
-        )}
+                    {/* NUEVO: cartel de Sin Stock */}
+                    {sinStock && (
+                      <div className="absolute bottom-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10 shadow">
+                        Sin Stock
+                      </div>
+                    )}
+                  </div>
 
-        <div className="mt-auto pt-3 border-t border-gray-100">
-          <Link
-            href={{
-              pathname: `/catalogo/variants/${variante._id}`,
-              query: { productId, productName: productName || product.nombre },
-            }}
-            className="flex items-center text-xs font-medium text-brand hover:text-brandHover transition-colors group"
-          >
-            <span>Comprar</span>
-            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-})}
+                  <div className="p-3 flex-grow flex flex-col">
+                    <div className="flex justify-between items-start mb-2">
+                      <Link
+                        href={{
+                          pathname: `/catalogo/variants/${variante._id}`,
+                          query: { productId, productName: productName || product.nombre },
+                        }}
+                        className="group-hover:text-brandHover transition-colors flex-grow"
+                      >
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          {variante.nombre}
+                        </h3>
+                      </Link>
+                    </div>
+
+                    {variante.medida && variante.medida.trim() !== "" && (
+                      <div className="mb-2">
+                        <h4 className="text-xs text-gray-500 mb-1">Medida</h4>
+                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                          {variante.medida}
+                        </span>
+                      </div>
+                    )}
+
+                    {(!variante.medida || variante.medida.trim() === "") &&
+                      variante.atributos &&
+                      variante.atributos.length > 0 && (
+                        <div className="mb-2">
+                          <h4 className="text-xs text-gray-500 mb-1">Especificaciones</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {variante.atributos.map((atributo, index) => (
+                              <span
+                                key={index}
+                                className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                              >
+                                {atributo.nombre}: {atributo.valor}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                    {variante.precio && (
+                      <div className="flex flex-col mt-2">
+                        <span className="text-xs text-black">Precio</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-lg font-bold text-brand">
+                            {formatPrice(variante.precio)}
+                          </span>
+                          {(!variante.medida || variante.medida.trim() === "") &&
+                            variante.uMedida && (
+                              <span className="text-xs text-gray-500">/{variante.uMedida}</span>
+                            )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-auto pt-3 border-t border-gray-100">
+                      <Link
+                        href={{
+                          pathname: `/catalogo/variants/${variante._id}`,
+                          query: { productId, productName: productName || product.nombre },
+                        }}
+                        className="flex items-center text-xs font-medium text-brand hover:text-brandHover transition-colors group"
+                      >
+                        <span>Comprar</span>
+                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -221,7 +228,9 @@ export default function VariantPage() {
             Nuestros especialistas están disponibles para responder todas tus consultas.
           </p>
           <a
-            href={`https://wa.me/5492984392148?text=Hola,%20me%20interesa%20el%20producto:%20${encodeURIComponent(product.nombre)}`}
+            href={`https://wa.me/5492984392148?text=Hola,%20me%20interesa%20el%20producto:%20${encodeURIComponent(
+              product.nombre
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-1 bg-brand hover:bg-brandHover text-white font-bold py-2 px-6 rounded-md transition-all shadow-sm hover:shadow-md text-sm"
