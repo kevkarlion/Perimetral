@@ -11,6 +11,7 @@ import {
   Check,
   Star,
   ShoppingCart,
+  MessageCircle,
 } from "lucide-react";
 import { useCartStore } from "@/app/components/store/cartStore";
 import { useProductStore } from "@/app/components/store/product-store";
@@ -68,6 +69,7 @@ export default function ProductId({
   const [selectedVariation, setSelectedVariation] = useState<IVariation | null>(
     null
   );
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 
   const addItem = useCartStore((state) => state.addItem);
 
@@ -90,6 +92,24 @@ export default function ProductId({
     
     // Si no tiene variaciones, verificar el stock del producto base
     return product.stock !== undefined && product.stock <= 4;
+  };
+
+  // Función para generar el mensaje de WhatsApp
+  const generateWhatsAppMessage = (): string => {
+    const productName = product?.nombre || "Producto";
+    const variationName = selectedVariation?.nombre ? ` - ${selectedVariation.nombre}` : "";
+    const fullProductName = `${productName}${variationName}`;
+    
+    return encodeURIComponent(`Hola, quisiera saber cuando tengas nuevamente stock del siguiente producto: ${fullProductName}`);
+  };
+
+  // Función para abrir WhatsApp con el mensaje preconfigurado
+  const openWhatsApp = () => {
+    // Reemplaza este número con el número de tu negocio (en formato internacional sin +)
+    const phoneNumber = "542984252859";
+    const message = generateWhatsAppMessage();
+    
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
   };
 
   const getSafeImages = (product: IProduct | null): ProductImage[] => {
@@ -154,6 +174,7 @@ export default function ProductId({
       try {
         setLoading(true);
         setError(null);
+        setIsFullyLoaded(false);
 
         const response = await fetch(`${process.env.BASE_URL}/api/stock/${id}`);
 
@@ -174,12 +195,28 @@ export default function ProductId({
         setError(err instanceof Error ? err.message : "Error desconocido");
         setProduct(null);
       } finally {
-        setLoading(false);
+        // Pequeño delay para asegurar que todo esté renderizado
+        setTimeout(() => {
+          setLoading(false);
+          setIsFullyLoaded(true);
+        }, 100);
       }
     };
 
     fetchProduct();
   }, [id, initialProduct, getProductById, setCurrentProduct]);
+
+  // Efecto para marcar cuando todo está completamente cargado
+  useEffect(() => {
+    if (product && !loading) {
+      // Pequeño delay para asegurar que todo esté renderizado
+      const timer = setTimeout(() => {
+        setIsFullyLoaded(true);
+      }, 50);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [product, loading, selectedVariation]);
 
   const handleAddToCart = () => {
     if (!product || hasNoStock()) return;
@@ -220,9 +257,10 @@ export default function ProductId({
   const specsToShow = safeProduct.especificacionesTecnicas || [];
   const variationAttributes = selectedVariation?.atributos || [];
 
-  console.log("ProductId render:", { product, selectedVariation, variationId });
+  console.log("ProductId render:", { product, selectedVariation, variationId, loading, isFullyLoaded });
 
-  if (loading) {
+  // Mostrar skeleton hasta que todo esté completamente cargado
+  if (loading || !isFullyLoaded) {
     return <ProductIdSkeleton />;
   }
 
@@ -455,6 +493,17 @@ export default function ProductId({
                 </>
               )}
             </Button>
+
+            {/* Botón de WhatsApp para consultar stock - Solo se muestra cuando no hay stock */}
+            {hasNoStock() && (
+              <Button
+                onClick={openWhatsApp}
+                className="w-full h-12 text-base font-medium bg-green-600 hover:bg-green-700 text-white"
+              >
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Avísame cuando haya stock
+              </Button>
+            )}
           </div>
 
           {/* Descripción */}
@@ -578,18 +627,32 @@ export default function ProductId({
             {hasNoStock() ? "" : isAddedToCart ? "Añadido" : "Comprar"}
           </span>
         </Button>
-        <Button asChild variant="outline" className="flex-1 h-12">
-          <Link
-            href={`/contacto?producto=${encodeURIComponent(
-              safeProduct.nombre +
-                (selectedVariation ? ` - ${selectedVariation.nombre}` : "") // Cambiado de medida a nombre
-            )}&codigo=${
-              selectedVariation?.codigo || safeProduct.codigoPrincipal
-            }`}
+        
+        {/* Botón de WhatsApp para móviles - Solo se muestra cuando no hay stock */}
+        {hasNoStock() && (
+          <Button 
+            onClick={openWhatsApp}
+            className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white"
           >
-            Consultar
-          </Link>
-        </Button>
+            <MessageCircle className="h-5 w-5" />
+            <span className="ml-2">Avisar</span>
+          </Button>
+        )}
+        
+        {!hasNoStock() && (
+          <Button asChild variant="outline" className="flex-1 h-12">
+            <Link
+              href={`/contacto?producto=${encodeURIComponent(
+                safeProduct.nombre +
+                  (selectedVariation ? ` - ${selectedVariation.nombre}` : "") // Cambiado de medida a nombre
+              )}&codigo=${
+                selectedVariation?.codigo || safeProduct.codigoPrincipal
+              }`}
+            >
+              Consultar
+            </Link>
+          </Button>
+        )}
       </div>
 
       <CartSidebar
