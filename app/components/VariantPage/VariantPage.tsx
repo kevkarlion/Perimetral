@@ -134,12 +134,7 @@ export default function VariantPage() {
                       </div>
                     )}
 
-                    {/* NUEVO: cartel de Sin Stock */}
-                    {sinStock && (
-                      <div className="absolute bottom-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10 shadow">
-                        Sin Stock
-                      </div>
-                    )}
+                   
                   </div>
 
                   <div className="p-3 flex-grow flex flex-col">

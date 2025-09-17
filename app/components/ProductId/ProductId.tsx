@@ -57,10 +57,11 @@ export default function ProductId({
   const { currentProduct, getProductById, setCurrentProduct } =
     useProductStore();
 
+  // Usar el producto del store si está disponible
   const [product, setProduct] = useState<IProduct | null>(
     initialProduct || (currentProduct?._id === id ? currentProduct : null)
   );
-  const [loading, setLoading] = useState(!initialProduct);
+  const [loading, setLoading] = useState(!initialProduct && !product);
   const [error, setError] = useState<string | null>(null);
   const [imagenPrincipal, setImagenPrincipal] = useState(0);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -69,7 +70,6 @@ export default function ProductId({
   const [selectedVariation, setSelectedVariation] = useState<IVariation | null>(
     null
   );
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 
   const addItem = useCartStore((state) => state.addItem);
 
@@ -157,66 +157,56 @@ export default function ProductId({
   }, [product, variationId]);
 
   useEffect(() => {
+    // Primero verificar si ya tenemos el producto en el store
     const storedProduct = getProductById(id as string);
     if (storedProduct) {
       setProduct(storedProduct);
       setCurrentProduct(storedProduct);
+      setLoading(false);
       return;
     }
 
+    // Si tenemos un producto inicial, usarlo
     if (initialProduct) {
       setProduct(initialProduct);
       setCurrentProduct(initialProduct);
+      setLoading(false);
       return;
     }
 
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setIsFullyLoaded(false);
+    // Solo hacer fetch si no tenemos el producto
+    if (!product) {
+      const fetchProduct = async () => {
+        try {
+          setLoading(true);
+          setError(null);
 
-        const response = await fetch(`${process.env.BASE_URL}/api/stock/${id}`);
+          const response = await fetch(`${process.env.BASE_URL}/api/stock/${id}`);
 
-        if (!response.ok) {
-          throw new Error(`Error al cargar producto: ${response.status}`);
-        }
+          if (!response.ok) {
+            throw new Error(`Error al cargar producto: ${response.status}`);
+          }
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (result?.success && result.data) {
-          setProduct(result.data);
-          setCurrentProduct(result.data);
-        } else {
-          throw new Error(result?.error || "Datos de producto no válidos");
-        }
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError(err instanceof Error ? err.message : "Error desconocido");
-        setProduct(null);
-      } finally {
-        // Pequeño delay para asegurar que todo esté renderizado
-        setTimeout(() => {
+          if (result?.success && result.data) {
+            setProduct(result.data);
+            setCurrentProduct(result.data);
+          } else {
+            throw new Error(result?.error || "Datos de producto no válidos");
+          }
+        } catch (err) {
+          console.error("Error fetching product:", err);
+          setError(err instanceof Error ? err.message : "Error desconocido");
+          setProduct(null);
+        } finally {
           setLoading(false);
-          setIsFullyLoaded(true);
-        }, 100);
-      }
-    };
+        }
+      };
 
-    fetchProduct();
-  }, [id, initialProduct, getProductById, setCurrentProduct]);
-
-  // Efecto para marcar cuando todo está completamente cargado
-  useEffect(() => {
-    if (product && !loading) {
-      // Pequeño delay para asegurar que todo esté renderizado
-      const timer = setTimeout(() => {
-        setIsFullyLoaded(true);
-      }, 50);
-      
-      return () => clearTimeout(timer);
+      fetchProduct();
     }
-  }, [product, loading, selectedVariation]);
+  }, [id, initialProduct, getProductById, setCurrentProduct, product]);
 
   const handleAddToCart = () => {
     if (!product || hasNoStock()) return;
@@ -257,10 +247,8 @@ export default function ProductId({
   const specsToShow = safeProduct.especificacionesTecnicas || [];
   const variationAttributes = selectedVariation?.atributos || [];
 
-  console.log("ProductId render:", { product, selectedVariation, variationId, loading, isFullyLoaded });
-
-  // Mostrar skeleton hasta que todo esté completamente cargado
-  if (loading || !isFullyLoaded) {
+  // Mostrar skeleton solo si está cargando y no tenemos producto
+  if (loading && !product) {
     return <ProductIdSkeleton />;
   }
 

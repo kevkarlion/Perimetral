@@ -69,11 +69,21 @@ export default function CatalogoPage() {
 
   const handleViewDetails = (producto: IProduct) => {
     if (producto.tieneVariaciones) {
-      router.push(
-        `/catalogo/variants?productId=${producto._id}&productName=${encodeURIComponent(
-          producto.nombre
-        )}`
-      );
+      // Filtrar variaciones activas
+      const variacionesActivas = producto.variaciones?.filter((v) => v.activo !== false) || [];
+      
+      // Si solo tiene 1 variación activa, ir directamente a la página de esa variante
+      if (variacionesActivas.length === 1) {
+        const varianteUnica = variacionesActivas[0];
+        router.push(`/catalogo/variants/${varianteUnica._id}`);
+      } else {
+        // Si tiene múltiples variaciones, ir a la página de selección de variantes
+        router.push(
+          `/catalogo/variants?productId=${producto._id}&productName=${encodeURIComponent(
+            producto.nombre
+          )}`
+        );
+      }
     } else {
       router.push(`/catalogo/${producto._id}`);
     }
@@ -162,6 +172,7 @@ interface ProductCardProps {
   isMobile: boolean;
 }
 
+
 const ProductCard = ({
   producto,
   sliderSettings,
@@ -222,6 +233,9 @@ const ProductCard = ({
   const mostrarVariacionesDisponibles = 
     producto.tieneVariaciones && elementosAMostrar.length > 0;
 
+  // NUEVO: Determinar si mostrar el cartel de VARIANTES (solo si tiene más de 1 variación activa)
+  const mostrarCartelVariantes = producto.tieneVariaciones && variacionesActivas.length > 1;
+
   return (
     <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 bg-white flex flex-col h-full">
       <div className="relative h-40 sm:h-48 bg-gray-100">
@@ -274,7 +288,9 @@ const ProductCard = ({
             <Star className="h-3 w-3 mr-1" /> DESTACADO
           </div>
         )}
-        {producto.tieneVariaciones && (
+        
+        {/* MODIFICADO: Solo mostrar cartel de VARIANTES si tiene más de 1 variación activa */}
+        {mostrarCartelVariantes && (
           <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             VARIANTES
           </div>

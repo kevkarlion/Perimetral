@@ -12,7 +12,6 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { IProduct } from "@/types/productTypes";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProductStore } from "@/app/components/store/product-store";
 
@@ -59,7 +58,6 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     variaciones = [],
     categoria,
     especificacionesTecnicas = [],
-    // ❌ imagenesGenerales ELIMINADO
   } = product;
 
   const sliderSettings = {
@@ -84,15 +82,29 @@ export default function ProductCardMain({ product }: ProductCardProps) {
     }).format(price);
   };
 
+  // Filtrar variaciones activas
+  const variacionesActivas = variaciones.filter(v => v.activo !== false);
+  
+  // Mostrar cartel de VARIANTES solo si tiene más de 1 variación activa
+  const mostrarCartelVariantes = tieneVariaciones && variacionesActivas.length > 1;
+
   const handleViewDetails = () => {
     setCurrentProduct(product);
 
+    // Lógica idéntica a CatalogoPage
     if (tieneVariaciones) {
-      router.push(
-        `/catalogo/variants?productId=${_id}&productName=${encodeURIComponent(
-          nombre
-        )}`
-      );
+      // Si solo tiene 1 variación activa, ir directamente a la página de esa variante
+      if (variacionesActivas.length === 1) {
+        const varianteUnica = variacionesActivas[0];
+        router.push(`/catalogo/variants/${varianteUnica._id}`);
+      } else {
+        // Si tiene múltiples variaciones, ir a la página de selección de variantes
+        router.push(
+          `/catalogo/variants?productId=${_id}&productName=${encodeURIComponent(
+            nombre
+          )}`
+        );
+      }
     } else {
       router.push(`/catalogo/${_id}`);
     }
@@ -101,9 +113,8 @@ export default function ProductCardMain({ product }: ProductCardProps) {
   // ✅ Obtener imágenes de las variaciones
   const getProductImages = () => {
     // Si tiene variaciones, usar imágenes de la primera variación activa
-    if (tieneVariaciones && variaciones.length > 0) {
-      const primeraVariacionActiva = variaciones.find(v => v.activo !== false);
-      return primeraVariacionActiva?.imagenes || [];
+    if (tieneVariaciones && variacionesActivas.length > 0) {
+      return variacionesActivas[0]?.imagenes || [];
     }
     
     // Si no tiene variaciones pero tiene precio (producto simple)
@@ -118,9 +129,6 @@ export default function ProductCardMain({ product }: ProductCardProps) {
 
   const imagenesProducto = getProductImages();
 
-  // Filtrar variaciones activas
-  const variacionesActivas = variaciones.filter(v => v.activo !== false);
-  
   // Determinar si mostrar la sección de variaciones disponibles
   const mostrarVariacionesDisponibles = tieneVariaciones && variacionesActivas.length > 0;
 
@@ -190,7 +198,8 @@ export default function ProductCardMain({ product }: ProductCardProps) {
             <Star className="h-3 w-3 mr-1" /> DESTACADO
           </div>
         )}
-        {tieneVariaciones && (
+        {/* Mostrar cartel de VARIANTES solo si tiene más de 1 variante */}
+        {mostrarCartelVariantes && (
           <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             VARIANTES
           </div>
