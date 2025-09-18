@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useMemo } from "react";
 import React from "react";
 import { IOrder, IOrderItem } from "@/types/orderTypes";
@@ -252,7 +250,6 @@ export default function OrdersTable() {
     setUpdatingStock(null);
   }
 };
-
 
   const confirmUpdateOrder = (orderId: string) => {
     console.log("Preparing to update order:", orderId);
@@ -927,110 +924,150 @@ const safeIdToString = (id: any): string => {
             </div>
           </div>
         </div>
+                {/* Versión Móvil (sm e inferior) */}
+        <div className="md:hidden">
+          <div className="space-y-4 p-4">
+            {currentOrders.map((order) => (
+              <div key={order._id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {order.orderNumber || "N/A"}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {format(new Date(order.createdAt), "dd MMM yyyy", { locale: es })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {editingOrder === order._id ? (
+                      <>
+                        <button
+                          onClick={() => confirmUpdateOrder(order._id)}
+                          disabled={saving === order._id || updatingStock === order._id}
+                          className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                          title="Guardar cambios"
+                        >
+                          {saving === order._id || updatingStock === order._id ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
+                          ) : (
+                            <Save className="h-5 w-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => cancelEditing(order._id)}
+                          disabled={saving === order._id || updatingStock === order._id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                          title="Cancelar edición"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startEditing(order)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Editar orden"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => toggleExpand(order._id)}
+                          className="text-brand hover:text-brand-dark"
+                          aria-label={
+                            expandedOrder === order._id
+                              ? "Contraer detalles"
+                              : "Expandir detalles"
+                          }
+                        >
+                          {expandedOrder === order._id ? (
+                            <ChevronUp className="h-5 w-5" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-        {/* Versión Mobile (sm y inferior) - COMPLETA */}
-        <div className="md:hidden space-y-4 p-4">
-          {currentOrders.map((order) => (
-            <div key={order._id} className="bg-white rounded-lg shadow p-4 border border-gray-100">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">{order.customer.name}</h3>
-                  <p className="text-xs text-gray-500">{order.customer.email}</p>
-                </div>
-                <span className={`px-2 text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                  {getStatusText(order.status)}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                <div>
-                  <p className="text-gray-500">N° Orden</p>
-                  <p className="font-medium">{order.orderNumber || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Total</p>
-                  <p className="font-medium">
-                    {order.discount && order.discount > 0 ? (
-                      <span className="text-green-600">
-                        ${(order.total - (order.total * order.discount / 100)).toLocaleString("es-AR")}
-                      </span>
-                    ) : (
-                      `$${order.total.toLocaleString("es-AR")}`
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Productos</p>
-                  <p className="font-medium">{order.items.length}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Fecha</p>
-                  <p className="font-medium">
-                    {format(new Date(order.createdAt), "dd MMM yy", { locale: es })}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1">
-                  <p className="text-sm text-gray-900">{order.customer.phone || "Sin teléfono"}</p>
-                  {order.customer.phone && (
-                    <button
-                      onClick={() => copyToClipboard(order.customer.phone || "", `phone-mobile-${order._id}`)}
-                      className="text-gray-400 hover:text-brand"
-                    >
-                      {copiedFields[`phone-mobile-${order._id}`] ? (
-                        <ClipboardCheck className="h-4 w-4" />
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <p className="text-gray-500">Cliente</p>
+                    <p className="font-medium">{order.customer.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Productos</p>
+                    <p className="font-medium">{order.items.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Total</p>
+                    <p className="font-medium">
+                      {editingOrder === order._id ? (
+                        <div className="flex flex-col">
+                          <span className="line-through text-gray-400 text-xs">
+                            ${order.total.toLocaleString("es-AR")}
+                          </span>
+                          <span className="text-green-600">
+                            ${calculateDiscountedTotal(order._id, order.total).toLocaleString("es-AR")}
+                          </span>
+                        </div>
+                      ) : order.discount && order.discount > 0 ? (
+                        <div className="flex flex-col">
+                          <span className="line-through text-gray-400 text-xs">
+                            ${order.total.toLocaleString("es-AR")}
+                          </span>
+                          <span className="text-green-600">
+                            ${(order.total - (order.total * order.discount / 100)).toLocaleString("es-AR")}
+                          </span>
+                        </div>
                       ) : (
-                        <Clipboard className="h-4 w-4" />
+                        `$${order.total.toLocaleString("es-AR")}`
                       )}
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => startEditing(order)}
-                    className="text-blue-600 hover:text-blue-900"
-                    title="Editar orden"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => toggleExpand(order._id)}
-                    className="text-brand hover:text-brand-dark"
-                  >
-                    {expandedOrder === order._id ? (
-                      <ChevronUp className="h-4 w-4" />
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Estado</p>
+                    {editingOrder === order._id ? (
+                      <select
+                        value={orderEdits[order._id]?.status || order.status}
+                        onChange={(e) => updateOrderEdit(order._id, "status", e.target.value)}
+                        className="text-xs border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand w-full"
+                      >
+                        <option value="pending_payment">Pendiente de pago</option>
+                        <option value="processing">En proceso</option>
+                        <option value="completed">Completado</option>
+                        <option value="cancelled">Cancelado</option>
+                      </select>
                     ) : (
-                      <ChevronDown className="h-4 w-4" />
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
+                        {getStatusText(order.status)}
+                      </span>
                     )}
-                  </button>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Detalles expandidos en móvil - COMPLETO */}
-              {expandedOrder === order._id && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="space-y-4">
+
+                {expandedOrder === order._id && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-900 mb-2">Información del Cliente</h4>
                       <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Nombre:</span>
-                          <span className="font-medium">{order.customer.name}</span>
-                        </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Email:</span>
                           <span className="font-medium flex items-center gap-1">
                             {order.customer.email}
                             <button
-                              onClick={() => copyToClipboard(order.customer.email, `email-mobile-${order._id}`)}
+                              onClick={() => copyToClipboard(order.customer.email, `mobile-email-${order._id}`)}
                               className="text-gray-400 hover:text-brand"
                             >
-                              {copiedFields[`email-mobile-${order._id}`] ? (
-                                <ClipboardCheck className="h-4 w-4" />
+                              {copiedFields[`mobile-email-${order._id}`] ? (
+                                <ClipboardCheck className="h-3 w-3" />
                               ) : (
-                                <Clipboard className="h-4 w-4" />
+                                <Clipboard className="h-3 w-3" />
                               )}
                             </button>
                           </span>
@@ -1041,13 +1078,13 @@ const safeIdToString = (id: any): string => {
                             {order.customer.phone || "No proporcionado"}
                             {order.customer.phone && (
                               <button
-                                onClick={() => copyToClipboard(order.customer.phone || "", `phone-detail-${order._id}`)}
+                                onClick={() => copyToClipboard(order.customer.phone || "", `mobile-phone-${order._id}`)}
                                 className="text-gray-400 hover:text-brand"
                               >
-                                {copiedFields[`phone-detail-${order._id}`] ? (
-                                  <ClipboardCheck className="h-4 w-4" />
+                                {copiedFields[`mobile-phone-${order._id}`] ? (
+                                  <ClipboardCheck className="h-3 w-3" />
                                 ) : (
-                                  <Clipboard className="h-4 w-4" />
+                                  <Clipboard className="h-3 w-3" />
                                 )}
                               </button>
                             )}
@@ -1055,20 +1092,8 @@ const safeIdToString = (id: any): string => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Dirección:</span>
-                          <span className="font-medium flex items-center gap-1 text-right">
+                          <span className="font-medium text-right max-w-xs">
                             {order.customer.address || "No proporcionada"}
-                            {order.customer.address && (
-                              <button
-                                onClick={() => copyToClipboard(order.customer.address || "", `address-mobile-${order._id}`)}
-                                className="text-gray-400 hover:text-brand"
-                              >
-                                {copiedFields[`address-mobile-${order._id}`] ? (
-                                  <ClipboardCheck className="h-4 w-4" />
-                                ) : (
-                                  <Clipboard className="h-4 w-4" />
-                                )}
-                              </button>
-                            )}
                           </span>
                         </div>
                       </div>
@@ -1078,134 +1103,81 @@ const safeIdToString = (id: any): string => {
                       <h4 className="text-sm font-medium text-gray-900 mb-2">Detalles del Pedido</h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-500">N° Orden:</span>
-                          <span className="font-medium flex items-center gap-1">
-                            {order.orderNumber || "N/A"}
-                            {order.orderNumber && (
-                              <button
-                                onClick={() => copyToClipboard(order.orderNumber || "", `orderNumber-mobile-${order._id}`)}
-                                className="text-gray-400 hover:text-brand"
-                              >
-                                {copiedFields[`orderNumber-mobile-${order._id}`] ? (
-                                  <ClipboardCheck className="h-4 w-4" />
-                                ) : (
-                                  <Clipboard className="h-4 w-4" />
-                                )}
-                              </button>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
                           <span className="text-gray-500">Método de pago:</span>
                           <span className="font-medium capitalize">{order.paymentMethod}</span>
                         </div>
-                        {order.discount > 0 && (
+                        {editingOrder === order._id && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Descuento:</span>
+                            <div className="flex items-center gap-2">
+                              <Percent className="h-3 w-3 text-gray-400" />
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={orderEdits[order._id]?.discount || 0}
+                                onChange={(e) => updateOrderEdit(order._id, "discount", Number(e.target.value))}
+                                className="w-12 text-sm border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand"
+                              />
+                              <span className="text-xs">%</span>
+                            </div>
+                          </div>
+                        )}
+                        {order.discount > 0 && !editingOrder && (
                           <div className="flex justify-between">
                             <span className="text-gray-500">Descuento:</span>
                             <span className="font-medium text-green-600">{order.discount}% aplicado</span>
                           </div>
                         )}
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Fecha creación:</span>
-                          <span className="font-medium">
-                            {format(new Date(order.createdAt), "dd MMM yyyy HH:mm", { locale: es })}
-                          </span>
-                        </div>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Productos ({order.items.length})</h4>
-                      <ul className="space-y-3 text-sm">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Productos</h4>
+                      <div className="space-y-3">
                         {order.items.map((item, index) => (
-                          <li key={index} className="bg-gray-50 p-3 rounded-lg">
-                            <div className="flex justify-between items-start">
-                              <span className="font-medium text-gray-900">{item.name}</span>
-                              <span className="font-medium">
-                                ${(item.price * item.quantity).toLocaleString("es-AR")}
-                              </span>
+                          <div key={index} className="flex justify-between items-start border-b border-gray-100 pb-2">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{item.name}</p>
+                              <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
+                              {item.productId && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  ID: {safeIdToString(item.productId)}
+                                  {item.variationId && ` | Variación: ${safeIdToString(item.variationId)}`}
+                                </p>
+                              )}
                             </div>
-                            <div className="flex justify-between mt-1 text-gray-600">
-                              <span>Cantidad: {item.quantity}</span>
-                              <span>${item.price.toLocaleString("es-AR")} c/u</span>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">${(item.price * item.quantity).toLocaleString("es-AR")}</p>
+                              <p className="text-xs text-gray-500">${item.price.toLocaleString("es-AR")} c/u</p>
                             </div>
-                            {item.productId && (
-                              <div className="text-xs text-gray-500 mt-2">
-                                <div>Product ID: {safeIdToString(item.productId)}</div>
-                                {item.variationId && <div>Variation ID: {safeIdToString(item.variationId)}</div>}
-                              </div>
-                            )}
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {/* Espaciadores para mantener el tamaño constante en móvil */}
-          {currentOrders.length < ordersPerPage && 
-            Array.from({ length: ordersPerPage - currentOrders.length }).map((_, index) => (
-              <div key={`empty-mobile-${index}`} className="h-0"></div>
-            ))
-          }
-          
-          {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm ? "No se encontraron órdenes" : "No hay órdenes para mostrar"}
-            </div>
-          )}
+                )}
+              </div>
+            ))}
+            
+            {filteredOrders.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm ? "No se encontraron órdenes" : "No hay órdenes para mostrar"}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Paginación */}
-      {filteredOrders.length > 0 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          {/* Versión móvil */}
-          <div className="flex-1 flex justify-between items-center md:hidden">
-            <button
-              onClick={prevPage}
-              disabled={currentPage === 1}
-              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                currentPage === 1
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <div className="text-sm text-gray-700">
-              Página <span className="font-medium">{currentPage}</span> de{" "}
-              <span className="font-medium">{totalPages}</span>
-            </div>
-            <button
-              onClick={nextPage}
-              disabled={currentPage === totalPages}
-              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                currentPage === totalPages
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Versión desktop */}
+      {totalPages > 1 && (
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
           <div className="hidden md:flex-1 md:flex md:items-center md:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Mostrando{" "}
-                <span className="font-medium">
-                  {Math.min((currentPage - 1) * ordersPerPage + 1, filteredOrders.length)}
-                </span>{" "}
-                a{" "}
-                <span className="font-medium">
-                  {Math.min(currentPage * ordersPerPage, filteredOrders.length)}
-                </span>{" "}
-                de <span className="font-medium">{filteredOrders.length}</span> resultados
+                Mostrando <span className="font-medium">{Math.min((currentPage - 1) * ordersPerPage + 1, filteredOrders.length)}</span> a{" "}
+                <span className="font-medium">{Math.min(currentPage * ordersPerPage, filteredOrders.length)}</span> de{" "}
+                <span className="font-medium">{filteredOrders.length}</span> resultados
               </p>
             </div>
             <div>
@@ -1213,37 +1185,33 @@ const safeIdToString = (id: any): string => {
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
-                    currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-500 hover:bg-gray-50"
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Anterior</span>
                   <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
                 
-                {getPageNumbers().map((number) => (
+                {getPageNumbers().map((page) => (
                   <button
-                    key={number}
-                    onClick={() => paginate(number)}
+                    key={page}
+                    onClick={() => paginate(page)}
                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      currentPage === number
+                      currentPage === page
                         ? "z-10 bg-brand border-brand text-white"
                         : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                     }`}
-                  > 
-                    {number}
+                  >
+                    {page}
                   </button>
                 ))}
                 
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
-                    currentPage === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-500 hover:bg-gray-50"
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === totalPages ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Siguiente</span>
@@ -1252,6 +1220,31 @@ const safeIdToString = (id: any): string => {
               </nav>
             </div>
           </div>
+          
+          {/* Versión móvil de paginación */}
+          <div className="md:hidden flex items-center justify-between w-full">
+            <button
+              onClick={prevPage}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === 1 ? "text-gray-300 cursor-not-allowed bg-gray-100" : "text-gray-700 bg-white hover:bg-gray-50"
+              }`}
+            >
+              Anterior
+            </button>
+            <span className="text-sm text-gray-700">
+              Página <span className="font-medium">{currentPage}</span> de <span className="font-medium">{totalPages}</span>
+            </span>
+            <button
+              onClick={nextPage}
+              disabled={currentPage === totalPages}
+              className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === totalPages ? "text-gray-300 cursor-not-allowed bg-gray-100" : "text-gray-700 bg-white hover:bg-gray-50"
+              }`}
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
       )}
 
@@ -1259,21 +1252,22 @@ const safeIdToString = (id: any): string => {
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirmar cambios</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              ¿Estás seguro de que deseas aplicar estos cambios? Esta acción actualizará el estado de la orden, 
-              aplicará el descuento y actualizará el stock correspondiente.
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirmar actualización</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              ¿Estás seguro de que deseas actualizar esta orden? 
+              {orderToUpdate && orderEdits[orderToUpdate]?.status === 'completed' && 
+                " Esta acción también actualizará el stock de los productos."}
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirmDialog(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={updateOrder}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="px-4 py-2 bg-brand border border-transparent rounded-md text-sm font-medium text-white hover:bg-brand-dark"
               >
                 Confirmar
               </button>

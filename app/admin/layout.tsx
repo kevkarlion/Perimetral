@@ -20,6 +20,26 @@ export default async function AdminLayout({
 
   return (
     <html lang="es">
+      <head>
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/favicon/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/favicon/site.webmanifest" />
+      </head>
       <body className="min-h-screen bg-white">
         <header className="bg-gray-800 text-white p-4">
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">

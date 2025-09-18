@@ -19,7 +19,7 @@ import {
   Newspaper,
 } from "lucide-react";
 import { useCartStore } from "@/app/components/store/cartStore";
-import { usePathname } from "next/navigation"; // Importar usePathname
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const pathname = usePathname(); // Obtener la ruta actual
+  const pathname = usePathname();
 
   const cartItems = useCartStore((state) => state.items);
   const cartItemsCount = cartItems.reduce(
@@ -41,7 +41,6 @@ export default function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Mostrar siempre cuando esté en el top de la página
       if (currentScrollY <= 10) {
         setIsVisible(true);
         setIsScrolled(false);
@@ -49,12 +48,9 @@ export default function Navbar() {
         return;
       }
 
-      // Ocultar solo cuando se hace scroll hacia abajo y se ha pasado cierto umbral
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setIsVisible(false);
-      }
-      // Mostrar cuando se hace scroll hacia arriba
-      else if (currentScrollY < lastScrollY.current) {
+      } else if (currentScrollY < lastScrollY.current) {
         setIsVisible(true);
       }
 
@@ -72,17 +68,13 @@ export default function Navbar() {
     };
   }, []);
 
-  // Efecto para asegurar que el navbar esté visible al cambiar de página
   useEffect(() => {
-    // Cuando cambia la ruta, forzar que el navbar esté visible
-    
     setIsScrolled(window.scrollY > 10);
-    
-    // También scroll al top si es necesario (puedes ajustar esto según tus necesidades)
+
     if (pathname !== window.location.pathname) {
       window.scrollTo(0, 0);
     }
-  }, [pathname]); // Se ejecuta cuando cambia la ruta
+  }, [pathname]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -99,6 +91,12 @@ export default function Navbar() {
       label: "Catálogo",
       icon: <Box size={18} />,
       id: "#products",
+    },
+    {
+      href: "/servicios",
+      label: "Servicios",
+      icon: <HardHat size={18} />,
+      id: "#servicios",
     },
     {
       href: "/nosotros",
@@ -123,10 +121,10 @@ export default function Navbar() {
   return (
     <>
       {/* Header principal con efecto de scroll */}
-      <header 
+      <header
         className={`fixed top-0 left-0 right-0 z-[100] bg-balckHero transition-all duration-200 ease-out 
-          ${isScrolled ? 'shadow-md' : 'shadow-sm'} 
-          ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+          ${isScrolled ? "shadow-md" : "shadow-sm"} 
+          ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
       >
         {/* Barra superior informativa */}
         <div className="bg-brand text-white py-1 px-4 text-xs sm:text-sm">
@@ -178,7 +176,6 @@ export default function Navbar() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <div className="relative h-16 w-32 md:h-20 md:w-52">
-                  {/* Logo para mobile - visible solo en mobile */}
                   <Image
                     src="/Logos/Logo-mobile.png"
                     alt="Corralón Perimetral - Versión móvil"
@@ -187,8 +184,7 @@ export default function Navbar() {
                     priority
                     sizes="(max-width: 768px) 128px, 192px"
                   />
-                  
-                  {/* Logo para desktop - visible solo en desktop */}
+
                   <Image
                     src="/Logos/logo-header-black.svg"
                     alt="Corralón Perimetral - Versión completa"
@@ -244,7 +240,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Menú móvil - Fuera del header para evitar problemas de transformación */}
+      {/* Menú móvil */}
       <div
         className={`fixed inset-0 z-[110] bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out ${
           isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -257,7 +253,7 @@ export default function Navbar() {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Encabezado del menú móvil */}
+          {/* Encabezado menú móvil */}
           <div className="flex justify-between items-center p-4 bg-balckHero text-white">
             <div className="font-bold text-lg">MENÚ</div>
             <button
@@ -269,7 +265,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Contenido del menú móvil */}
+          {/* Links menú móvil */}
           <nav className="p-4">
             <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (
@@ -285,13 +281,6 @@ export default function Navbar() {
               ))}
 
               <div className="border-t border-gray-200 pt-4 mt-2">
-                {/* <button className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full">
-                  <span className="text-blackHero">
-                    <User size={18} />
-                  </span>
-                  <span className="font-medium">Mi cuenta</span>
-                </button> */}
-
                 <Link
                   href="/cart"
                   className="flex items-center space-x-3 py-3 px-4 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors w-full relative"
@@ -313,7 +302,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Espacio para compensar el navbar fijo */}
+      {/* Espaciador */}
       <div className="h-[40px] md:h-[96px]"></div>
     </>
   );
