@@ -103,3 +103,22 @@ export async function createOrder(orderData: {
 
   return await OrderService.createValidatedOrder(orderData);
 }
+
+
+
+export async function updateOrderNotesController(
+  token: string,
+  notes: string
+) {
+  if (!notes) {
+    throw new Error("Debes enviar una nota válida.");
+  }
+
+  const updatedOrder = await OrderService.updateOrderNotes(token, notes, "token");
+
+  if (!updatedOrder) {
+    throw new Error("Orden no encontrada");
+  }
+
+  return updatedOrder;
+}

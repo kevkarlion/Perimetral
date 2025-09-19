@@ -1,7 +1,7 @@
-//api/orders/[token]
+//api/orders/[token]/route.ts
 import { NextResponse } from 'next/server';
 import Order, { IOrder } from '@/backend/lib/models/Order';
-import { updateOrderByTokenController } from '@/backend/lib/controllers/orderController';
+import { updateOrderByTokenController, updateOrderNotesController } from '@/backend/lib/controllers/orderController';
 
 
 interface OrderResponse {
@@ -80,26 +80,27 @@ export async function PATCH(
   try {
     const { token } = await context.params;
     const body = await request.json();
-    const { status, additionalData } = body;
+    const { status, additionalData, notes } = body;
 
-    if (!status) {
+    if (!status && !notes) {
       return NextResponse.json(
-        { error: "Debes enviar un estado válido." },
+        { error: "Debes enviar un estado o nota válida." },
         { status: 400 }
       );
     }
 
-    const updatedOrder = await updateOrderByTokenController(
-      token,
-      status,
-      additionalData || {}
-    );
+    let updatedOrder: any;
 
-    if (!updatedOrder) {
-      return NextResponse.json(
-        { error: "Orden no encontrada" },
-        { status: 404 }
-      );
+    // 🔹 Actualizar nota si viene
+    if (notes) {
+      updatedOrder = await updateOrderNotesController(token, notes);
+      console.log(`Nota actualizada para orden ${updatedOrder.orderNumber}`);
+    }
+
+    // 🔹 Actualizar estado si viene
+    if (status) {
+      updatedOrder = await updateOrderByTokenController(token, status, additionalData || {});
+      console.log(`Estado actualizado a '${status}' para orden ${updatedOrder.orderNumber}`);
     }
 
     return NextResponse.json({
@@ -108,7 +109,7 @@ export async function PATCH(
       order: updatedOrder,
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Error al actualizar la orden:", error);
     return NextResponse.json(
       { error: error.message || "Error al actualizar la orden" },
       { status: 500 }

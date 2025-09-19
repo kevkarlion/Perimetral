@@ -395,4 +395,39 @@ export class OrderService {
       throw new Error(`Error al obtener las órdenes: ${error.message}`);
     }
   }
+
+
+  static async updateOrderNotes(
+  identifier: string,
+  notes: string,
+  identifierType: "id" | "token" = "id"
+) {
+  try {
+    let query = {};
+    if (identifierType === "id") {
+      query = { _id: identifier };
+    } else {
+      query = { accessToken: identifier };
+    }
+
+    const order = await Order.findOneAndUpdate(
+      query,
+      { notes, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!order) {
+      throw new Error("Orden no encontrada");
+    }
+
+    return order;
+  } catch (error) {
+    console.error("Error actualizando notas de la orden:", error);
+    throw error;
+  }
 }
+
+}
+
+
+

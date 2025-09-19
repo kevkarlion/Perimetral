@@ -19,6 +19,8 @@ import {
   Percent,
   DollarSign,
   Package,
+  FileText,
+  Plus,
 } from "lucide-react";
 import { Types } from "mongoose";
 
@@ -39,11 +41,23 @@ export default function OrdersTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editingOrder, setEditingOrder] = useState<string | null>(null);
-  const [orderEdits, setOrderEdits] = useState<Record<string, { discount?: number; status?: string; originalTotal?: number }>>({});
+  const [orderEdits, setOrderEdits] = useState<
+    Record<
+      string,
+      { 
+        discount?: number; 
+        status?: string; 
+        originalTotal?: number;
+        notes?: string;
+      }
+    >
+  >({});
   const [saving, setSaving] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [orderToUpdate, setOrderToUpdate] = useState<string | null>(null);
   const [updatingStock, setUpdatingStock] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesEdits, setNotesEdits] = useState<Record<string, string>>({});
   const ordersPerPage = 10;
 
   useEffect(() => {
@@ -63,11 +77,95 @@ export default function OrdersTable() {
     }
   };
 
+  // Función para iniciar edición de notas
+  const startEditingNotes = (orderId: string) => {
+    const order = orders.find(o => o._id === orderId);
+    if (order) {
+      setNotesEdits(prev => ({
+        ...prev,
+        [orderId]: order.notes || ''
+      }));
+      setEditingNotes(orderId);
+    }
+  };
+
+  // Función para manejar cambios en las notas
+  const handleNotesChange = (orderId: string, text: string) => {
+    setNotesEdits(prev => ({
+      ...prev,
+      [orderId]: text
+    }));
+  };
+
+  // Función para cancelar edición de notas
+  const handleCancelNotes = (orderId: string) => {
+    setNotesEdits(prev => {
+      const newEdits = { ...prev };
+      delete newEdits[orderId];
+      return newEdits;
+    });
+    setEditingNotes(null);
+  };
+
+  // 🔹 NUEVA FUNCIÓN: Actualizar notas de la orden
+  const updateOrderNotes = async (orderId: string, notes: string) => {
+    try {
+      const order = orders.find(o => o._id === orderId);
+      if (!order) return;
+
+      const response = await fetch(`/api/orders/${order.accessToken}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          notes,
+          status: order.status // mantener el estado actual
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar las notas');
+      }
+
+      const result = await response.json();
+      
+      // Actualizar el estado local
+      setOrders(prev => prev.map(o => 
+        o._id === orderId ? { ...o, notes } as IOrder : o
+      ));
+
+      alert('Notas actualizadas correctamente');
+      return result;
+    } catch (error) {
+      console.error('Error al actualizar notas:', error);
+      throw error;
+    }
+  };
+
+  // Función para guardar notas
+  const handleSaveNotes = async (orderId: string) => {
+    try {
+      const notesToSave = notesEdits[orderId] || '';
+      await updateOrderNotes(orderId, notesToSave);
+      
+      // Limpiar el estado de edición
+      setNotesEdits(prev => {
+        const newEdits = { ...prev };
+        delete newEdits[orderId];
+        return newEdits;
+      });
+      setEditingNotes(null);
+    } catch (error) {
+      console.error('Error al guardar notas:', error);
+    }
+  };
+
   // Filtrar órdenes por orderNumber - con manejo seguro
   const filteredOrders = useMemo(() => {
     if (!searchTerm) return orders;
-    
-    return orders.filter(order => {
+
+    return orders.filter((order) => {
       const orderNumber = order.orderNumber || "";
       return orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
     });
@@ -153,13 +251,15 @@ export default function OrdersTable() {
       [order._id]: {
         discount: order.discount || 0,
         status: order.status,
-        originalTotal: order.total
-      }
+        originalTotal: order.total,
+        notes: order.notes || '',
+      },
     });
   };
 
   const cancelEditing = (orderId: string) => {
     setEditingOrder(null);
+    setEditingNotes(null);
     const newEdits = { ...orderEdits };
     delete newEdits[orderId];
     setOrderEdits(newEdits);
@@ -170,86 +270,88 @@ export default function OrdersTable() {
       ...orderEdits,
       [orderId]: {
         ...orderEdits[orderId],
-        [field]: value
-      }
+        [field]: value,
+      },
     });
   };
 
   const calculateDiscountedTotal = (orderId: string, originalTotal: number) => {
     const discount = orderEdits[orderId]?.discount || 0;
-    return originalTotal - (originalTotal * discount / 100);
+    return originalTotal - (originalTotal * discount) / 100;
   };
 
   // ✅ NUEVA FUNCIÓN: Actualizar stock cuando se completa una orden
- const updateStockFromOrder = async (order: IOrder) => {
-  setUpdatingStock(order._id);
-  console.log('order desdeORders', order)
-  
-  try {
-    // Procesar cada item de la orden
-    for (const item of order.items) {
-      try {
-        // Convertir ObjectId a string si es necesario - PARA productId
-        const productId = safeIdToString(item.productId);
-        
-        // ✅ CONVERTIR variationId DE FORMA SEGURA - ESTA ES LA CLAVE
-        let variationId: string | undefined = undefined;
-        
-        if (item.variationId) {
-          variationId = safeIdToString(item.variationId);
-        } else {
-          // ✅ SI NO HAY variationId, USAR EL productId COMO variationId
-          // Esto funciona si manejas productos sin variaciones como una variación única
-          variationId = productId;
-          console.log(`ℹ️  Usando productId como variationId para: ${item.name}`);
+  const updateStockFromOrder = async (order: IOrder) => {
+    setUpdatingStock(order._id);
+    console.log("order desdeORders", order);
+
+    try {
+      // Procesar cada item de la orden
+      for (const item of order.items) {
+        try {
+          // Convertir ObjectId a string si es necesario - PARA productId
+          const productId = safeIdToString(item.productId);
+
+          // ✅ CONVERTIR variationId DE FORMA SEGURA - ESTA ES LA CLAVE
+          let variationId: string | undefined = undefined;
+
+          if (item.variationId) {
+            variationId = safeIdToString(item.variationId);
+          } else {
+            // ✅ SI NO HAY variationId, USAR EL productId COMO variationId
+            variationId = productId;
+            console.log(
+              `ℹ️  Usando productId como variationId para: ${item.name}`
+            );
+          }
+
+          const updateData = {
+            productId,
+            variationId, // ✅ Ahora siempre tendrá un valor
+            stock: item.quantity,
+            action: "decrement" as const,
+            productName: item.name,
+            productCode: item.sku,
+          };
+
+          console.log("Enviando actualización de stock:", updateData);
+
+          const response = await fetch("/api/stock", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updateData),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(
+              `Error al actualizar stock para: ${item.name} - ${errorText}`
+            );
+          }
+
+          const result = await response.json();
+          if (!result.success) {
+            throw new Error(result.error || "Error al actualizar stock");
+          }
+
+          console.log(`✅ Stock actualizado para: ${item.name}`);
+        } catch (itemError) {
+          console.error(`❌ Error procesando item "${item.name}":`, itemError);
+          // Continuar con los siguientes items aunque falle uno
+          continue;
         }
-
-        const updateData = {
-          productId,
-          variationId, // ✅ Ahora siempre tendrá un valor
-          stock: item.quantity,
-          action: 'decrement' as const,
-          productName: item.name,
-          productCode: item.sku,
-        };
-
-        console.log('Enviando actualización de stock:', updateData);
-
-        const response = await fetch('/api/stock', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updateData)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Error al actualizar stock para: ${item.name} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-          throw new Error(result.error || 'Error al actualizar stock');
-        }
-
-        console.log(`✅ Stock actualizado para: ${item.name}`);
-
-      } catch (itemError) {
-        console.error(`❌ Error procesando item "${item.name}":`, itemError);
-        // Continuar con los siguientes items aunque falle uno
-        continue;
       }
-    }
 
-    return true;
-  } catch (error) {
-    console.error('❌ Error en updateStockFromOrder:', error);
-    throw error;
-  } finally {
-    setUpdatingStock(null);
-  }
-};
+      return true;
+    } catch (error) {
+      console.error("❌ Error en updateStockFromOrder:", error);
+      throw error;
+    } finally {
+      setUpdatingStock(null);
+    }
+  };
 
   const confirmUpdateOrder = (orderId: string) => {
     console.log("Preparing to update order:", orderId);
@@ -261,10 +363,10 @@ export default function OrdersTable() {
     if (!orderToUpdate) return;
     setSaving(orderToUpdate);
     setShowConfirmDialog(false);
-    
+
     try {
       const edits = orderEdits[orderToUpdate];
-      const order = orders.find(o => o._id === orderToUpdate);
+      const order = orders.find((o) => o._id === orderToUpdate);
 
       if (!order) {
         throw new Error("Orden no encontrada");
@@ -280,9 +382,14 @@ export default function OrdersTable() {
       };
 
       // ✅ ACTUALIZAR STOCK SI EL ESTADO CAMBIA A "COMPLETED"
-      if (edits.status === 'completed' && order.status !== 'completed') {
-        console.log('Orden completada, actualizando stock...');
+      if (edits.status === "completed" && order.status !== "completed") {
+        console.log("Orden completada, actualizando stock...");
         await updateStockFromOrder(order);
+      }
+
+      // 🔹 ACTUALIZAR NOTAS SI HAY CAMBIOS
+      if (edits.notes !== undefined && edits.notes !== order.notes) {
+        await updateOrderNotes(orderToUpdate, edits.notes);
       }
 
       const response = await fetch(`/api/orders/${order.accessToken}`, {
@@ -306,12 +413,12 @@ export default function OrdersTable() {
       await fetchOrders();
 
       setEditingOrder(null);
+      setEditingNotes(null);
       const newEdits = { ...orderEdits };
       delete newEdits[orderToUpdate];
       setOrderEdits(newEdits);
 
-      alert('Orden actualizada y stock modificado correctamente');
-
+      alert("Orden actualizada correctamente");
     } catch (error) {
       console.error("Error updating order:", error);
       alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
@@ -322,51 +429,54 @@ export default function OrdersTable() {
   };
 
   // Función para convertir ObjectId a string de forma segura
-  // ✅ MEJORAR LA FUNCIÓN safeIdToString PARA MANEJAR MÁS CASOS
-const safeIdToString = (id: any): string => {
-  if (!id) {
-    console.warn('⚠️ safeIdToString recibió valor null/undefined');
-    return '';
-  }
-  
-  if (typeof id === 'string') {
-    // Verificar si es un ObjectId string válido (24 caracteres hex)
-    if (/^[0-9a-fA-F]{24}$/.test(id)) {
-      return id;
+  const safeIdToString = (id: any): string => {
+    if (!id) {
+      console.warn("⚠️ safeIdToString recibió valor null/undefined");
+      return "";
     }
-    return id; // Devolver igual aunque no sea ObjectId válido
-  }
-  
-  if (typeof id === 'object') {
-    if ('_id' in id && id._id) {
-      return id._id.toString();
+
+    if (typeof id === "string") {
+      // Verificar si es un ObjectId string válido (24 caracteres hex)
+      if (/^[0-9a-fA-F]{24}$/.test(id)) {
+        return id;
+      }
+      return id; // Devolver igual aunque no sea ObjectId válido
     }
-    if ('toString' in id) {
-      return id.toString();
+
+    if (typeof id === "object") {
+      if ("_id" in id && id._id) {
+        return id._id.toString();
+      }
+      if ("toString" in id) {
+        return id.toString();
+      }
     }
-  }
-  
-  console.warn('⚠️ safeIdToString: tipo no manejado', typeof id, id);
-  return String(id);
-};
+
+    console.warn("⚠️ safeIdToString: tipo no manejado", typeof id, id);
+    return String(id);
+  };
+
   // Generar números de página para mostrar
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      const startPage = Math.max(
+        1,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -404,7 +514,10 @@ const safeIdToString = (id: any): string => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden flex flex-col" style={{ minHeight: '800px' }}>
+    <div
+      className="bg-white rounded-lg shadow overflow-hidden flex flex-col"
+      style={{ minHeight: "800px" }}
+    >
       {/* Barra de búsqueda */}
       <div className="p-4 border-b border-gray-200">
         <div className="relative max-w-md">
@@ -444,15 +557,19 @@ const safeIdToString = (id: any): string => {
         <p className="text-sm text-gray-700">
           Mostrando{" "}
           <span className="font-medium">
-            {Math.min((currentPage - 1) * ordersPerPage + 1, filteredOrders.length)}
+            {Math.min(
+              (currentPage - 1) * ordersPerPage + 1,
+              filteredOrders.length
+            )}
           </span>{" "}
           a{" "}
           <span className="font-medium">
             {Math.min(currentPage * ordersPerPage, filteredOrders.length)}
           </span>{" "}
-          de <span className="font-medium">{filteredOrders.length}</span> órdenes
+          de <span className="font-medium">{filteredOrders.length}</span>{" "}
+          órdenes
         </p>
-        
+
         {/* Selector de página para móviles */}
         <div className="md:hidden">
           <select
@@ -513,7 +630,12 @@ const safeIdToString = (id: any): string => {
                             <span>{order.orderNumber || "N/A"}</span>
                             {order.orderNumber && (
                               <button
-                                onClick={() => copyToClipboard(order.orderNumber || "", `orderNumber-${order._id}`)}
+                                onClick={() =>
+                                  copyToClipboard(
+                                    order.orderNumber || "",
+                                    `orderNumber-${order._id}`
+                                  )
+                                }
                                 className="ml-1 text-gray-400 hover:text-brand"
                                 aria-label="Copiar número de orden"
                               >
@@ -568,7 +690,11 @@ const safeIdToString = (id: any): string => {
                                   ${order.total.toLocaleString("es-AR")}
                                 </span>
                                 <span className="text-green-600">
-                                  ${calculateDiscountedTotal(order._id, order.total).toLocaleString("es-AR")}
+                                  $
+                                  {calculateDiscountedTotal(
+                                    order._id,
+                                    order.total
+                                  ).toLocaleString("es-AR")}
                                 </span>
                               </div>
                             </div>
@@ -578,7 +704,11 @@ const safeIdToString = (id: any): string => {
                                 ${order.total.toLocaleString("es-AR")}
                               </span>
                               <span className="text-green-600">
-                                ${(order.total - (order.total * order.discount / 100)).toLocaleString("es-AR")}
+                                $
+                                {(
+                                  order.total -
+                                  (order.total * order.discount) / 100
+                                ).toLocaleString("es-AR")}
                               </span>
                               <span className="bg-green-100 text-green-800 text-xs px-1 py-0.5 rounded">
                                 -{order.discount}%
@@ -591,11 +721,21 @@ const safeIdToString = (id: any): string => {
                         <td className="px-4 py-4 whitespace-nowrap">
                           {editingOrder === order._id ? (
                             <select
-                              value={orderEdits[order._id]?.status || order.status}
-                              onChange={(e) => updateOrderEdit(order._id, "status", e.target.value)}
+                              value={
+                                orderEdits[order._id]?.status || order.status
+                              }
+                              onChange={(e) =>
+                                updateOrderEdit(
+                                  order._id,
+                                  "status",
+                                  e.target.value
+                                )
+                              }
                               className="text-xs border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand"
                             >
-                              <option value="pending_payment">Pendiente de pago</option>
+                              <option value="pending_payment">
+                                Pendiente de pago
+                              </option>
                               <option value="processing">En proceso</option>
                               <option value="completed">Completado</option>
                               <option value="cancelled">Cancelado</option>
@@ -621,11 +761,15 @@ const safeIdToString = (id: any): string => {
                               <>
                                 <button
                                   onClick={() => confirmUpdateOrder(order._id)}
-                                  disabled={saving === order._id || updatingStock === order._id}
+                                  disabled={
+                                    saving === order._id ||
+                                    updatingStock === order._id
+                                  }
                                   className="text-green-600 hover:text-green-900 disabled:opacity-50"
                                   title="Guardar cambios"
                                 >
-                                  {saving === order._id || updatingStock === order._id ? (
+                                  {saving === order._id ||
+                                  updatingStock === order._id ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
                                   ) : (
                                     <Save className="h-5 w-5" />
@@ -633,7 +777,10 @@ const safeIdToString = (id: any): string => {
                                 </button>
                                 <button
                                   onClick={() => cancelEditing(order._id)}
-                                  disabled={saving === order._id || updatingStock === order._id}
+                                  disabled={
+                                    saving === order._id ||
+                                    updatingStock === order._id
+                                  }
                                   className="text-red-600 hover:text-red-900 disabled:opacity-50"
                                   title="Cancelar edición"
                                 >
@@ -690,7 +837,7 @@ const safeIdToString = (id: any): string => {
                                     <span className="text-sm text-gray-500 w-24">
                                       Email:
                                     </span>
-                                    <span className="text-sm font-medium flex items-center gap-1">
+                                    <div className="text-sm font-medium flex items-center gap-1">
                                       {order.customer.email}
                                       <button
                                         onClick={() =>
@@ -707,14 +854,15 @@ const safeIdToString = (id: any): string => {
                                           <Clipboard className="h-4 w-4" />
                                         )}
                                       </button>
-                                    </span>
+                                    </div>
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-sm text-gray-500 w-24">
                                       Teléfono:
                                     </span>
-                                    <span className="text-sm font-medium flex items-center gap-1">
-                                      {order.customer.phone || "No proporcionado"}
+                                    <div className="text-sm font-medium flex items-center gap-1">
+                                      {order.customer.phone ||
+                                        "No proporcionado"}
                                       {order.customer.phone && (
                                         <button
                                           onClick={() =>
@@ -725,21 +873,24 @@ const safeIdToString = (id: any): string => {
                                           }
                                           className="text-gray-400 hover:text-brand"
                                         >
-                                          {copiedFields[`phone-${order._id}`] ? (
+                                          {copiedFields[
+                                            `phone-${order._id}`
+                                          ] ? (
                                             <ClipboardCheck className="h-4 w-4" />
                                           ) : (
                                             <Clipboard className="h-4 w-4" />
                                           )}
                                         </button>
                                       )}
-                                    </span>
+                                    </div>
                                   </div>
                                   <div className="flex items-start">
                                     <span className="text-sm text-gray-500 w-24">
                                       Dirección:
                                     </span>
-                                    <span className="text-sm font-medium flex items-center gap-1">
-                                      {order.customer.address || "No proporcionada"}
+                                    <div className="text-sm font-medium flex items-center gap-1">
+                                      {order.customer.address ||
+                                        "No proporcionada"}
                                       {order.customer.address && (
                                         <button
                                           onClick={() =>
@@ -750,14 +901,16 @@ const safeIdToString = (id: any): string => {
                                           }
                                           className="text-gray-400 hover:text-brand"
                                         >
-                                          {copiedFields[`address-${order._id}`] ? (
+                                          {copiedFields[
+                                            `address-${order._id}`
+                                          ] ? (
                                             <ClipboardCheck className="h-4 w-4" />
                                           ) : (
                                             <Clipboard className="h-4 w-4" />
                                           )}
                                         </button>
                                       )}
-                                    </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -770,23 +923,28 @@ const safeIdToString = (id: any): string => {
                                     <span className="text-sm text-gray-500 w-24">
                                       N° Orden:
                                     </span>
-                                    <span className="text-sm font-medium flex items-center gap-1">
+                                    <div className="text-sm font-medium flex items-center gap-1">
                                       {order.orderNumber || "N/A"}
                                       {order.orderNumber && (
                                         <button
                                           onClick={() =>
-                                            copyToClipboard(order.orderNumber || "", `full-orderNumber-${order._id}`)
+                                            copyToClipboard(
+                                              order.orderNumber || "",
+                                              `full-orderNumber-${order._id}`
+                                            )
                                           }
                                           className="text-gray-400 hover:text-brand"
                                         >
-                                          {copiedFields[`full-orderNumber-${order._id}`] ? (
+                                          {copiedFields[
+                                            `full-orderNumber-${order._id}`
+                                          ] ? (
                                             <ClipboardCheck className="h-4 w-4" />
                                           ) : (
                                             <Clipboard className="h-4 w-4" />
                                           )}
                                         </button>
                                       )}
-                                    </span>
+                                    </div>
                                   </div>
                                   <div className="flex">
                                     <span className="text-sm text-gray-500 w-24">
@@ -807,8 +965,16 @@ const safeIdToString = (id: any): string => {
                                           type="number"
                                           min="0"
                                           max="100"
-                                          value={orderEdits[order._id]?.discount || 0}
-                                          onChange={(e) => updateOrderEdit(order._id, "discount", Number(e.target.value))}
+                                          value={
+                                            orderEdits[order._id]?.discount || 0
+                                          }
+                                          onChange={(e) =>
+                                            updateOrderEdit(
+                                              order._id,
+                                              "discount",
+                                              Number(e.target.value)
+                                            )
+                                          }
                                           className="w-16 text-sm border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand"
                                         />
                                         <span className="text-sm">%</span>
@@ -830,9 +996,13 @@ const safeIdToString = (id: any): string => {
                                       Fecha:
                                     </span>
                                     <span className="text-sm font-medium">
-                                      {format(new Date(order.createdAt), "PPPp", {
-                                        locale: es,
-                                      })}
+                                      {format(
+                                        new Date(order.createdAt),
+                                        "PPPp",
+                                        {
+                                          locale: es,
+                                        }
+                                      )}
                                     </span>
                                   </div>
                                   <div className="flex">
@@ -840,15 +1010,72 @@ const safeIdToString = (id: any): string => {
                                       Actualizado:
                                     </span>
                                     <span className="text-sm font-medium">
-                                      {format(new Date(order.updatedAt), "PPPp", {
-                                        locale: es,
-                                      })}
+                                      {format(
+                                        new Date(order.updatedAt),
+                                        "PPPp",
+                                        {
+                                          locale: es,
+                                        }
+                                      )}
                                     </span>
                                   </div>
                                 </div>
                               </div>
+
+                              {/* 🔹 NUEVA SECCIÓN: Notas de la orden */}
+                              <div className="md:col-span-2">
+                                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                  <FileText className="h-4 w-4" />
+                                  Notas de la Orden
+                                </h4>
+                                
+                                {editingNotes === order._id ? (
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                    <textarea
+                                      value={notesEdits[order._id] || ''}
+                                      onChange={(e) => handleNotesChange(order._id, e.target.value)}
+                                      placeholder="Agregar notas sobre esta orden..."
+                                      className="w-full p-3 border border-gray-300 rounded-md min-h-[100px] focus:ring-brand focus:border-brand"
+                                      rows={4}
+                                    />
+                                    <div className="flex gap-2 mt-3">
+                                      <button
+                                        onClick={() => handleCancelNotes(order._id)}
+                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        onClick={() => handleSaveNotes(order._id)}
+                                        className="px-4 py-2 bg-brand text-white rounded-md text-sm hover:bg-brand-dark"
+                                      >
+                                        Guardar Notas
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div 
+                                    className="bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                                    onClick={() => startEditingNotes(order._id)}
+                                  >
+                                    {order.notes ? (
+                                      <div className="flex justify-between items-start">
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                          {order.notes}
+                                        </p>
+                                        <Edit className="h-4 w-4 text-gray-400 hover:text-brand" />
+                                      </div>
+                                    ) : (
+                                      <div className="flex justify-between items-center text-gray-500">
+                                        <span className="text-sm italic">No hay notas para esta orden</span>
+                                        <Plus className="h-4 w-4" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            
+
                             {/* Lista de productos */}
                             <div className="mt-6">
                               <h4 className="text-sm font-medium text-gray-900 mb-3">
@@ -879,8 +1106,12 @@ const safeIdToString = (id: any): string => {
                                           {item.name}
                                           {item.productId && (
                                             <div className="text-xs text-gray-500 mt-1">
-                                              ID: {safeIdToString(item.productId)}
-                                              {item.variationId && ` | Variación: ${safeIdToString(item.variationId)}`}
+                                              ID:{" "}
+                                              {safeIdToString(item.productId)}
+                                              {item.variationId &&
+                                                ` | Variación: ${safeIdToString(
+                                                  item.variationId
+                                                )}`}
                                             </div>
                                           )}
                                         </td>
@@ -891,7 +1122,10 @@ const safeIdToString = (id: any): string => {
                                           ${item.price.toLocaleString("es-AR")}
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                          ${(item.price * item.quantity).toLocaleString("es-AR")}
+                                          $
+                                          {(
+                                            item.price * item.quantity
+                                          ).toLocaleString("es-AR")}
                                         </td>
                                       </tr>
                                     ))}
@@ -904,38 +1138,47 @@ const safeIdToString = (id: any): string => {
                       )}
                     </React.Fragment>
                   ))}
-                  
+
                   {/* Filas vacías para mantener el tamaño constante */}
-                  {currentOrders.length < ordersPerPage && 
-                    Array.from({ length: ordersPerPage - currentOrders.length }).map((_, index) => (
+                  {currentOrders.length < ordersPerPage &&
+                    Array.from({
+                      length: ordersPerPage - currentOrders.length,
+                    }).map((_, index) => (
                       <tr key={`empty-${index}`} className="h-16">
                         <td colSpan={8} className="px-4 py-4"></td>
                       </tr>
-                    ))
-                  }
+                    ))}
                 </tbody>
               </table>
-              
+
               {filteredOrders.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
-                  {searchTerm ? "No se encontraron órdenes" : "No hay órdenes para mostrar"}
+                  {searchTerm
+                    ? "No se encontraron órdenes"
+                    : "No hay órdenes para mostrar"}
                 </div>
               )}
             </div>
           </div>
         </div>
-                {/* Versión Móvil (sm e inferior) */}
+
+        {/* Versión Móvil (sm e inferior) */}
         <div className="md:hidden">
           <div className="space-y-4 p-4">
             {currentOrders.map((order) => (
-              <div key={order._id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+              <div
+                key={order._id}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm p-4"
+              >
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="text-sm font-medium text-gray-900">
                       {order.orderNumber || "N/A"}
                     </h3>
                     <p className="text-xs text-gray-500">
-                      {format(new Date(order.createdAt), "dd MMM yyyy", { locale: es })}
+                      {format(new Date(order.createdAt), "dd MMM yyyy", {
+                        locale: es,
+                      })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -943,11 +1186,14 @@ const safeIdToString = (id: any): string => {
                       <>
                         <button
                           onClick={() => confirmUpdateOrder(order._id)}
-                          disabled={saving === order._id || updatingStock === order._id}
+                          disabled={
+                            saving === order._id || updatingStock === order._id
+                          }
                           className="text-green-600 hover:text-green-900 disabled:opacity-50"
                           title="Guardar cambios"
                         >
-                          {saving === order._id || updatingStock === order._id ? (
+                          {saving === order._id ||
+                          updatingStock === order._id ? (
                             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
                           ) : (
                             <Save className="h-5 w-5" />
@@ -955,7 +1201,9 @@ const safeIdToString = (id: any): string => {
                         </button>
                         <button
                           onClick={() => cancelEditing(order._id)}
-                          disabled={saving === order._id || updatingStock === order._id}
+                          disabled={
+                            saving === order._id || updatingStock === order._id
+                          }
                           className="text-red-600 hover:text-red-900 disabled:opacity-50"
                           title="Cancelar edición"
                         >
@@ -1002,14 +1250,18 @@ const safeIdToString = (id: any): string => {
                   </div>
                   <div>
                     <p className="text-gray-500">Total</p>
-                    <p className="font-medium">
+                    <div className="font-medium">
                       {editingOrder === order._id ? (
                         <div className="flex flex-col">
                           <span className="line-through text-gray-400 text-xs">
                             ${order.total.toLocaleString("es-AR")}
                           </span>
                           <span className="text-green-600">
-                            ${calculateDiscountedTotal(order._id, order.total).toLocaleString("es-AR")}
+                            $
+                            {calculateDiscountedTotal(
+                              order._id,
+                              order.total
+                            ).toLocaleString("es-AR")}
                           </span>
                         </div>
                       ) : order.discount && order.discount > 0 ? (
@@ -1018,23 +1270,31 @@ const safeIdToString = (id: any): string => {
                             ${order.total.toLocaleString("es-AR")}
                           </span>
                           <span className="text-green-600">
-                            ${(order.total - (order.total * order.discount / 100)).toLocaleString("es-AR")}
+                            $
+                            {(
+                              order.total -
+                              (order.total * order.discount) / 100
+                            ).toLocaleString("es-AR")}
                           </span>
                         </div>
                       ) : (
                         `$${order.total.toLocaleString("es-AR")}`
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div>
                     <p className="text-gray-500">Estado</p>
                     {editingOrder === order._id ? (
                       <select
                         value={orderEdits[order._id]?.status || order.status}
-                        onChange={(e) => updateOrderEdit(order._id, "status", e.target.value)}
+                        onChange={(e) =>
+                          updateOrderEdit(order._id, "status", e.target.value)
+                        }
                         className="text-xs border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand w-full"
                       >
-                        <option value="pending_payment">Pendiente de pago</option>
+                        <option value="pending_payment">
+                          Pendiente de pago
+                        </option>
                         <option value="processing">En proceso</option>
                         <option value="completed">Completado</option>
                         <option value="cancelled">Cancelado</option>
@@ -1054,14 +1314,21 @@ const safeIdToString = (id: any): string => {
                 {expandedOrder === order._id && (
                   <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Información del Cliente</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">
+                        Información del Cliente
+                      </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Email:</span>
-                          <span className="font-medium flex items-center gap-1">
+                          <div className="font-medium flex items-center gap-1">
                             {order.customer.email}
                             <button
-                              onClick={() => copyToClipboard(order.customer.email, `mobile-email-${order._id}`)}
+                              onClick={() =>
+                                copyToClipboard(
+                                  order.customer.email,
+                                  `mobile-email-${order._id}`
+                                )
+                              }
                               className="text-gray-400 hover:text-brand"
                             >
                               {copiedFields[`mobile-email-${order._id}`] ? (
@@ -1070,15 +1337,20 @@ const safeIdToString = (id: any): string => {
                                 <Clipboard className="h-3 w-3" />
                               )}
                             </button>
-                          </span>
+                          </div>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Teléfono:</span>
-                          <span className="font-medium flex items-center gap-1">
+                          <div className="font-medium flex items-center gap-1">
                             {order.customer.phone || "No proporcionado"}
                             {order.customer.phone && (
                               <button
-                                onClick={() => copyToClipboard(order.customer.phone || "", `mobile-phone-${order._id}`)}
+                                onClick={() =>
+                                  copyToClipboard(
+                                    order.customer.phone || "",
+                                    `mobile-phone-${order._id}`
+                                  )
+                                }
                                 className="text-gray-400 hover:text-brand"
                               >
                                 {copiedFields[`mobile-phone-${order._id}`] ? (
@@ -1088,23 +1360,27 @@ const safeIdToString = (id: any): string => {
                                 )}
                               </button>
                             )}
-                          </span>
+                          </div>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Dirección:</span>
-                          <span className="font-medium text-right max-w-xs">
+                          <div className="font-medium text-right max-w-xs">
                             {order.customer.address || "No proporcionada"}
-                          </span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Detalles del Pedido</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">
+                        Detalles del Pedido
+                      </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Método de pago:</span>
-                          <span className="font-medium capitalize">{order.paymentMethod}</span>
+                          <span className="font-medium capitalize">
+                            {order.paymentMethod}
+                          </span>
                         </div>
                         {editingOrder === order._id && (
                           <div className="flex justify-between items-center">
@@ -1116,7 +1392,13 @@ const safeIdToString = (id: any): string => {
                                 min="0"
                                 max="100"
                                 value={orderEdits[order._id]?.discount || 0}
-                                onChange={(e) => updateOrderEdit(order._id, "discount", Number(e.target.value))}
+                                onChange={(e) =>
+                                  updateOrderEdit(
+                                    order._id,
+                                    "discount",
+                                    Number(e.target.value)
+                                  )
+                                }
                                 className="w-12 text-sm border border-gray-300 rounded-md p-1 focus:ring-brand focus:border-brand"
                               />
                               <span className="text-xs">%</span>
@@ -1126,30 +1408,102 @@ const safeIdToString = (id: any): string => {
                         {order.discount > 0 && !editingOrder && (
                           <div className="flex justify-between">
                             <span className="text-gray-500">Descuento:</span>
-                            <span className="font-medium text-green-600">{order.discount}% aplicado</span>
+                            <span className="font-medium text-green-600">
+                              {order.discount}% aplicado
+                            </span>
                           </div>
                         )}
                       </div>
                     </div>
 
+                    {/* 🔹 NUEVA SECCIÓN MÓVIL: Notas */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Productos</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Notas
+                      </h4>
+                      
+                      {editingNotes === order._id ? (
+                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                          <textarea
+                            value={notesEdits[order._id] || ''}
+                            onChange={(e) => handleNotesChange(order._id, e.target.value)}
+                            placeholder="Agregar notas..."
+                            className="w-full p-2 border border-gray-300 rounded-md min-h-[80px] focus:ring-brand focus:border-brand text-sm"
+                            rows={3}
+                          />
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => handleCancelNotes(order._id)}
+                              className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md text-xs"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={() => handleSaveNotes(order._id)}
+                              className="px-3 py-1 bg-brand text-white rounded-md text-xs hover:bg-brand-dark"
+                            >
+                              Guardar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className="bg-gray-50 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100"
+                          onClick={() => startEditingNotes(order._id)}
+                        >
+                          {order.notes ? (
+                            <div className="flex justify-between items-start">
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                {order.notes}
+                              </p>
+                              <Edit className="h-3 w-3 text-gray-400 hover:text-brand mt-1" />
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center text-gray-500">
+                              <span className="text-xs italic">No hay notas</span>
+                              <Plus className="h-3 w-3" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">
+                        Productos
+                      </h4>
                       <div className="space-y-3">
                         {order.items.map((item, index) => (
-                          <div key={index} className="flex justify-between items-start border-b border-gray-100 pb-2">
+                          <div
+                            key={index}
+                            className="flex justify-between items-start border-b border-gray-100 pb-2"
+                          >
                             <div className="flex-1">
                               <p className="font-medium text-sm">{item.name}</p>
-                              <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
+                              <p className="text-xs text-gray-500">
+                                Cantidad: {item.quantity}
+                              </p>
                               {item.productId && (
                                 <p className="text-xs text-gray-500 mt-1">
                                   ID: {safeIdToString(item.productId)}
-                                  {item.variationId && ` | Variación: ${safeIdToString(item.variationId)}`}
+                                  {item.variationId &&
+                                    ` | Variación: ${safeIdToString(
+                                      item.variationId
+                                    )}`}
                                 </p>
                               )}
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium">${(item.price * item.quantity).toLocaleString("es-AR")}</p>
-                              <p className="text-xs text-gray-500">${item.price.toLocaleString("es-AR")} c/u</p>
+                              <p className="text-sm font-medium">
+                                $
+                                {(item.price * item.quantity).toLocaleString(
+                                  "es-AR"
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                ${item.price.toLocaleString("es-AR")} c/u
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -1159,10 +1513,12 @@ const safeIdToString = (id: any): string => {
                 )}
               </div>
             ))}
-            
+
             {filteredOrders.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                {searchTerm ? "No se encontraron órdenes" : "No hay órdenes para mostrar"}
+                {searchTerm
+                  ? "No se encontraron órdenes"
+                  : "No hay órdenes para mostrar"}
               </div>
             )}
           </div>
@@ -1175,24 +1531,39 @@ const safeIdToString = (id: any): string => {
           <div className="hidden md:flex-1 md:flex md:items-center md:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">{Math.min((currentPage - 1) * ordersPerPage + 1, filteredOrders.length)}</span> a{" "}
-                <span className="font-medium">{Math.min(currentPage * ordersPerPage, filteredOrders.length)}</span> de{" "}
-                <span className="font-medium">{filteredOrders.length}</span> resultados
+                Mostrando{" "}
+                <span className="font-medium">
+                  {Math.min(
+                    (currentPage - 1) * ordersPerPage + 1,
+                    filteredOrders.length
+                  )}
+                </span>{" "}
+                a{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * ordersPerPage, filteredOrders.length)}
+                </span>{" "}
+                de <span className="font-medium">{filteredOrders.length}</span>{" "}
+                resultados
               </p>
             </div>
             <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 1}
                   className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"
+                    currentPage === 1
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Anterior</span>
                   <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
-                
+
                 {getPageNumbers().map((page) => (
                   <button
                     key={page}
@@ -1206,12 +1577,14 @@ const safeIdToString = (id: any): string => {
                     {page}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
                   className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === totalPages ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"
+                    currentPage === totalPages
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Siguiente</span>
@@ -1220,26 +1593,31 @@ const safeIdToString = (id: any): string => {
               </nav>
             </div>
           </div>
-          
+
           {/* Versión móvil de paginación */}
           <div className="md:hidden flex items-center justify-between w-full">
             <button
               onClick={prevPage}
               disabled={currentPage === 1}
               className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                currentPage === 1 ? "text-gray-300 cursor-not-allowed bg-gray-100" : "text-gray-700 bg-white hover:bg-gray-50"
+                currentPage === 1
+                  ? "text-gray-300 cursor-not-allowed bg-gray-100"
+                  : "text-gray-700 bg-white hover:bg-gray-50"
               }`}
             >
               Anterior
             </button>
             <span className="text-sm text-gray-700">
-              Página <span className="font-medium">{currentPage}</span> de <span className="font-medium">{totalPages}</span>
+              Página <span className="font-medium">{currentPage}</span> de{" "}
+              <span className="font-medium">{totalPages}</span>
             </span>
             <button
               onClick={nextPage}
               disabled={currentPage === totalPages}
               className={`relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                currentPage === totalPages ? "text-gray-300 cursor-not-allowed bg-gray-100" : "text-gray-700 bg-white hover:bg-gray-50"
+                currentPage === totalPages
+                  ? "text-gray-300 cursor-not-allowed bg-gray-100"
+                  : "text-gray-700 bg-white hover:bg-gray-50"
               }`}
             >
               Siguiente
@@ -1252,10 +1630,13 @@ const safeIdToString = (id: any): string => {
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirmar actualización</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Confirmar actualización
+            </h3>
             <p className="text-sm text-gray-500 mb-6">
-              ¿Estás seguro de que deseas actualizar esta orden? 
-              {orderToUpdate && orderEdits[orderToUpdate]?.status === 'completed' && 
+              ¿Estás seguro de que deseas actualizar esta orden?
+              {orderToUpdate &&
+                orderEdits[orderToUpdate]?.status === "completed" &&
                 " Esta acción también actualizará el stock de los productos."}
             </p>
             <div className="flex justify-end gap-3">

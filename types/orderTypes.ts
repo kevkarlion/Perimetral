@@ -9,15 +9,34 @@ export interface IOrderItem {
   priceWithVat?: number; // Precio unitario CON IVA (calculado)
   image?: string;
   medida?: string;
-  sku?: string; // Nuevo campo para referencia
+  sku?: string;
 }
+export interface IOrderData {
+  _id: string;
+  orderNumber: string;
+  accessToken: string;
+  customer: ICustomerData;
+  items: IOrderItem[];
+  total: number;
+  subtotal?: number;
+  vat?: number;
+  shippingCost?: number;
+  status: 'pending' | 'pending_payment' | 'processing' | 'completed' | 'payment_failed' | 'cancelled';
+  paymentMethod: string;
+  paymentDetails?: IPaymentDetails;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
 
 export interface ICustomerData {
   name: string;
   email: string;
   phone?: string;
   address?: string;
-  dni?: string; // Nuevo campo opcional para facturación
+  dni?: string;
 }
 
 export interface IPaymentDetails {
@@ -27,32 +46,39 @@ export interface IPaymentDetails {
   mercadopagoPreferenceId?: string;
   paymentUrl?: string;
   approvedAt?: Date;
-  expirationDate?: Date; // Añadido para pagos en efectivo
-  isCashPayment?: boolean; // Añadido para identificar pagos en efectivo
-  // Mantener compatibilidad con tu paymentDetails any
+  expirationDate?: Date; // Para pagos en efectivo
+  isCashPayment?: boolean;
   [key: string]: any;
 }
 
 export interface IOrder extends Document {
   _id: string;
-  discount: number,
+  discount: number;
   customer: ICustomerData;
   items: IOrderItem[];
-  subtotal: number; // Nuevo campo: suma de precios SIN IVA
-  vat: number; // Nuevo campo: monto de IVA calculado
+  subtotal: number;
+  vat: number;
   total: number;
-  shippingCost?: number; // Nuevo campo opcional
-  status: "pending" | "pending_payment" | "processing" | "completed" | "cancelled" | "refunded" | "payment_failed"; // Estados ampliados con "pending_payment" y "payment_failed"
-  paymentMethod: string; // Mantenido para compatibilidad
-  paymentDetails?: IPaymentDetails; // Usando la interfaz IPaymentDetails definida arriba
-  notes?: string; // Nuevo campo para notas
+  shippingCost?: number;
+  status:
+    | "pending"
+    | "pending_payment"
+    | "processing"
+    | "completed"
+    | "cancelled"
+    | "refunded"
+    | "payment_failed";
+  paymentMethod: string;
+  paymentDetails?: IPaymentDetails;
+  notes?: string; // 🔹 Nuevo campo para anotaciones
   createdAt: Date;
   updatedAt: Date;
   orderNumber: string;
   accessToken: string;
+  
 }
 
-// Tipos derivados (manteniendo los existentes)
+// Tipos derivados
 export type OrderStatus = IOrder["status"];
 export type PaymentMethod = IOrder["paymentMethod"];
 
@@ -69,5 +95,5 @@ export type CreateOrderDTO = Omit<
   IOrder,
   keyof Document | "createdAt" | "updatedAt"
 > & {
-  items: Array<Omit<IOrderItem, "priceWithVat">>; // priceWithVat se calcula en el backend
+  items: Array<Omit<IOrderItem, "priceWithVat">>;
 };
