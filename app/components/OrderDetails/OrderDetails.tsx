@@ -5,15 +5,10 @@ import { useEffect, useState } from 'react';
 import { IOrder } from '@/types/orderTypes';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Loader2 } from 'lucide-react';
-import OrderDetailsSkeleton from './OrderDetailsSkeleton'; // Importa el skeleton
+import OrderDetailsSkeleton from './OrderDetailsSkeleton';
 
 interface OrderDetailsProps {
   token: string;
-}
-
-interface ApiResponse extends IOrder {  // Hereda de IOrder
-  error?: string;
 }
 
 export default function OrderDetails({ token }: OrderDetailsProps) {
@@ -21,19 +16,16 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
- 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const response = await fetch(`/api/orders/${token}`);
-        const data = await response.json(); // Sin tipo ApiResponse forzado
-        console.log('datos de order',data)
-        
-       if (!response.ok || !data.orderNumber) {  // Cambia !data.order por !data.orderNumber
-        throw new Error(data.error || 'No se pudo cargar la orden');
-      }
-        
+        const data = await response.json();
+
+        if (!response.ok || !data.orderNumber) {
+          throw new Error(data.error || 'No se pudo cargar la orden');
+        }
+
         setOrder(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -45,51 +37,60 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
     fetchOrder();
   }, [token]);
 
-    if (loading) {
-    return <OrderDetailsSkeleton />; // Usa el skeleton en lugar del spinner
+  if (loading) {
+    return <OrderDetailsSkeleton />;
   }
 
-
   if (error) {
-    return <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6">
-      <p className="text-red-700">{error}</p>
-    </div>;
+    return (
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6">
+        <p className="text-red-700">{error}</p>
+      </div>
+    );
   }
 
   if (!order) {
-    return <div className="text-center py-12">
-      <h2 className="text-xl font-semibold">Orden no encontrada</h2>
-      <p className="mt-2 text-gray-600">No se encontró una orden con ese token de acceso.</p>
-    </div>;
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold">Orden no encontrada</h2>
+        <p className="mt-2 text-gray-600">
+          No se encontró una orden con ese token de acceso.
+        </p>
+      </div>
+    );
   }
 
-  // Función para obtener el estado de pago de forma segura
-  const getPaymentStatus = () => {
-    if (!order.paymentDetails) return 'pending';
-    return order.paymentDetails.status || 'pending';
-  };
+  // 🔹 Forzar que si es efectivo, se considere completado
+  const effectiveStatus =
+    order.paymentMethod === 'cash' ? 'completed' : order.status;
 
   // Función para traducir estados de pago
   const translatePaymentStatus = (status: string) => {
     switch (status) {
-      case 'approved': return 'Aprobado';
-      case 'rejected': return 'Rechazado';
-      case 'refunded': return 'Reembolsado';
-      default: return 'Pendiente';
+      case 'approved':
+        return 'Aprobado';
+      case 'rejected':
+        return 'Rechazado';
+      case 'refunded':
+        return 'Reembolsado';
+      default:
+        return 'Pendiente';
     }
   };
 
   // Color según estado de pago
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'text-green-600';
-      case 'rejected': return 'text-red-600';
-      case 'refunded': return 'text-purple-600';
-      default: return 'text-yellow-600';
+      case 'approved':
+        return 'text-green-600';
+      case 'rejected':
+        return 'text-red-600';
+      case 'refunded':
+        return 'text-purple-600';
+      default:
+        return 'text-yellow-600';
     }
   };
-
-  const paymentStatus = getPaymentStatus();
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden my-6">
@@ -100,21 +101,21 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
         <div className="flex items-center mt-2">
           <span
             className={`px-2 py-1 text-xs font-medium rounded-full ${
-              order.status === 'completed'
+              effectiveStatus === 'completed'
                 ? 'bg-green-100 text-green-800'
-                : order.status === 'cancelled'
+                : effectiveStatus === 'cancelled'
                 ? 'bg-red-100 text-red-800'
                 : 'bg-yellow-100 text-yellow-800'
             }`}
           >
-            {order.status === 'completed'
+            {effectiveStatus === 'completed'
               ? 'Completado'
-              : order.status === 'cancelled'
+              : effectiveStatus === 'cancelled'
               ? 'Cancelado'
               : 'Pendiente'}
           </span>
           <span className="ml-4 text-sm text-gray-500">
-            {format(new Date(order.createdAt), "PPPp", { locale: es })}
+            {format(new Date(order.createdAt), 'PPPp', { locale: es })}
           </span>
         </div>
       </div>
@@ -147,12 +148,7 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
                 {order.paymentMethod}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Estado del pago</p>
-              <p className={`text-sm font-medium capitalize ${getPaymentStatusColor(paymentStatus)}`}>
-                {translatePaymentStatus(paymentStatus)}
-              </p>
-            </div>
+          
             <div>
               <p className="text-sm text-gray-500">Total</p>
               <p className="text-sm font-medium">
