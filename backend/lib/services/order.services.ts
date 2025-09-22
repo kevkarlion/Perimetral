@@ -2,7 +2,7 @@
 import Order from "@/backend/lib/models/Order";
 import { validateCart } from "@/backend/lib/services/validate.cart.services";
 import { MercadoPagoService } from "./mercadoPago.services";
-import { sendEmail } from "@/backend/lib/services/emailService";
+import { sendEmail } from "@/backend/lib/services/emailService"; // ✅ Usando tu función existente
 import { updateStockViaApi } from "@/backend/lib/services/stockApiService";
 
 export class OrderService {
@@ -63,8 +63,11 @@ export class OrderService {
 
       await order.save();
 
-      // 5. Enviar email de confirmación inmediatamente para todos los métodos
-      await this.sendOrderConfirmationEmail(order, orderData.paymentMethod);
+      // 5. Enviar email de confirmación al cliente Y al vendedor
+      await Promise.all([
+        this.sendOrderConfirmationEmail(order, orderData.paymentMethod),
+        this.sendVendorNotificationEmail(order, orderData.paymentMethod)
+      ]);
 
       // 6. Si el método es MercadoPago, crear preferencia
       if (orderData.paymentMethod === "mercadopago") {
@@ -121,6 +124,120 @@ export class OrderService {
     } catch (error: any) {
       console.error("Error general al crear orden:", error);
       throw new Error(`Error al crear la orden: ${error.message}`);
+    }
+  }
+
+  // 🔹 NUEVA FUNCIÓN: Enviar email de notificación al vendedor
+  static async sendVendorNotificationEmail(order: any, paymentMethod: string) {
+    try {
+      const vendorEmail = process.env.VENDOR_EMAIL || 'vendedor@tuempresa.com';
+      
+      if (!vendorEmail) {
+        console.warn('Email del vendedor no configurado. Skipping vendor notification.');
+        return;
+      }
+
+      const orderLink = `${process.env.NEXT_PUBLIC_BASE_URL}/admin/orders`;
+      const orderDetailLink = `${process.env.NEXT_PUBLIC_BASE_URL}/admin/orders/${order._id}`;
+
+      let paymentStatusInfo = "";
+      let emailSubject = "";
+
+      if (paymentMethod === "efectivo") {
+        emailSubject = `📦 NUEVA ORDEN #${order.orderNumber} - PAGO PENDIENTE`;
+        paymentStatusInfo = `
+          <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; border-radius: 4px;">
+            <h4 style="color: #d97706; margin-top: 0;">⚠️ PAGO PENDIENTE - EFECTIVO</h4>
+            <p>El cliente debe contactarse para completar el pago.</p>
+            <p><strong>Fecha límite para pagar:</strong> ${new Date(
+              order.paymentDetails.expirationDate
+            ).toLocaleDateString("es-AR")}</p>
+          </div>
+        `;
+      } else {
+        emailSubject = `📦 NUEVA ORDEN #${order.orderNumber} - PAGO ONLINE`;
+        paymentStatusInfo = `
+          <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; margin: 16px 0; border-radius: 4px;">
+            <h4 style="color: #059669; margin-top: 0;">✅ PAGO ONLINE</h4>
+            <p>El pago se procesará electrónicamente.</p>
+          </div>
+        `;
+      }
+
+      // Resumen de productos
+      const productsSummary = order.items.map((item: any) => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${item.price.toFixed(2)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      await sendEmail({
+        to: vendorEmail,
+        subject: emailSubject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+            <h1 style="color: #4f46e5; text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 16px;">
+              🎉 NUEVA ORDEN RECIBIDA
+            </h1>
+            
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h2 style="color: #1e293b; margin-top: 0;">Resumen de la Orden</h2>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                  <h3 style="color: #374151; margin-bottom: 8px;">📋 Información de la Orden</h3>
+                  <p><strong>N° Orden:</strong> ${order.orderNumber}</p>
+                  <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString('es-AR')}</p>
+                  <p><strong>Método de pago:</strong> ${paymentMethod}</p>
+                  <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+                </div>
+                
+                <div>
+                  <h3 style="color: #374151; margin-bottom: 8px;">👤 Información del Cliente</h3>
+                  <p><strong>Nombre:</strong> ${order.customer.name}</p>
+                  <p><strong>Email:</strong> ${order.customer.email}</p>
+                  <p><strong>Teléfono:</strong> ${order.customer.phone || 'No proporcionado'}</p>
+                  ${order.customer.address ? `<p><strong>Dirección:</strong> ${order.customer.address}</p>` : ''}
+                </div>
+              </div>
+
+              ${paymentStatusInfo}
+
+              <h3 style="color: #374151; margin-bottom: 16px;">🛒 Productos</h3>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                  <tr style="background-color: #f1f5f9;">
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #cbd5e1;">Producto</th>
+                    <th style="padding: 12px; text-align: center; border-bottom: 2px solid #cbd5e1;">Cantidad</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 2px solid #cbd5e1;">Precio Unit.</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 2px solid #cbd5e1;">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${productsSummary}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1;">Total:</td>
+                    <td style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1;">$${order.total.toFixed(2)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            
+          </div>
+        `,
+      });
+
+      console.log(`✅ Email de notificación enviado al vendedor: ${vendorEmail}`);
+
+    } catch (emailError) {
+      console.error("Error al enviar email de notificación al vendedor:", emailError);
+      // No lanzamos error para no interrumpir el flujo de compra
     }
   }
 
@@ -182,13 +299,13 @@ export class OrderService {
               </a>
             </div>
             
-            <p style="font-size: 14px; color: '6b7280';">
+            <p style="font-size: 14px; color: #6b7280;">
               O copia y pega esta URL en tu navegador:<br>
-              <span style="word-break: break-all; color: '374151';">${orderLink}</span>
+              <span style="word-break: break-all; color: #374151;">${orderLink}</span>
             </p>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <p style="font-size: 14px; color: '6b7280';">
+              <p style="font-size: 14px; color: #6b7280;">
                 Si tienes alguna pregunta, no dudes en contactarnos.<br>
                 Teléfono: [Tu teléfono] | Email: [Tu email]
               </p>
@@ -196,56 +313,63 @@ export class OrderService {
           </div>
         `,
       });
+
+      console.log(`✅ Email de confirmación enviado al cliente: ${order.customer.email}`);
+
     } catch (emailError) {
       console.error("Error al enviar email de confirmación:", emailError);
       // No lanzamos error para no interrumpir el flujo de compra
     }
   }
 
+  // ... el resto de las funciones permanecen igual ...
   static async updateOrderStatus(
-  identifier: string,
-  status: string,
-  additionalData: any = {},
-  identifierType: "id" | "token" = "id"
-) {
-  try {
-    let query = {};
-    if (identifierType === "id") {
-      query = { _id: identifier };
-    } else {
-      query = { accessToken: identifier };
+    identifier: string,
+    status: string,
+    additionalData: any = {},
+    identifierType: "id" | "token" = "id"
+  ) {
+    try {
+      let query = {};
+      if (identifierType === "id") {
+        query = { _id: identifier };
+      } else {
+        query = { accessToken: identifier };
+      }
+      
+      const updateData: any = { 
+        status,
+        updatedAt: new Date()
+      };
+      
+      // Agregar datos adicionales si existen
+      if (additionalData.discount !== undefined) {
+        updateData.discount = additionalData.discount;
+      }
+      
+      if (additionalData.total !== undefined) {
+        updateData.total = additionalData.total;
+      }
+      
+      const order = await Order.findOneAndUpdate(
+        query,
+        updateData,
+        { new: true }
+      );
+      
+      if (!order) {
+        throw new Error("Orden no encontrada");
+      }
+      
+      return order;
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      throw error;
     }
-    
-    const updateData: any = { 
-      status,
-      updatedAt: new Date()
-    };
-    
-    // Agregar datos adicionales si existen
-    if (additionalData.discount !== undefined) {
-      updateData.discount = additionalData.discount;
-    }
-    
-    if (additionalData.total !== undefined) {
-      updateData.total = additionalData.total;
-    }
-    
-    const order = await Order.findOneAndUpdate(
-      query,
-      updateData,
-      { new: true } // Devuelve el documento actualizado
-    );
-    
-    if (!order) {
-      throw new Error("Orden no encontrada");
-    }
-    
-    return order;
-  } catch (error) {
-    console.error("Error updating order status:", error);
-    throw error;
   }
-}
+
+  // ... (las demás funciones se mantienen igual) ...
+
 
   static async handleStockManagement(
     order: any,
@@ -396,38 +520,33 @@ export class OrderService {
     }
   }
 
-
   static async updateOrderNotes(
-  identifier: string,
-  notes: string,
-  identifierType: "id" | "token" = "id"
-) {
-  try {
-    let query = {};
-    if (identifierType === "id") {
-      query = { _id: identifier };
-    } else {
-      query = { accessToken: identifier };
+    identifier: string,
+    notes: string,
+    identifierType: "id" | "token" = "id"
+  ) {
+    try {
+      let query = {};
+      if (identifierType === "id") {
+        query = { _id: identifier };
+      } else {
+        query = { accessToken: identifier };
+      }
+
+      const order = await Order.findOneAndUpdate(
+        query,
+        { notes, updatedAt: new Date() },
+        { new: true }
+      );
+
+      if (!order) {
+        throw new Error("Orden no encontrada");
+      }
+
+      return order;
+    } catch (error) {
+      console.error("Error actualizando notas de la orden:", error);
+      throw error;
     }
-
-    const order = await Order.findOneAndUpdate(
-      query,
-      { notes, updatedAt: new Date() },
-      { new: true }
-    );
-
-    if (!order) {
-      throw new Error("Orden no encontrada");
-    }
-
-    return order;
-  } catch (error) {
-    console.error("Error actualizando notas de la orden:", error);
-    throw error;
   }
 }
-
-}
-
-
-

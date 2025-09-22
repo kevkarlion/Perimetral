@@ -110,6 +110,7 @@ export default function OrdersTable() {
   // 🔹 NUEVA FUNCIÓN: Actualizar notas de la orden
   const updateOrderNotes = async (orderId: string, notes: string) => {
     try {
+       console.log("Iniciando updateOrder para:", orderToUpdate);
       const order = orders.find(o => o._id === orderId);
       if (!order) return;
 
@@ -123,13 +124,13 @@ export default function OrdersTable() {
           status: order.status // mantener el estado actual
         }),
       });
-
+       console.log("Respuesta del servidor:", response.status);
       if (!response.ok) {
         throw new Error('Error al actualizar las notas');
       }
 
       const result = await response.json();
-      
+      console.log("Datos recibidos:", result);
       // Actualizar el estado local
       setOrders(prev => prev.map(o => 
         o._id === orderId ? { ...o, notes } as IOrder : o
@@ -281,77 +282,77 @@ export default function OrdersTable() {
   };
 
   // ✅ NUEVA FUNCIÓN: Actualizar stock cuando se completa una orden
-  const updateStockFromOrder = async (order: IOrder) => {
-    setUpdatingStock(order._id);
-    console.log("order desdeORders", order);
+  // const updateStockFromOrder = async (order: IOrder) => {
+  //   setUpdatingStock(order._id);
+  //   console.log("order desdeORders", order);
 
-    try {
-      // Procesar cada item de la orden
-      for (const item of order.items) {
-        try {
-          // Convertir ObjectId a string si es necesario - PARA productId
-          const productId = safeIdToString(item.productId);
+  //   try {
+  //     // Procesar cada item de la orden
+  //     for (const item of order.items) {
+  //       try {
+  //         // Convertir ObjectId a string si es necesario - PARA productId
+  //         const productId = safeIdToString(item.productId);
 
-          // ✅ CONVERTIR variationId DE FORMA SEGURA - ESTA ES LA CLAVE
-          let variationId: string | undefined = undefined;
+  //         // ✅ CONVERTIR variationId DE FORMA SEGURA - ESTA ES LA CLAVE
+  //         let variationId: string | undefined = undefined;
 
-          if (item.variationId) {
-            variationId = safeIdToString(item.variationId);
-          } else {
-            // ✅ SI NO HAY variationId, USAR EL productId COMO variationId
-            variationId = productId;
-            console.log(
-              `ℹ️  Usando productId como variationId para: ${item.name}`
-            );
-          }
+  //         if (item.variationId) {
+  //           variationId = safeIdToString(item.variationId);
+  //         } else {
+  //           // ✅ SI NO HAY variationId, USAR EL productId COMO variationId
+  //           variationId = productId;
+  //           console.log(
+  //             `ℹ️  Usando productId como variationId para: ${item.name}`
+  //           );
+  //         }
 
-          const updateData = {
-            productId,
-            variationId, // ✅ Ahora siempre tendrá un valor
-            stock: item.quantity,
-            action: "decrement" as const,
-            productName: item.name,
-            productCode: item.sku,
-          };
+  //         const updateData = {
+  //           productId,
+  //           variationId, // ✅ Ahora siempre tendrá un valor
+  //           stock: item.quantity,
+  //           action: "decrement" as const,
+  //           productName: item.name,
+  //           productCode: item.sku,
+  //         };
 
-          console.log("Enviando actualización de stock:", updateData);
+  //         console.log("Enviando actualización de stock:", updateData);
 
-          const response = await fetch("/api/stock", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updateData),
-          });
+  //         const response = await fetch("/api/stock", {
+  //           method: "PUT",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //           body: JSON.stringify(updateData),
+  //         });
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(
-              `Error al actualizar stock para: ${item.name} - ${errorText}`
-            );
-          }
+  //         if (!response.ok) {
+  //           const errorText = await response.text();
+  //           throw new Error(
+  //             `Error al actualizar stock para: ${item.name} - ${errorText}`
+  //           );
+  //         }
 
-          const result = await response.json();
-          if (!result.success) {
-            throw new Error(result.error || "Error al actualizar stock");
-          }
+  //         const result = await response.json();
+  //         if (!result.success) {
+  //           throw new Error(result.error || "Error al actualizar stock");
+  //         }
 
-          console.log(`✅ Stock actualizado para: ${item.name}`);
-        } catch (itemError) {
-          console.error(`❌ Error procesando item "${item.name}":`, itemError);
-          // Continuar con los siguientes items aunque falle uno
-          continue;
-        }
-      }
+  //         console.log(`✅ Stock actualizado para desde updateStockFromOrder: ${item.name}`);
+  //       } catch (itemError) {
+  //         console.error(`❌ Error procesando item "${item.name}":`, itemError);
+  //         // Continuar con los siguientes items aunque falle uno
+  //         continue;
+  //       }
+  //     }
 
-      return true;
-    } catch (error) {
-      console.error("❌ Error en updateStockFromOrder:", error);
-      throw error;
-    } finally {
-      setUpdatingStock(null);
-    }
-  };
+  //     return true;
+  //   } catch (error) {
+  //     console.error("❌ Error en updateStockFromOrder:", error);
+  //     throw error;
+  //   } finally {
+  //     setUpdatingStock(null);
+  //   }
+  // };
 
   const confirmUpdateOrder = (orderId: string) => {
     console.log("Preparing to update order:", orderId);
@@ -359,74 +360,75 @@ export default function OrdersTable() {
     setShowConfirmDialog(true);
   };
 
-  const updateOrder = async () => {
-    if (!orderToUpdate) return;
-    setSaving(orderToUpdate);
-    setShowConfirmDialog(false);
 
-    try {
-      const edits = orderEdits[orderToUpdate];
-      const order = orders.find((o) => o._id === orderToUpdate);
 
-      if (!order) {
-        throw new Error("Orden no encontrada");
-      }
+const updateOrder = async () => {
+  if (!orderToUpdate) return;
+  setSaving(orderToUpdate);
+  setShowConfirmDialog(false);
 
-      const updatedData = {
-        status: edits.status,
-        discount: edits.discount,
-        total: calculateDiscountedTotal(
-          orderToUpdate,
-          edits.originalTotal || order.total
-        ),
-      };
+  try {
+    const edits = orderEdits[orderToUpdate];
+    const order = orders.find((o) => o._id === orderToUpdate);
 
-      // ✅ ACTUALIZAR STOCK SI EL ESTADO CAMBIA A "COMPLETED"
-      if (edits.status === "completed" && order.status !== "completed") {
-        console.log("Orden completada, actualizando stock...");
-        await updateStockFromOrder(order);
-      }
-
-      // 🔹 ACTUALIZAR NOTAS SI HAY CAMBIOS
-      if (edits.notes !== undefined && edits.notes !== order.notes) {
-        await updateOrderNotes(orderToUpdate, edits.notes);
-      }
-
-      const response = await fetch(`/api/orders/${order.accessToken}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: updatedData.status,
-          additionalData: {
-            discount: updatedData.discount,
-            total: updatedData.total,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar la orden");
-      }
-
-      await fetchOrders();
-
-      setEditingOrder(null);
-      setEditingNotes(null);
-      const newEdits = { ...orderEdits };
-      delete newEdits[orderToUpdate];
-      setOrderEdits(newEdits);
-
-      alert("Orden actualizada correctamente");
-    } catch (error) {
-      console.error("Error updating order:", error);
-      alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
-    } finally {
-      setSaving(null);
-      setOrderToUpdate(null);
+    if (!order) {
+      throw new Error("Orden no encontrada");
     }
-  };
+
+    const updatedData = {
+      status: edits.status,
+      discount: edits.discount,
+      total: calculateDiscountedTotal(
+        orderToUpdate,
+        edits.originalTotal || order.total
+      ),
+    };
+
+    // 🔹 ACTUALIZAR NOTAS SI HAY CAMBIOS
+    if (edits.notes !== undefined && edits.notes !== order.notes) {
+      await updateOrderNotes(orderToUpdate, edits.notes);
+    }
+
+    // 🔹 SOLO ACTUALIZA EL ESTADO EN EL BACKEND
+    // ⚠️ Si el estado cambia a "completed", el backend debe encargarse de actualizar stock
+    const response = await fetch(`/api/orders/${order.accessToken}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: updatedData.status,
+        additionalData: {
+          discount: updatedData.discount,
+          total: updatedData.total,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al actualizar la orden");
+    }
+
+    console.log("✅ Orden actualizada:", response);
+    await fetchOrders();
+
+    // 🔹 Resetear estados locales
+    setEditingOrder(null);
+    setEditingNotes(null);
+    const newEdits = { ...orderEdits };
+    delete newEdits[orderToUpdate];
+    setOrderEdits(newEdits);
+
+    alert("Orden actualizada correctamente");
+  } catch (error) {
+    console.error("❌ Error updating order:", error);
+    alert("Error al actualizar la orden. Por favor, intenta nuevamente.");
+  } finally {
+    setSaving(null);
+    setOrderToUpdate(null);
+  }
+};
+
 
   // Función para convertir ObjectId a string de forma segura
   const safeIdToString = (id: any): string => {
