@@ -107,13 +107,13 @@ export default function ServiciosSection() {
         ))}
       </div>
 
-      {/* Galería estilo masonry */}
+      {/* Galería estilo masonry - Vuelve al diseño original */}
       <div className="columns-1 sm:columns-2 md:columns-3 gap-4 space-y-4">
         {media.map((item) =>
           item.type === "image" ? (
             <div
               key={item.id}
-              className="relative w-full overflow-hidden rounded-xl"
+              className="relative w-full overflow-hidden rounded-xl break-inside-avoid"
             >
               <Image
                 src={item.src}
@@ -126,36 +126,55 @@ export default function ServiciosSection() {
           ) : (
             <div
               key={item.id}
-              className="relative cursor-pointer overflow-hidden rounded-xl"
+              className="relative cursor-pointer overflow-hidden rounded-xl break-inside-avoid transform hover:scale-[1.02] transition-transform duration-300"
               onClick={() => setSelectedVideo(item.src)}
             >
+              {/* Video en masonry como estaba originalmente */}
               <video
                 src={item.src}
                 className="w-full h-auto rounded-xl"
                 muted
                 loop
-                autoPlay
+                playsInline
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
-                ▶ Ver Video
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg rounded-xl transition-colors hover:bg-black/30">
+                <div className="bg-black/50 rounded-full w-16 h-16 flex items-center justify-center text-xl">
+                  ▶
+                </div>
               </div>
             </div>
           )
         )}
       </div>
 
-      {/* Modal para video */}
+      {/* Modal para video - Ahora sí tiene en cuenta la relación de aspecto */}
       {selectedVideo && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedVideo(null)}
         >
-          <video
-            src={selectedVideo}
-            controls
-            autoPlay
-            className="max-w-3xl w-full rounded-xl shadow-xl"
-          />
+          <div 
+            className="max-w-4xl w-full mx-auto max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Contenedor que se adapta al aspecto del video */}
+            <div className="w-full max-w-full max-h-full flex items-center justify-center">
+              <video
+                src={selectedVideo}
+                controls
+                autoPlay
+                className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                // Esto permite que el video mantenga su relación de aspecto natural
+              />
+            </div>
+            
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="mt-4 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm transition-colors"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
     </section>

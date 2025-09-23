@@ -25,18 +25,17 @@ export default function ServiciosPage() {
 
         {/* Video de fondo */}
         <video
-  src="/videos/video-hero-proyects.mp4"
-  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-    videoReady ? "opacity-100" : "opacity-0"
-  }`}
-  autoPlay
-  muted
-  loop
-  playsInline
-  preload="auto"
-  onCanPlay={() => setVideoReady(true)}
-/>
-
+          src="/videos/video-hero-proyects.mp4"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+            videoReady ? "opacity-100" : "opacity-0"
+          }`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onCanPlay={() => setVideoReady(true)}
+        />
 
         {/* Overlay oscuro para contraste */}
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -66,8 +65,8 @@ export default function ServiciosPage() {
                 ¿Necesitas más información?
               </h3>
               <p className="text-gray-600 mb-6 max-w-xl mx-auto text-base">
-                Nuestros especialistas están disponibles para responder todas tus
-                consultas y asesorarte en cada etapa del proyecto.
+                Nuestros especialistas están disponibles para responder todas
+                tus consultas y asesorarte en cada etapa del proyecto.
               </p>
               <a
                 href="https://wa.me/5492984392148"
