@@ -141,26 +141,31 @@ export default function CatalogoPage() {
         )}
       </div>
 
-      <div className="mt-8 bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-lg shadow-md">
-        <div className="bg-white rounded-lg p-6 text-center">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
-            ¿Necesitas más información?
-          </h3>
-          <p className="text-gray-600 mb-4 max-w-2xl mx-auto text-sm">
-            Nuestros especialistas están disponibles para responder todas tus
-            consultas.
-          </p>
-          <a
-            href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1 bg-brand hover:bg-brandHover text-white font-bold py-2 px-6 rounded-md transition-all shadow-sm hover:shadow-md text-sm"
-          >
-            <FaWhatsapp className="w-4 h-4" />
-            Contactar por WhatsApp
-          </a>
+       <section className="py-16 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Borde con gradiente */}
+          <div className="bg-gradient-to-r from-brand to-brand-dark p-0.5 rounded-2xl shadow-lg">
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                ¿Necesitas más información?
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-xl mx-auto text-base">
+                Nuestros especialistas están disponibles para responder todas tus
+                consultas y asesorarte en cada etapa del proyecto.
+              </p>
+              <a
+                href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-semibold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md text-base"
+              >
+                <FaWhatsapp className="w-5 h-5" />
+                Contactar por WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
