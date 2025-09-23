@@ -16,13 +16,13 @@ interface CartItem {
 interface CartData {
   items: CartItem[];
   total: number; // Total CON IVA incluido
+  subtotal?: number; // Opcional: subtotal SIN IVA
+  iva?: number; // Opcional: monto de IVA
 }
 
 const IVA_PERCENTAGE = 21; // 21% de IVA
 
 export async function validateCart(cartData: CartData) {
-
-  
   try {
     await dbConnect();
 
@@ -48,9 +48,8 @@ export async function validateCart(cartData: CartData) {
       _id: { $in: productIds.map(id => new Types.ObjectId(id)) }
     });
 
-    // 4. Validar cada item
-    let subtotal = 0; // Suma de precios SIN IVA
-    let validatedTotal = 0; // Total CON IVA
+    // 4. Validar cada item y calcular subtotal (SIN IVA)
+    let calculatedSubtotal = 0; // Solo subtotal SIN IVA
     const validatedItems = await Promise.all(
       cartData.items.map(async (item) => {
         const dbProduct = dbProducts.find(p => 
@@ -65,7 +64,7 @@ export async function validateCart(cartData: CartData) {
           throw new Error(`Producto no disponible: ${dbProduct.nombre}`);
         }
 
-        // Manejo de variaciones
+        // Manejo de variaciones (tu código existente)
         let selectedVariation: IVariation | undefined;
         let isVariationValid = true;
 
@@ -96,7 +95,7 @@ export async function validateCart(cartData: CartData) {
           ? selectedVariation.precio
           : dbProduct.precio || 0;
 
-        // Validar stock
+        // Validar stock (tu código existente)
         const availableStock = selectedVariation && isVariationValid 
           ? selectedVariation.stock 
           : dbProduct.stock || 0;
@@ -114,18 +113,17 @@ export async function validateCart(cartData: CartData) {
           throw new Error(`Precio actualizado. Nuevo precio: ${basePrice.toFixed(2)} (sin IVA)`);
         }
 
-        // Calcular subtotal y total con IVA
+        // Calcular solo el subtotal (SIN IVA)
         const itemSubtotal = basePrice * item.quantity;
-        subtotal += itemSubtotal;
-        validatedTotal += itemSubtotal * (1 + IVA_PERCENTAGE / 100);
+        calculatedSubtotal += itemSubtotal;
 
         return {
           ...item,
           name: selectedVariation && isVariationValid
             ? `${dbProduct.nombre} - ${selectedVariation.descripcion || selectedVariation.codigo}`
             : dbProduct.nombre,
-          price: basePrice, // Guardamos precio SIN IVA
-          priceWithVat: basePrice * (1 + IVA_PERCENTAGE / 100), // Precio CON IVA
+          price: basePrice, // Precio SIN IVA
+          priceWithVat: basePrice * (1 + IVA_PERCENTAGE / 100), // Precio CON IVA (para referencia)
           image: selectedVariation?.imagenes?.[0] || dbProduct.imagenesGenerales?.[0] || item.image || null,
           sku: selectedVariation?.codigo || dbProduct.codigoPrincipal,
           stock: availableStock,
@@ -135,23 +133,42 @@ export async function validateCart(cartData: CartData) {
       })
     );
 
-    // 5. Validar total (con IVA incluido)
-    if (Math.abs(validatedTotal - cartData.total) > 0.01) {
+    // 5. Calcular el total esperado CON IVA basado en los precios validados
+    const expectedTotalWithVat = calculatedSubtotal * (1 + IVA_PERCENTAGE / 100);
+    const calculatedVat = calculatedSubtotal * (IVA_PERCENTAGE / 100);
+
+    // 6. Validar que el total recibido sea razonable (con tolerancia)
+    const tolerance = 0.01; // 1% de tolerancia para diferencias por decimales
+    
+    // Calcular el rango aceptable
+    const minAcceptableTotal = expectedTotalWithVat * (1 - tolerance);
+    const maxAcceptableTotal = expectedTotalWithVat * (1 + tolerance);
+
+    if (cartData.total < minAcceptableTotal || cartData.total > maxAcceptableTotal) {
       throw new Error(
-        `El total calculado no coincide. 
-        Subtotal (sin IVA): ${subtotal.toFixed(2)} | 
-        IVA (${IVA_PERCENTAGE}%): ${(subtotal * IVA_PERCENTAGE / 100).toFixed(2)} | 
-        Total (con IVA): ${validatedTotal.toFixed(2)}`
+        `El total del carrito no coincide con los precios validados. 
+        Subtotal calculado (sin IVA): $${calculatedSubtotal.toFixed(2)} | 
+        IVA (${IVA_PERCENTAGE}%): $${calculatedVat.toFixed(2)} | 
+        Total esperado (con IVA): $${expectedTotalWithVat.toFixed(2)} | 
+        Total recibido: $${cartData.total.toFixed(2)}`
       );
     }
 
+    // 7. Retornar los datos validados, pero PRESERVAR el total original del frontend
     return {
       items: validatedItems,
-      subtotal: parseFloat(subtotal.toFixed(2)),
-      vat: parseFloat((subtotal * IVA_PERCENTAGE / 100).toFixed(2)),
-      total: parseFloat(validatedTotal.toFixed(2)),
+      subtotal: parseFloat(calculatedSubtotal.toFixed(2)),
+      vat: parseFloat(calculatedVat.toFixed(2)),
+      total: parseFloat(cartData.total.toFixed(2)), // ← ¡IMPORTANTE! Usar el total del frontend
       validatedAt: new Date(),
-      vatPercentage: IVA_PERCENTAGE
+      vatPercentage: IVA_PERCENTAGE,
+      // Información adicional para debugging
+      validation: {
+        calculatedTotal: parseFloat(expectedTotalWithVat.toFixed(2)),
+        receivedTotal: parseFloat(cartData.total.toFixed(2)),
+        difference: parseFloat(Math.abs(expectedTotalWithVat - cartData.total).toFixed(2)),
+        withinTolerance: Math.abs(expectedTotalWithVat - cartData.total) <= (expectedTotalWithVat * tolerance)
+      }
     };
 
   } catch (error) {

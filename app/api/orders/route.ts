@@ -17,40 +17,50 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    // 1. Parsear los datos del request
     const orderData = await req.json();
 
-    // 2. Validar el carrito antes de procesar
-    const validatedCart = await validateCart({
-      items: orderData.items,
+    console.log('📦 Datos recibidos del carrito:', {
+      itemsCount: orderData.items.length,
+      subtotal: orderData.subtotal,
+      iva: orderData.iva,
       total: orderData.total
     });
 
+    // Validar el carrito (ahora preservará el total con IVA)
+    const validatedCart = await validateCart({
+      items: orderData.items,
+      total: orderData.total, // Este incluye IVA
+      subtotal: orderData.subtotal, // Pasar subtotal si está disponible
+      iva: orderData.iva // Pasar IVA si está disponible
+    });
 
-    // 3. Crear la orden con datos validados
+    console.log('✅ Carrito validado:', {
+      subtotalValidado: validatedCart.subtotal,
+      ivaValidado: validatedCart.vat,
+      totalValidado: validatedCart.total // Debe ser igual al total recibido
+    });
+
+    // Crear la orden con el total correcto (que incluye IVA)
     const newOrder = await createOrder({
       ...orderData,
-      items: validatedCart.items, // Usar los items validados
-      total: validatedCart.total,  // Usar el total validado
+      items: validatedCart.items,
+      subtotal: validatedCart.subtotal,
+      iva: validatedCart.vat,
+      total: validatedCart.total, // ← Este ya incluye IVA y se usará para Mercado Pago
       status: 'pending'
     });
 
-    // 4. Retornar respuesta exitosa
-  
     return NextResponse.json(newOrder, { status: 201 });
+    
   } catch (error: any) {
-    // Manejo de errores específicos
-    const status = error.message.includes('validación') ? 400 : 500;
+    console.error('❌ Error creating order:', error);
+    const status = error.message.includes('no coincide') ? 400 : 500;
     
     return NextResponse.json(
-      { 
-        error: error.message,
-        errorType: error.errorType || 'ORDER_ERROR'
-      },
+      { error: error.message },
       { status }
     );
   }
 }
-
 // Configuración de Next.js para métodos HTTP
 export const dynamic = 'force-dynamic'; // Opcional: para evitar caching
