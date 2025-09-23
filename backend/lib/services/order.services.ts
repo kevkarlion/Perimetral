@@ -59,7 +59,7 @@ export class OrderService {
         paymentDetails,
       });
 
-      console.log("order desde servicio", order);
+ 
 
       await order.save();
 
@@ -233,7 +233,7 @@ export class OrderService {
         `,
       });
 
-      console.log(`✅ Email de notificación enviado al vendedor: ${vendorEmail}`);
+    
 
     } catch (emailError) {
       console.error("Error al enviar email de notificación al vendedor:", emailError);
@@ -314,7 +314,7 @@ export class OrderService {
         `,
       });
 
-      console.log(`✅ Email de confirmación enviado al cliente: ${order.customer.email}`);
+   
 
     } catch (emailError) {
       console.error("Error al enviar email de confirmación:", emailError);
@@ -383,9 +383,7 @@ export class OrderService {
           previousStatus === "pending") &&
         (newStatus === "processing" || newStatus === "completed")
       ) {
-        console.log(
-          `Confirmando pago y actualizando stock para orden ${order._id}`
-        );
+      
         await this.adjustOrderStock(order.items, "decrement");
       }
 
@@ -396,9 +394,7 @@ export class OrderService {
           newStatus === "rejected" ||
           newStatus === "payment_failed")
       ) {
-        console.log(
-          `Cancelando orden y revertiendo stock para orden ${order._id}`
-        );
+      
         await this.adjustOrderStock(order.items, "increment");
       }
 
@@ -409,7 +405,7 @@ export class OrderService {
           newStatus === "rejected" ||
           newStatus === "payment_failed")
       ) {
-        console.log(`Cancelando orden pendiente de pago ${order._id}`);
+      
         // No es necesario hacer nada con el stock porque nunca se decrementó
       }
     } catch (stockError) {
@@ -447,11 +443,7 @@ export class OrderService {
           } correctamente`,
         });
 
-        console.log(
-          `Stock ${
-            operation === "decrement" ? "decrementado" : "incrementado"
-          } para producto ${item.productId}`
-        );
+     
       } catch (error) {
         console.error(
           `Error ajustando stock para producto ${item.productId}:`,

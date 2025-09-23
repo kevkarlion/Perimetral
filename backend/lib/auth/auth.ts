@@ -23,23 +23,20 @@ const MAX_AGE = 86400; // 1 día en segundos
 export async function loginAdmin(email: string, password: string) {
   await dbConnect();
 
-  console.log('Intentando iniciar sesión con:', email);
+
 
   // Busca al administrador por email (incluyendo la contraseña)
   const admin = await Admin.findOne({ email }).select('+password');
   
   // Debug
-  console.log('Admin encontrado:', admin ? admin.email : 'No existe');
-  if (admin) {
-    console.log('Hash almacenado:', admin.password.substring(0, 15) + '...');
-    console.log('Tipo de hash:', admin.password.substring(0, 6));
-  }
+
+
 
   if (!admin) throw new Error('Credenciales inválidas');
 
   // Compara la contraseña ingresada con la almacenada
   const isMatch = await compare(password, admin.password);
-  console.log('Resultado de comparación:', isMatch);
+
   
   if (!isMatch) throw new Error('Credenciales inválidas');
 
@@ -86,13 +83,13 @@ export async function getCurrentAdmin(cookies: any = {}) {
   }
 
   // Debug: Verifica las cookies recibidas
-  console.log('Received cookies:', cookies);
+
   
   const token = cookies[COOKIE_NAME];
-  console.log('Extracted token:', token ? '***' : 'null');
+ 
   
   if (!token) {
-    console.log('No token found in cookies');
+ 
     return null;
   }
 

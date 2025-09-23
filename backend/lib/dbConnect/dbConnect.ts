@@ -29,7 +29,7 @@ if (!cached) {
 export async function dbConnect(): Promise<Mongoose> {
   // 1. Retornar conexión existente si está disponible
   if (cached.conn) {
-    console.log('✅ Using existing MongoDB connection');
+  
     return cached.conn;
   }
 
@@ -42,15 +42,15 @@ export async function dbConnect(): Promise<Mongoose> {
       family: 4,
     };
 
-    console.log('🔄 Creating new MongoDB connection');
+   
     cached.promise = mongoose
       .connect(getMongoUri(), opts)
       .then((mongoose) => {
-        console.log('✨ MongoDB connected successfully');
+     
         return mongoose;
       })
       .catch((err) => {
-        console.error('❌ MongoDB connection error:', err);
+     
         cached.promise = null;
         throw err;
       });
@@ -71,7 +71,7 @@ if (process.env.NODE_ENV === 'development') {
   process.on('beforeExit', async () => {
     if (cached.conn) {
       await cached.conn.disconnect();
-      console.log('🛑 MongoDB disconnected');
+    
     }
   });
 }

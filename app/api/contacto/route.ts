@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/backend/lib/services/emailService";
 
 export async function POST(req: NextRequest) {
-  console.log("api contacto");
+ 
 
   try {
     const body = await req.json();

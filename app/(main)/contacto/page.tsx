@@ -5,7 +5,7 @@ import { FaWhatsapp, FaPhoneAlt, FaClock, FaEnvelope, FaPaperPlane } from 'react
 
 const URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-console.log('url', URL)
+
 
 export default function ContactoPage() {
   const [formData, setFormData] = useState({

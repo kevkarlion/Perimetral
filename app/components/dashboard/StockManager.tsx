@@ -81,7 +81,7 @@ const handleStockUpdate = async () => {
       requestData.variationCode = variation.codigo || '';
     }
 
-    console.log('Enviando datos de stock update:', requestData);
+ 
 
     const response = await fetch(`/api/stock?action=update-stock`, {
       method: 'PUT',

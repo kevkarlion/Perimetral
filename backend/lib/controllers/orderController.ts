@@ -99,7 +99,7 @@ export async function createOrder(orderData: {
   };
   paymentMethod: string;
 }) {
-  console.log('orderController loaded', JSON.stringify(orderData, null, 2));
+
 
   return await OrderService.createValidatedOrder(orderData);
 }

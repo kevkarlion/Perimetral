@@ -44,7 +44,7 @@ export default function StockMovementsTable({
 }: StockMovementsTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  console.log("Movimientos recibidos en StockMovementsTable:", movements);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("es-ES", {
       year: "numeric",
@@ -108,7 +108,7 @@ export default function StockMovementsTable({
     };
   };
 
-  console.log("Movimientos recibidos en StockMovementsTable:", movements);
+ 
 
   return (
     <div className="w-full">

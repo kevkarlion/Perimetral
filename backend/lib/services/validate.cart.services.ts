@@ -21,7 +21,7 @@ interface CartData {
 const IVA_PERCENTAGE = 21; // 21% de IVA
 
 export async function validateCart(cartData: CartData) {
-  console.log('[validateCart] Datos recibidos:', JSON.stringify(cartData, null, 2));
+
   
   try {
     await dbConnect();
@@ -74,7 +74,7 @@ export async function validateCart(cartData: CartData) {
             console.warn(`Producto ${dbProduct.nombre} no tiene variaciones pero se especificó variationId. Ignorando...`);
             isVariationValid = false;
           } else {
-            selectedVariation = dbProduct.variaciones.find(v => 
+            selectedVariation = dbProduct.variaciones.find((v:any) => 
               v._id?.toString() === item.variationId || 
               v.codigo === item.variationId
             );

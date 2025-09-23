@@ -15,7 +15,7 @@ export class StockService {
   ): Promise<any> {
     await dbConnect();
 
-    console.log("Creating movement with data:", movementData);
+   
 
     const productId = new Types.ObjectId(movementData.productId);
     const createdBy = movementData.createdBy
@@ -368,31 +368,14 @@ export class StockService {
 
     await dbConnect();
 
-    // ✅ Log de entrada
-    console.log('📦 updateStock called with:', {
-      productId,
-      variationId,
-      stock,
-      action,
-      hasVariationId: !!variationId
-    });
+  
 
     const product = await Product.findById(productId);
     if (!product) {
       throw new Error("Producto no encontrado");
     }
 
-    // ✅ Log del producto
-    console.log('📊 Product data:', {
-      name: product.nombre,
-      tieneVariaciones: product.tieneVariaciones,
-      variacionesCount: product.variaciones?.length || 0,
-      variaciones: product.variaciones?.map((v: any) => ({
-        _id: v._id?.toString(),
-        nombre: v.nombre,
-        codigo: v.codigo
-      }))
-    });
+ 
 
     let targetStock: number;
     let previousStock: number;
@@ -401,17 +384,17 @@ export class StockService {
     // ✅ NUEVA LÓGICA: Si el producto tiene variaciones pero no se proporciona variationId,
     // usar la primera variación como default
     if (product.tieneVariaciones && !variationId) {
-      console.log('🔄 Producto tiene variaciones pero variationId es undefined');
+    
       if (product.variaciones && product.variaciones.length > 0) {
         finalVariationId = product.variaciones[0]._id?.toString();
-        console.log(`✅ Usando primera variación como default: ${finalVariationId}`);
+       
       } else {
-        console.log('❌ Producto marca tener variaciones pero no tiene variaciones');
+      
         throw new Error("El producto marca tener variaciones pero no tiene ninguna variación registrada");
       }
     }
 
-    console.log('🎯 finalVariationId:', finalVariationId);
+    
 
     // ✅ Manejar productos con variaciones
     if (finalVariationId) {

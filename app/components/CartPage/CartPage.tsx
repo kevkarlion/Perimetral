@@ -106,7 +106,7 @@ export default function CartPage() {
       }
 
       const orderData = await response.json();
-      console.log("Order created:", orderData);
+
 
       // Si es pago en efectivo, redirigir a la página específica de confirmación de efectivo
       if (selectedPaymentMethod === "efectivo") {

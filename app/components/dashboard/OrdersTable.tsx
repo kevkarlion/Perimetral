@@ -110,7 +110,7 @@ export default function OrdersTable() {
   // 🔹 NUEVA FUNCIÓN: Actualizar notas de la orden
   const updateOrderNotes = async (orderId: string, notes: string) => {
     try {
-       console.log("Iniciando updateOrder para:", orderToUpdate);
+    
       const order = orders.find(o => o._id === orderId);
       if (!order) return;
 
@@ -124,13 +124,13 @@ export default function OrdersTable() {
           status: order.status // mantener el estado actual
         }),
       });
-       console.log("Respuesta del servidor:", response.status);
+    
       if (!response.ok) {
         throw new Error('Error al actualizar las notas');
       }
 
       const result = await response.json();
-      console.log("Datos recibidos:", result);
+   
       // Actualizar el estado local
       setOrders(prev => prev.map(o => 
         o._id === orderId ? { ...o, notes } as IOrder : o
@@ -355,7 +355,7 @@ export default function OrdersTable() {
   // };
 
   const confirmUpdateOrder = (orderId: string) => {
-    console.log("Preparing to update order:", orderId);
+ 
     setOrderToUpdate(orderId);
     setShowConfirmDialog(true);
   };
@@ -409,7 +409,7 @@ const updateOrder = async () => {
       throw new Error("Error al actualizar la orden");
     }
 
-    console.log("✅ Orden actualizada:", response);
+
     await fetchOrders();
 
     // 🔹 Resetear estados locales

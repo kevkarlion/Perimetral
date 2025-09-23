@@ -4,7 +4,7 @@ import { StockController } from '@/backend/lib/controllers/stockController';
 
 // GET - Obtener movimientos de stock
 export async function GET(req: NextRequest) {
-  console.log("context params, desde route");
+
   
   try {
     // Extraer los parámetros de la URL

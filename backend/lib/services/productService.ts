@@ -101,7 +101,7 @@ const productService = {
   },
 
   async createProduct(data: ProductCreateData): Promise<IProduct> {
-    console.log("Creando producto desde servicio...");
+  
     await dbConnect();
 
     if (!data.categoria) {

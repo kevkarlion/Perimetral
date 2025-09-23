@@ -26,13 +26,13 @@ export class StockController {
       }
 
       const body = await req.json();
-      console.log("Admin creating movement:", body);
+
 
       const movementData: StockMovementCreateData = {
         ...body,
         createdBy: admin._id.toString(),
       };
-      console.log("movementData", movementData);
+
       
       // Validaciones básicas
       if (
@@ -87,7 +87,7 @@ static async getMovements(filter: StockMovementFilter, req: NextRequest) {
       );
     }
 
-    console.log("Admin autorizado, obteniendo movimientos con filter:", filter);
+
 
     // Usar el servicio para obtener los movimientos
     const result = await StockService.getMovements(filter);
@@ -145,7 +145,7 @@ static async getMovements(filter: StockMovementFilter, req: NextRequest) {
       } : null,
     }));
 
-    console.log("Movimientos formateados:", formattedMovements.length, "encontrados");
+  
 
     return NextResponse.json({
       success: true,

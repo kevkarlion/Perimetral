@@ -94,13 +94,13 @@ export async function PATCH(
     // 🔹 Actualizar nota si viene
     if (notes) {
       updatedOrder = await updateOrderNotesController(token, notes);
-      console.log(`Nota actualizada para orden ${updatedOrder.orderNumber}`);
+     
     }
 
     // 🔹 Actualizar estado si viene
     if (status) {
       updatedOrder = await updateOrderByTokenController(token, status, additionalData || {});
-      console.log(`Estado actualizado a '${status}' para orden ${updatedOrder.orderNumber}`);
+     
     }
 
     return NextResponse.json({

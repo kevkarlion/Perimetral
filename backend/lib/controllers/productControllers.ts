@@ -139,7 +139,7 @@ export async function getAllProducts() {
     };
   });
 
-  console.log("response Data from controller of products", transformedProducts);
+ 
   return NextResponse.json({
     success: true,
     data: transformedProducts,
@@ -149,7 +149,7 @@ export async function getAllProducts() {
 // Crear un nuevo producto
 export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
   try {
-    console.log("Body recibido en createProduct:", body);
+   
 
     const productValidationError = validateProductData(body);
     if (productValidationError) {
@@ -254,7 +254,7 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
     const result = await ProductCollection.insertOne(productData);
 
     const productId = result.insertedId;
-    console.log("Producto base creado con ID:", productId);
+ 
 
     if (body.tieneVariaciones && variationsWithProductId.length > 0) {
       const finalVariations = variationsWithProductId.map((variation) => ({
@@ -272,7 +272,7 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
           },
         }
       );
-      console.log("Variaciones agregadas al producto");
+   
     }
 
     const product = await Product.findById(productId);
@@ -285,7 +285,7 @@ export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
       );
     }
 
-    console.log("Producto completo obtenido:", product);
+
 
     // 🔹 MOVIMIENTOS DE STOCK CORREGIDOS - CON previousStock Y newStock
     if (product.variaciones && product.variaciones.length > 0) {
@@ -471,7 +471,7 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
 export async function updateProduct(
   req: Request
 ): PromiseApiResponse<IProduct> {
-  console.log("CONTROLADOR - Inicio de updateProduct");
+
   try {
     const { searchParams } = new URL(req.url);
     const body = await req.json();
@@ -479,12 +479,6 @@ export async function updateProduct(
     const productId = searchParams.get("id") || body.productId;
     const { action, variation, variationId } = body;
 
-    console.log("Datos recibidos:", {
-      productId,
-      action,
-      variation: variation ? "..." : null,
-      variationId,
-    });
 
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
@@ -592,7 +586,7 @@ export async function updateProduct(
             variationName: variation.nombre || '',
             variationCode: variation.codigo || ''
           });
-          console.log("Movimiento de stock creado para la nueva variación");
+   
         } catch (stockError) {
           console.error(
             "Error al crear movimiento de stock para variación:",
@@ -615,11 +609,7 @@ export async function updateProduct(
         );
       }
 
-      console.log(
-        "Datos enviados a removeProductVariation:",
-        productId,
-        variationId
-      );
+   
       const updatedProduct = await productService.removeProductVariation(
         productId,
         variationId

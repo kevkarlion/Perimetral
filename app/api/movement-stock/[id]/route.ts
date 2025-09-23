@@ -11,5 +11,5 @@ interface Context {
 export async function GET(req: NextRequest, context: Context) {
   console.log("context params, desde id", context.params);
   const { id } = context.params; // ojo: el nombre del parámetro en la ruta debe coincidir
-  return StockController.getMovementsByVariationId(req, id);
+  return StockController.getMovementsByVariationId(req);
 }

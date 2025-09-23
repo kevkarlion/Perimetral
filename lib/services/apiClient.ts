@@ -2,7 +2,7 @@
 
 export async function fetchProducts() {
   const res = await fetch('/api/stock');
-  console.log('Fetching products from API...');
+
   if (!res.ok) throw new Error('Error al obtener productos');
   return res.json();
 }

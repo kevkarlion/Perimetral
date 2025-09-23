@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = req.body ? await req.json() : {};
-    console.log("POST /api/stock - Body recibido:", body);
+ 
     return await createProduct(body); // <<-- Asegúrate de usar await
   } catch (error) {
     console.error("Error al parsear JSON:", error);
@@ -56,7 +56,7 @@ export async function DELETE(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("Body recibido:", JSON.stringify(body, null, 2));
+
 
     const { productId, action, variation, stock, variationId, price, productName, productCode, categoryName, variationName, variationCode } = body;
 
@@ -73,7 +73,7 @@ export async function PUT(req: NextRequest) {
 
     // 1. Actualización de precios (prioridad más alta)
     if (price !== undefined) {
-        console.log("Ejecutando actualización de precio...");
+       
       
       // Crear un nuevo Request para el controlador updatePrice
       const priceRequest = new Request(req.url, {
@@ -106,7 +106,7 @@ export async function PUT(req: NextRequest) {
 
     // 2. AGREGAR variación
     if (action === "add-variation") {
-      console.log("Ejecutando agregado de variación...");
+   
       const response = await updateProduct(
         new NextRequest(req.url, {
           body: JSON.stringify({
@@ -123,7 +123,7 @@ export async function PUT(req: NextRequest) {
 
     // 3. ELIMINAR variación
     if (action === "remove-variation") {
-      console.log("Ejecutando eliminación de variación...");
+     
       const response = await updateProduct(
         new NextRequest(req.url, {
           body: JSON.stringify({
@@ -140,7 +140,7 @@ export async function PUT(req: NextRequest) {
 
     // 4. ACTUALIZAR variación
     if (action === "update-variation") {
-      console.log("Ejecutando actualización de variación...");
+    
       const response = await updateProduct(
         new NextRequest(req.url, {
           body: JSON.stringify(body),
@@ -153,7 +153,7 @@ export async function PUT(req: NextRequest) {
 
     // 5. Manejo de stock - ✅ MANEJO DE INCREMENT/DECREMENT
     if (stock !== undefined) {
-      console.log("Ejecutando actualización de stock...");
+  
 
       const updateData = {
         productId,

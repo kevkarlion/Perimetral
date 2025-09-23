@@ -39,11 +39,6 @@ export function logError(
   };
 
   // Console.error en desarrollo, console.log en producción para evitar saturación
-  if (process.env.NODE_ENV === 'development') {
-    console.error('ERROR:', JSON.stringify(errorEntry, null, 2));
-  } else {
-    console.log('ERROR:', JSON.stringify(errorEntry));
-  }
 
   // Aquí puedes agregar integración con servicios externos como:
   // - Sentry/Rollbar para monitoreo

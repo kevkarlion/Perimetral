@@ -11,7 +11,6 @@ import type {
   MercadoPagoItem
 } from "@/types/mercadopagoTypes";
 
-console.log("Inicializando webhook de MercadoPago");
 
 
 
@@ -62,7 +61,7 @@ export async function POST(
   try {
     const body = await request.json();
 
-    console.log("Webhook recibido:", body);
+   
 
     // Validación básica del webhook
     if (!body?.data?.id) {
@@ -74,12 +73,12 @@ export async function POST(
 
     // Obtener detalles del pago
     const client = getClient();
-    console.log("cliente desde webhook", client);
+ 
     const payment = new Payment(client);
     const rawPaymentData = await payment.get({ id: body.data.id });
-    console.log("Datos del pago:", rawPaymentData);
+ 
     const paymentDetails = parsePaymentData(rawPaymentData);
-    console.log("Detalles del pago procesados:", paymentDetails);
+ 
 
     // Verificar que el pago esté aprobado
     if (paymentDetails.status !== "approved") {
@@ -109,8 +108,6 @@ export async function POST(
     const orderId = paymentDetails.external_reference;
 
     const items = paymentDetails.additional_info?.items || [];
-    console.log("ID de orden:", orderId);
-    console.log("Items del pago:", items);
 
     if (!orderId) {
       return NextResponse.json(
@@ -136,9 +133,7 @@ export async function POST(
           throw new Error("ID de producto faltante");
         }
 
-        console.log(
-          `Actualizando stock para producto ${item.id} (${item.quantity})`
-        );
+     
 
         const payload: any = {
           productId: item.id,

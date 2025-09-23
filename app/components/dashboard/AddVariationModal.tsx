@@ -42,7 +42,7 @@ export default function AddVariationModal({
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("general");
 
-  console.log("initialVariations", initialVariations);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -100,12 +100,7 @@ export default function AddVariationModal({
     try {
       const url = `/api/stock?id=${productId}`;
 
-      console.log("Enviando datos a la ruta desde AddVariationModal:", {
-        url,
-        productId,
-        action,
-        payload,
-      });
+   
 
       const response = await fetch(url, {
         method: "PUT",

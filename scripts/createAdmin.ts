@@ -35,12 +35,7 @@ async function createFirstAdmin() {
       verificationToken: randomBytes(32).toString("hex"),
     });
 
-    console.log(`
-      ✅ Admin creado correctamente:
-      Email: ${ADMIN_EMAIL}
-      Password: ${ADMIN_PASSWORD}
-      Hash: ${hashedPassword}
-      `);
+  
   } catch (error) {
     console.error("Error creando administrador:", error);
   } finally {

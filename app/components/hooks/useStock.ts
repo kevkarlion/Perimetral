@@ -22,7 +22,7 @@ export function useStock() {
     const params = new URLSearchParams(filters as any).toString();
     const res = await fetch(`/api/movement-stock?${params}`);
     const data = await res.json();
-    console.log("data de movimientos de stock", data.data);
+  
     if (data.success) {
       setMovements(data.data);
       setPagination(data.pagination);

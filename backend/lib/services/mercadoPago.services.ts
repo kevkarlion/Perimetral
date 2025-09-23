@@ -4,7 +4,7 @@ import { getClient } from '@/backend/lib/services/mercadoPagoPayment'; // Asegú
 
 const urlFront = process.env.BASE_URL;
 
-console.log('URL del Frontend:', urlFront);
+
 
 export class MercadoPagoService {
   static async createPreference(order: any) {
