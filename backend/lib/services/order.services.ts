@@ -5,6 +5,10 @@ import { MercadoPagoService } from "./mercadoPago.services";
 import { sendEmail } from "@/backend/lib/services/emailService"; // ✅ Usando tu función existente
 import { updateStockViaApi } from "@/backend/lib/services/stockApiService";
 
+
+
+
+
 export class OrderService {
   static async createValidatedOrder(orderData: {
     items: Array<{
@@ -130,7 +134,7 @@ export class OrderService {
   // 🔹 NUEVA FUNCIÓN: Enviar email de notificación al vendedor
   static async sendVendorNotificationEmail(order: any, paymentMethod: string) {
     try {
-      const vendorEmail = process.env.VENDOR_EMAIL || 'vendedor@tuempresa.com';
+      const vendorEmail = process.env.VENDOR_EMAIL;
       
       if (!vendorEmail) {
         console.warn('Email del vendedor no configurado. Skipping vendor notification.');

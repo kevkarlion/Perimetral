@@ -55,9 +55,9 @@ export class MercadoPagoService {
           notification_url: `${urlFront}/api/mercadopago/webhooks`,
           auto_return: 'approved',
           back_urls: {
-            success: `${urlFront}/pago-exitoso?order_id=${order._id}`,
-            failure: `${urlFront}/pago-fallido?order_id=${order._id}`,
-            pending: `${urlFront}/pago-pendiente?order_id=${order._id}`
+            success: `${urlFront}/pago-exitoso/success?order_id=${order._id}`,
+            failure: `${urlFront}/pago-fallido/failure?order_id=${order._id}`,
+            pending: `${urlFront}/pago-pendiente/efectivo?order_id=${order._id}`
           },
           payment_methods: {
             excluded_payment_types: [{ id: 'atm' }],
