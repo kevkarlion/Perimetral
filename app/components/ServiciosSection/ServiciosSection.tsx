@@ -32,14 +32,44 @@ const servicios = [
 ];
 
 const media: Media[] = [
-  { id: 1, type: "image", src: "/servicios/img1.webp", alt: "Instalación de cercos" },
-  { id: 2, type: "image", src: "/servicios/img2.webp", alt: "Portones metálicos" },
+  {
+    id: 1,
+    type: "image",
+    src: "/servicios/img1.webp",
+    alt: "Instalación de cercos",
+  },
+  {
+    id: 2,
+    type: "image",
+    src: "/servicios/img2.webp",
+    alt: "Portones metálicos",
+  },
   { id: 3, type: "video", src: "/videos/video2-proyects.mp4" },
-  { id: 4, type: "image", src: "/servicios/img3.webp", alt: "Maquinaria en acción" },
-  { id: 5, type: "image", src: "/servicios/img4.webp", alt: "Terreno nivelado" },
-  { id: 6, type: "image", src: "/servicios/img5.webp", alt: "Terreno nivelado" },
+  {
+    id: 4,
+    type: "image",
+    src: "/servicios/img3.webp",
+    alt: "Maquinaria en acción",
+  },
+  {
+    id: 5,
+    type: "image",
+    src: "/servicios/img4.webp",
+    alt: "Terreno nivelado",
+  },
+  {
+    id: 6,
+    type: "image",
+    src: "/servicios/img5.webp",
+    alt: "Terreno nivelado",
+  },
   { id: 7, type: "video", src: "/videos/video3-proyects.mp4" },
-  { id: 8, type: "image", src: "/servicios/img6.webp", alt: "Terreno nivelado" },
+  {
+    id: 8,
+    type: "image",
+    src: "/servicios/img6.webp",
+    alt: "Terreno nivelado",
+  },
 ];
 
 export default function ServiciosSection() {
@@ -63,12 +93,16 @@ export default function ServiciosSection() {
         {servicios.map((servicio) => (
           <div
             key={servicio.id}
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all"
+            className="bg-gradient-to-r from-[#FFD700] to-yellow-500 p-0.5 rounded-xl shadow-md"
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              {servicio.titulo}
-            </h3>
-            <p className="text-gray-600">{servicio.descripcion}</p>
+            <div className="bg-white rounded-xl p-6 h-full text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                {servicio.titulo}
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {servicio.descripcion}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -77,7 +111,10 @@ export default function ServiciosSection() {
       <div className="columns-1 sm:columns-2 md:columns-3 gap-4 space-y-4">
         {media.map((item) =>
           item.type === "image" ? (
-            <div key={item.id} className="relative w-full overflow-hidden rounded-xl">
+            <div
+              key={item.id}
+              className="relative w-full overflow-hidden rounded-xl"
+            >
               <Image
                 src={item.src}
                 alt={item.alt || ""}

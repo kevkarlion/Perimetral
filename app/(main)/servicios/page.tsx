@@ -1,21 +1,44 @@
+"use client";
+
 import Image from "next/image";
 import ServiciosSection from "@/app/components/ServiciosSection/ServiciosSection";
 import { FaWhatsapp } from "react-icons/fa";
+import { useState } from "react";
 
 export default function ServiciosPage() {
+  const [videoReady, setVideoReady] = useState(false);
+
   return (
     <div className="bg-white">
-      {/* Hero Section con video y logo */}
+      {/* Hero Section con primer frame y logo */}
       <section className="relative h-[60vh] min-h-[500px] w-full overflow-hidden">
+        {/* Primer frame como placeholder */}
+        {!videoReady && (
+          <Image
+            src="/videos/img-video.jpg" // captura del primer frame
+            alt="Hero placeholder"
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
+
+        {/* Video de fondo */}
         <video
-          src="/videos/video-hero-proyects.mp4"
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        {/* Overlay para contraste */}
+  src="/videos/video-hero-proyects.mp4"
+  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+    videoReady ? "opacity-100" : "opacity-0"
+  }`}
+  autoPlay
+  muted
+  loop
+  playsInline
+  preload="auto"
+  onCanPlay={() => setVideoReady(true)}
+/>
+
+
+        {/* Overlay oscuro para contraste */}
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <div className="relative z-10">
             <Image
