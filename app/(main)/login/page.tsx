@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react'; // Importa iconos de lucide-react
 
-const url = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const url = process.env.BASE_URL;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

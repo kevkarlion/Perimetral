@@ -99,8 +99,6 @@ export async function createOrder(orderData: {
   };
   paymentMethod: string;
 }) {
-
-
   return await OrderService.createValidatedOrder(orderData);
 }
 

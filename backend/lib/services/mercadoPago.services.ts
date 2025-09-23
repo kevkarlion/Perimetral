@@ -1,101 +1,118 @@
 import { Preference } from 'mercadopago';
-import { getClient } from '@/backend/lib/services/mercadoPagoPayment'; // Asegúrate de que la ruta sea correcta
-
+import { getClient } from '@/backend/lib/services/mercadoPagoPayment';
 
 const urlFront = process.env.BASE_URL;
-
-
 
 export class MercadoPagoService {
   static async createPreference(order: any) {
     try {
       const client = getClient();
       const preference = new Preference(client);
-      
-      // 1. MAPEO DE ITEMS - Mejoras de robustez
-      const items = order.items.map((item: any) => ({
-        title: item.name.substring(0, 256), // MercadoPago limita a 256 caracteres
-        unit_price: Number(parseFloat(item.price).toFixed(2)), // Aseguramos 2 decimales
-        quantity: Number(item.quantity),
-        currency_id: 'ARS',
-        // Campos adicionales recomendados:
-        id: item.productId, // Identificador único de tu producto
-        description: item.medida || undefined, // Opcional pero útil
-        picture_url: item.image || undefined // URL de imagen del producto
-      }));
 
-      // 2. CONFIGURACIÓN COMPLETA DE PREFERENCIA
+      console.log('💰 MercadoPago - Orden recibida:', {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        totalConIVA: order.total,
+        itemsCount: order.items.length,
+        customerEmail: order.customer.email
+      });
+
+      // VERIFICAR QUE EL TOTAL INCLUYE IVA
+      if (!order.total || order.total <= 0) {
+        throw new Error('El total de la orden es inválido: ' + order.total);
+      }
+
+      // SOLUCIÓN CONFIABLE: Un solo item con el total CON IVA
+      const items = [
+        {
+          title: `Orden #${order.orderNumber}`,
+          unit_price: Number(order.total.toFixed(2)), // Total CON IVA
+          quantity: 1,
+          currency_id: 'ARS',
+          id: `order_${order.orderNumber}`,
+          description: `${order.items.length} producto(s) - Incluye IVA 21%`
+        }
+      ];
+
+      console.log('📦 Item creado para MercadoPago:', {
+        title: items[0].title,
+        unit_price: items[0].unit_price,
+        total: items[0].unit_price * items[0].quantity
+      });
+
       const response = await preference.create({
         body: {
           items: items,
           payer: {
             email: order.customer.email,
-            name: order.customer.name, // Recomendado para mejor UX
+            name: order.customer.name,
             phone: order.customer.phone ? { number: order.customer.phone } : undefined,
             address: order.customer.address ? { 
               street_name: order.customer.address 
             } : undefined
           },
-          // IDENTIFICADOR CLAVE - Vincula MP con tu orden
-          external_reference: order._id.toString(), 
-          
-          // URL DE NOTIFICACIÓN - Para recibir actualizaciones de estado
+          external_reference: order._id.toString(),
           notification_url: `${urlFront}/api/mercadopago/webhooks`,
-          
-          // CONFIGURACIÓN DE REDIRECCIÓN
-          auto_return: 'approved', // Redirige automáticamente al éxito
+          auto_return: 'approved',
           back_urls: {
-            success: `${urlFront}/pago-exitoso/success`,
-            failure: `${urlFront}/pago-fallido/failure`,
-            pending: `${urlFront}/pago-pendiente/pending`
+            success: `${urlFront}/pago-exitoso?order_id=${order._id}`,
+            failure: `${urlFront}/pago-fallido?order_id=${order._id}`,
+            pending: `${urlFront}/pago-pendiente?order_id=${order._id}`
           },
-          
-          // CONFIGURACIONES ADICIONALES RECOMENDADAS:
           payment_methods: {
-            excluded_payment_types: [{ id: 'atm' }], // Ej: excluir pagos en efectivo
-            installments: 12 // Máximo de cuotas permitidas
+            excluded_payment_types: [{ id: 'atm' }],
+            installments: 12
           },
-          expires: false, // Para que no expire la preferencia
-          date_of_expiration: new Date(Date.now() + 3600 * 1000 * 24).toISOString(), // Opcional: expira en 24hs
-          metadata: { // Datos adicionales para tu referencia
+          expires: false,
+          metadata: {
             store: 'tu-tienda',
-            internal_order_id: order._id.toString()
+            internal_order_id: order._id.toString(),
+            order_number: order.orderNumber,
+            total_with_vat: order.total,
+            original_items_count: order.items.length,
+            includes_vat: true // Marcar que incluye IVA
           }
         }
       });
 
-      // 3. MANEJO DE RESPUESTA - Compatibilidad sandbox/producción
+      console.log('✅ Preferencia de MercadoPago creada exitosamente:', {
+        preferenceId: response.id,
+        totalEnviado: order.total,
+        paymentUrl: response.init_point || (response as any).sandbox_init_point,
+        sandbox: !!(response as any).sandbox_init_point
+      });
+
       return {
         id: response.id,
         init_point: response.init_point || (response as any).sandbox_init_point,
-        // Datos adicionales útiles:
-        sandbox: !!response.sandbox_init_point, // Indica si es modo prueba
+        sandbox: !!(response as any).sandbox_init_point,
         created_date: response.date_created,
         // Para debugging:
-        full_response: process.env.NODE_ENV === 'development' ? response : undefined
+        total_processed: order.total
       };
 
     } catch (error: any) {
-      console.error('Error al crear preferencia en MercadoPago:', {
+      console.error('❌ Error creando preferencia de MercadoPago:', {
+        error: error.message,
         status: error.status,
-        code: error.code,
-        message: error.message,
-        order_id: order?._id,
-        items_count: order?.items?.length
+        orderId: order?._id,
+        orderNumber: order?.orderNumber,
+        total: order?.total,
+        items: order?.items?.length
       });
       
-      // Mejor manejo de errores específicos
-      let customError = new Error('Error al procesar el pago');
-      customError.name = 'MercadoPagoError';
+      // Error más específico para el frontend
+      let errorMessage = 'Error al procesar el pago con Mercado Pago';
       
-      // Puedes agregar lógica específica para ciertos errores
       if (error.status === 401) {
-        customError.message = 'Error de autenticación con MercadoPago';
+        errorMessage = 'Error de configuración con Mercado Pago';
       } else if (error.status === 400) {
-        customError.message = 'Datos inválidos para el pago';
+        errorMessage = 'Datos inválidos para procesar el pago';
+      } else if (error.message.includes('total') || error.message.includes('price')) {
+        errorMessage = 'Error en el monto del pago';
       }
       
-      throw customError;
+      throw new Error(errorMessage);
     }
   }
 }
