@@ -127,9 +127,9 @@ export default function StockMovementsTable({
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">
                   Categoría
                 </th>
-                <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">
+                {/* <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">
                   ID Producto
-                </th>
+                </th> */}
                 <th className="p-3 text-left font-medium text-gray-700 whitespace-nowrap">
                   Variación
                 </th>
@@ -200,7 +200,7 @@ export default function StockMovementsTable({
                     </td>
 
                     {/* Producto - ID */}
-                    <td className="p-3">
+                    {/* <td className="p-3">
                       <div className="relative max-w-[100px]">
                         <button
                           onClick={() =>
@@ -219,7 +219,7 @@ export default function StockMovementsTable({
                           </span>
                         )}
                       </div>
-                    </td>
+                    </td> */}
 
                     {/* Variación - Nombre y Código */}
                     <td className="p-3 max-w-[120px]">
