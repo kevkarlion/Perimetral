@@ -73,8 +73,35 @@ export async function PUT(req: NextRequest) {
 
     // 1. Actualización de precios (prioridad más alta)
     if (price !== undefined) {
-      console.log("Ejecutando actualización de precio...");
-      // ... código existente
+        console.log("Ejecutando actualización de precio...");
+      
+      // Crear un nuevo Request para el controlador updatePrice
+      const priceRequest = new Request(req.url, {
+        method: "PUT",
+        headers: req.headers,
+        body: JSON.stringify({
+          productId,
+          price,
+          variationId,
+          action: action || "set" // Asegurar que tenga una acción válida
+        })
+      });
+
+      // Llamar al controlador updatePrice
+      try {
+        const response = await updatePrice(priceRequest);
+        return response;
+      } catch (error) {
+        console.error('Error en controlador updatePrice:', error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Error al actualizar precio',
+            details: error instanceof Error ? error.message : String(error)
+          }),
+          { status: 500 }
+        );
+      }
     }
 
     // 2. AGREGAR variación
