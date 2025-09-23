@@ -1,3 +1,5 @@
+//admin/page.tsx
+
 // Mueve todo tu componente Dashboard aquí
 // No necesitas cambiar nada del código, solo la ubicación
 // Update the import path if necessary, or create the file at the expected location
