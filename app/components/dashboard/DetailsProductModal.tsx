@@ -1,145 +1,105 @@
-'use client';
+"use client";
 
-import { IProduct, IVariation } from "@/types/productTypes";
+import { IProduct } from "@/types/productTypes";
 
-type Props = {
+interface DetailsProductModalProps {
   product: IProduct;
   onClose: () => void;
-};
+}
 
-export default function DetailsProductModal({ product, onClose }: Props) {
-  // Destructure with default values to avoid undefined issues
-  const { 
-    nombre,
-    medida,
-    precio,
-    stock,
-    descripcionCorta,
-    descripcionLarga,
-    tieneVariaciones,
-    variaciones = [] // Default empty array if undefined
-  } = product;
-
+export default function DetailsProductModal({
+  product,
+  onClose,
+}: DetailsProductModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[90vh] overflow-auto">
-        {/* Header */}
-        <div className="lg:col-span-3 flex justify-between items-start">
-          <h2 className="text-2xl font-bold">Detalles del Producto</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-xl"
-            aria-label="Cerrar modal"
-          >
-            ✕
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 relative">
+        {/* Cerrar */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-600 hover:text-black"
+        >
+          ✕
+        </button>
 
-        {/* Columna 1 - Información básica */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg border-b pb-2">Información Básica</h3>
-          <DetailItem label="Nombre" value={nombre} />
-          <DetailItem label="Medida" value={medida || 'N/A'} />
-          <DetailItem 
-            label="Precio base" 
-            value={precio ? `$${precio.toFixed(2)}` : 'N/A'} 
-          />
-          <DetailItem 
-            label="Stock total" 
-            value={stock !== undefined ? stock : 'N/A'} 
-          />
-        </div>
+        {/* Información del producto */}
+        <h2 className="text-xl font-bold mb-2">{product.nombre}</h2>
+        <p className="text-sm text-gray-600">{product.descripcionLarga}</p>
 
-        {/* Columna 2 - Descripciones */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg border-b pb-2">Descripciones</h3>
-          <DetailItem 
-            label="Descripción Corta" 
-            value={descripcionCorta || 'No disponible'} 
-            fullWidth
-          />
-          <DetailItem
-            label="Descripción Larga"
-            value={descripcionLarga || 'No disponible'}
-            fullWidth
-          />
-        </div>
-
-        {/* Columna 3 - Variaciones */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg border-b pb-2">
-            {tieneVariaciones ? 'Variaciones' : 'Sin Variaciones'}
-          </h3>
-          {tieneVariaciones && variaciones.length > 0 ? (
-            <div className="space-y-3 mt-2">
-              {variaciones.map((variacion) => (
-                <div key={variacion.codigo} className="border rounded-lg p-3 text-sm bg-gray-50">
-                  <div className="grid grid-cols-2 gap-2">
-                    <DetailItemSmall label="Medida" value={variacion.medida} />
-                    <DetailItemSmall 
-                      label="Precio" 
-                      value={`$${variacion.precio.toFixed(2)}`} 
-                    />
-                    <DetailItemSmall 
-                      label="Stock" 
-                      value={
-                        <span className={variacion.stock <= 0 ? 'text-red-500 font-medium' : ''}>
-                          {variacion.stock}
-                        </span>
-                      } 
-                    />
-                  </div>
-                  
-                  {variacion.descripcion && (
-                    <p className="text-gray-600 text-sm mt-2">
-                      <span className="font-medium">Notas:</span> {variacion.descripcion}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm mt-2">Este producto no tiene variaciones</p>
+        {/* Categoria */}
+        {product.categoria &&
+          typeof product.categoria !== "string" &&
+          "_id" in product.categoria &&
+          "nombre" in product.categoria && (
+            <p className="text-xs text-gray-500 mt-1">
+              Categoría: {product.categoria.nombre}
+            </p>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="lg:col-span-3 flex justify-end border-t pt-4">
-          <button
-            onClick={onClose}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
-          >
-            Cerrar
-          </button>
-        </div>
+        {/* Precio y stock */}
+        {!product.tieneVariaciones && (
+          <div className="mt-4">
+            <p className="font-semibold">Precio: ${product.precio}</p>
+            <p className="text-sm text-gray-600">Stock: {product.stock}</p>
+          </div>
+        )}
+
+        {/* Variaciones */}
+        {product.tieneVariaciones && product.variaciones && (
+          <div className="mt-4">
+            <h3 className="font-semibold mb-2">Variaciones:</h3>
+            <ul className="space-y-2">
+              {product.variaciones.map((v) => (
+                <li
+                  key={v._id?.toString()}
+                  className="p-3 border rounded-md bg-gray-50"
+                >
+                  <p className="font-medium">{v.nombre}</p>
+                  <p className="text-sm text-gray-600">
+                    Código: {v.codigo} | Precio: ${v.precio} | Stock: {v.stock}
+                  </p>
+
+                  {/* Imágenes de la variación */}
+                  <div className="flex gap-2 mt-2">
+                    {v.imagenes.map((img, idx) => (
+                      <img
+                        key={idx}
+                        src={img}
+                        alt={v.nombre || "variación"}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Especificaciones */}
+        {product.especificacionesTecnicas?.length ? (
+          <div className="mt-4">
+            <h3 className="font-semibold">Especificaciones:</h3>
+            <ul className="list-disc list-inside text-sm text-gray-600">
+              {product.especificacionesTecnicas.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {/* Características */}
+        {product.caracteristicas?.length ? (
+          <div className="mt-4">
+            <h3 className="font-semibold">Características:</h3>
+            <ul className="list-disc list-inside text-sm text-gray-600">
+              {product.caracteristicas.map((c, i) => (
+                <li key={i}>{c}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
-    </div>
-  );
-}
-
-// Componente auxiliar para mostrar items de detalle
-function DetailItem({ label, value, fullWidth = false }: { 
-  label: string; 
-  value: React.ReactNode; 
-  fullWidth?: boolean; 
-}) {
-  return (
-    <div className={fullWidth ? 'col-span-2' : ''}>
-      <p className="font-medium text-gray-600 text-sm">{label}</p>
-      <p className="text-gray-900 text-sm">{value}</p>
-    </div>
-  );
-}
-
-// Componente auxiliar para items pequeños en variaciones
-function DetailItemSmall({ label, value }: { 
-  label: string; 
-  value: React.ReactNode; 
-}) {
-  return (
-    <div>
-      <p className="font-medium text-gray-600 text-xs">{label}</p>
-      <p className="text-gray-900 text-sm">{value}</p>
     </div>
   );
 }
