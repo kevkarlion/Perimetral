@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react'; // Importa iconos de lucide-react
 
-const url = process.env.NEXT_PUBLIC_BASE_URL;
+// const url = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch(`${url}/api/admin/login`, {
+      const response = await fetch(`/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
