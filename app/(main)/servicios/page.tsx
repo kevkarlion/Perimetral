@@ -70,7 +70,7 @@ export default function ServiciosPage() {
                 consultas y asesorarte en cada etapa del proyecto.
               </p>
               <a
-                href="https://wa.me/5492984392148?text=Hola,%20me%20gustaría%20solicitar%20información%20sobre%20sus%20cercos%20perimetrales"
+                href="https://wa.me/5492984392148"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brandHover text-white font-semibold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md text-base"
