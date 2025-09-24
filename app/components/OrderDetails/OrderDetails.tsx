@@ -6,6 +6,7 @@ import { IOrder } from '@/types/orderTypes';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import OrderDetailsSkeleton from './OrderDetailsSkeleton';
+import { useCartStore } from '@/app/components/store/cartStore';
 
 interface OrderDetailsProps {
   token: string;
@@ -15,6 +16,9 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Obtener la función clearCart del store
+  const clearCart = useCartStore((state) => state.clearCart);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -36,6 +40,25 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
 
     fetchOrder();
   }, [token]);
+
+  // 🔹 Efecto para vaciar el carrito SOLO cuando el pago esté COMPLETADO
+  useEffect(() => {
+    if (order) {
+      // Determinar el estado efectivo (si es efectivo, se considera completado)
+      const effectiveStatus = order.paymentMethod === 'cash' ? 'completed' : order.status;
+      
+      // ✅ Vaciar el carrito SOLO cuando el estado es 'completed'
+      if (effectiveStatus === 'completed') {
+        clearCart();
+        console.log('Carrito vaciado - Orden completada');
+      }
+      
+      // ✅ Alternativa: Si quieres vaciar también para estados de procesamiento exitoso
+      // if (['completed', 'processing'].includes(effectiveStatus)) {
+      //   clearCart();
+      // }
+    }
+  }, [order, clearCart]);
 
   if (loading) {
     return <OrderDetailsSkeleton />;
@@ -61,29 +84,39 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
   }
 
   // 🔹 Forzar que si es efectivo, se considere completado
-  const effectiveStatus =
-    order.paymentMethod === 'cash' ? 'completed' : order.status;
+  const effectiveStatus = order.paymentMethod === 'cash' ? 'completed' : order.status;
 
-  // Función para traducir estados de pago
-  const translatePaymentStatus = (status: string) => {
+  // Función para traducir estados basada en los tipos reales de IOrder
+  const translateStatus = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'Aprobado';
-      case 'rejected':
-        return 'Rechazado';
+      case 'completed':
+        return 'Completado';
+      case 'processing':
+        return 'Procesando';
+      case 'pending_payment':
+        return 'Pago Pendiente';
+      case 'pending':
+        return 'Pendiente';
+      case 'cancelled':
+        return 'Cancelado';
       case 'refunded':
         return 'Reembolsado';
+      case 'payment_failed':
+        return 'Pago Fallido';
       default:
-        return 'Pendiente';
+        return status;
     }
   };
 
-  // Color según estado de pago
-  const getPaymentStatusColor = (status: string) => {
+  // Color según estado
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved':
+      case 'completed':
         return 'text-green-600';
-      case 'rejected':
+      case 'processing':
+        return 'text-blue-600';
+      case 'cancelled':
+      case 'payment_failed':
         return 'text-red-600';
       case 'refunded':
         return 'text-purple-600';
@@ -103,16 +136,14 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
             className={`px-2 py-1 text-xs font-medium rounded-full ${
               effectiveStatus === 'completed'
                 ? 'bg-green-100 text-green-800'
-                : effectiveStatus === 'cancelled'
+                : effectiveStatus === 'cancelled' || effectiveStatus === 'payment_failed'
                 ? 'bg-red-100 text-red-800'
+                : effectiveStatus === 'processing'
+                ? 'bg-blue-100 text-blue-800'
                 : 'bg-yellow-100 text-yellow-800'
             }`}
           >
-            {effectiveStatus === 'completed'
-              ? 'Completado'
-              : effectiveStatus === 'cancelled'
-              ? 'Cancelado'
-              : 'Pendiente'}
+            {translateStatus(effectiveStatus)}
           </span>
           <span className="ml-4 text-sm text-gray-500">
             {format(new Date(order.createdAt), 'PPPp', { locale: es })}
@@ -148,7 +179,12 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
                 {order.paymentMethod}
               </p>
             </div>
-          
+            <div>
+              <p className="text-sm text-gray-500">Estado</p>
+              <p className={`text-sm font-medium ${getStatusColor(order.status)}`}>
+                {translateStatus(order.status)}
+              </p>
+            </div>
             <div>
               <p className="text-sm text-gray-500">Total</p>
               <p className="text-sm font-medium">
