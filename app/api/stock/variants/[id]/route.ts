@@ -24,7 +24,7 @@ export async function GET(req: Request, context: any) {
     }
 
     // 2. Extraer la variante específica
-    const variant = product.variaciones.find(v => v._id.toString() === id)
+    const variant = product.variaciones.find((v:any) => v._id.toString() === id)
     
     if (!variant) {
       return NextResponse.json(

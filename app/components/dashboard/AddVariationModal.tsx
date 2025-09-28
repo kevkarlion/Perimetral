@@ -156,7 +156,7 @@ export default function AddVariationModal({
       const newVariation: Omit<IVariation, "_id"> = {
         ...variation,
         nombre: variation.nombre.trim(),
-        medida: variation.medida?.trim() || "",
+         medida: variation.medida?.trim() || "", // ✅ Permitir vacío
         uMedida: variation.uMedida?.trim() || "u",
         codigo: codigo,
         atributos: filteredAttributes || [],
@@ -186,7 +186,7 @@ export default function AddVariationModal({
       setNewAttribute({ nombre: "", valor: "" });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Error al agregar variación"
+        err instanceof Error ? err.message : "Error alagregar variación "
       );
     } finally {
       setIsLoading(false);
