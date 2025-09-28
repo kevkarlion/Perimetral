@@ -22,7 +22,6 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
     categoria: "",
     descripcionCorta: "",
     descripcionLarga: "",
-    imagenesGenerales: [""],
     precio: undefined,
     stock: undefined,
     stockMinimo: 5,
@@ -67,20 +66,20 @@ export default function AddProductModal({ onClose, refreshProducts }: Props) {
   };
 
   // Manejar subida de imágenes
-  const handleImageUpload = (imageUrl: string) => {
-    setFormData(prev => ({
-      ...prev,
-      imagenesGenerales: [...prev.imagenesGenerales, imageUrl]
-    }));
-  };
+  // const handleImageUpload = (imageUrl: string) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     imagenesGenerales: [...prev.imagenesGenerales, imageUrl]
+  //   }));
+  // };
 
   // Eliminar imagen
-  const handleRemoveImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      imagenesGenerales: prev.imagenesGenerales.filter((_, i) => i !== index)
-    }));
-  };
+  // const handleRemoveImage = (index: number) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     imagenesGenerales: prev.imagenesGenerales.filter((_, i) => i !== index)
+  //   }));
+  // };
 
   // Validación del formulario
  // components/AddProductModal.tsx
@@ -126,9 +125,9 @@ const handleSubmit = async (e: React.FormEvent) => {
       stockMinimo: undefined,
       
       // Filtrar arrays para eliminar valores vacíos
-      imagenesGenerales: (formData.imagenesGenerales || []).filter(
-        (img) => img.trim() !== ""
-      ),
+      // imagenesGenerales: (formData.imagenesGenerales || []).filter(
+      //   (img) => img.trim() !== ""
+      // ),
       especificacionesTecnicas: (
         formData.especificacionesTecnicas || []
       ).filter((esp) => esp.trim() !== ""),
@@ -187,7 +186,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         medida: '',
         descripcionCorta: "",
         descripcionLarga: "",
-        imagenesGenerales: [""],
         precio: undefined,
         stock: undefined,
         stockMinimo: 5,
@@ -218,7 +216,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-[1000px] max-w-full p-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold">Agregar nuevo producto</h2>
+          <h2 className="text-2xl font-bold">producto</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-xl"
@@ -256,8 +254,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 formData={formData}
                 errors={errors}
                 onFieldChange={handleFieldChange}
-                onImageUpload={handleImageUpload}
-                onRemoveImage={handleRemoveImage}
+                // onImageUpload={handleImageUpload}
+                // onRemoveImage={handleRemoveImage}
               />
             </div>
           </div>
