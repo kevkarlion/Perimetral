@@ -1,23 +1,42 @@
-// app/catalogo/variants/page.tsx
-import { useProductStore } from '@/app/components/store/product-store'
+// app/(main)/catalogo/variants/page.tsx
 import VariantPage from '@/app/components/VariantPage/VariantPage'
 
-// Esto evita que Next.js intente prerenderizar estáticamente
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const URL = process.env.BASE_URL
-  const res = await fetch(`${URL}/api/stock/${id}`, { cache: 'no-store' })
-  const { data: product } = await res.json()
-
-  if (typeof window !== 'undefined') {
-    useProductStore.setState(state => ({
-      products: state.products.length ? state.products : [product],
-      initialized: true
-    }))
+  
+  // Verificación más robusta de la URL
+  if (!URL) {
+    console.error('BASE_URL no está definida en las variables de entorno')
+    return <VariantPage initialProduct={null} />
   }
 
-  return <VariantPage />
+  // Asegurarse de que la URL tenga el formato correcto
+  const baseUrl = URL.replace(/\/$/, '') // Remover slash final si existe
+  const apiUrl = `${baseUrl}/api/stock/${id}`
+
+  try {
+    console.log('Fetching from:', apiUrl) // Para debug
+    
+    const res = await fetch(apiUrl, { 
+      cache: 'no-store',
+      // Agregar timeout para evitar hanging requests
+    
+    })
+    
+    if (!res.ok) {
+      console.error(`Error ${res.status}: ${res.statusText}`)
+      return <VariantPage initialProduct={null} />
+    }
+
+    const { data: product } = await res.json()
+    return <VariantPage initialProduct={product} />
+
+  } catch (error) {
+    console.error('Error fetching product:', error)
+    return <VariantPage initialProduct={null} />
+  }
 }

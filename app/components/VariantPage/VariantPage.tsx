@@ -18,6 +18,7 @@ import { useProductStore } from "@/app/components/store/product-store";
 import { IProduct } from "@/types/productTypes";
 import { SkeletonVariantPage } from "@/app/components/VariantPage/SkeletonVariantPage";
 import Link from "next/link";
+import { useEffect } from "react";
 
 const CustomArrow = ({
   direction,
@@ -43,20 +44,39 @@ const CustomArrow = ({
   );
 };
 
-export default function VariantPage() {
+interface VariantPageProps {
+  initialProduct?: any; // Define el tipo adecuado para tu producto
+}
+
+export default function VariantPage({ initialProduct }: VariantPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { products, loading, error } = useProductStore();
+  const { products, loading, error, initializeStore } = useProductStore();
+
+  // Inicializar el store con el producto recibido del servidor
+  useEffect(() => {
+    if (initialProduct) {
+      useProductStore.setState(state => ({
+        products: [initialProduct],
+        initialized: true
+      }));
+    }
+  }, [initialProduct]);
 
   const productId = searchParams.get("productId");
   const productName = searchParams.get("productName");
-  const product = products.find((p) => p._id === productId);
+  
+  // Usar el producto del store o el initialProduct
+  const product = products.find((p) => p._id === productId) || initialProduct;
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
 
-  if (loading) return <SkeletonVariantPage productName={productName} />;
-  if (error || !product)
+  // Mostrar skeleton si está cargando y no tenemos producto inicial
+  if (loading && !initialProduct) return <SkeletonVariantPage productName={productName} />;
+  
+  // Mostrar error si hay error y no tenemos producto
+  if (error && !product)
     return (
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -65,6 +85,28 @@ export default function VariantPage() {
           </h1>
           <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
             {error || "El producto solicitado no existe"}
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mt-4 mx-auto"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+
+  // Si no hay producto después de la carga, mostrar mensaje
+  if (!product)
+    return (
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Producto no encontrado
+          </h1>
+          <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
+            El producto que buscas no está disponible.
           </p>
           <button
             onClick={() => router.back()}
