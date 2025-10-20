@@ -127,7 +127,7 @@ export default function ProductVariations({
     onVariationsChange([...existingVariations, newVariationWithCode]);
 
     setNewVariation({
-      nombre: formData.nombre,
+      nombre: "",
       medida: "",
       uMedida: "u",
       precio: 0,

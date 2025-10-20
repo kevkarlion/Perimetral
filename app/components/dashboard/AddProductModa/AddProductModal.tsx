@@ -275,16 +275,16 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           {/* Sección de especificaciones técnicas */}
-          <div className="border-b pb-4 mb-6">
+          {/* <div className="border-b pb-4 mb-6">
             <h3 className="text-lg font-semibold">Especificaciones técnicas</h3>
-          </div>
+          </div> */}
 
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <ProductSpecifications
               formData={formData}
               onFieldChange={handleFieldChange}
             />
-          </div>
+          </div> */}
 
           {/* Botones de acción */}
           <div className="flex justify-end gap-4 mt-8 pt-4 border-t">
