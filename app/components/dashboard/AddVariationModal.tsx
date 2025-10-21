@@ -249,7 +249,7 @@ export default function AddVariationModal({
       <div className="bg-white rounded-lg shadow-lg w-[800px] max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col">
         {/* Encabezado fijo */}
         <div className="flex justify-between items-start p-6 border-b">
-          <h2 className="text-xl font-bold">Editar variaciones</h2>
+          <h2 className="text-xl font-bold">Agregar/Eliminar variaciones</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"

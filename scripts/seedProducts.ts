@@ -29,8 +29,8 @@
 //     especificaciones: [
 //       
 //       "Material: Acero galvanizado",
-//       "Resistencia: Alta tensión",
-//       "Vida útil: 15+ años",
+//       "Mantenimiento: Mínimo",
+//       "Dificultad de instalación: Fácil,
 //          "Garantía: 6 Meses",
 //     ],
 //     caracteristicas: [
