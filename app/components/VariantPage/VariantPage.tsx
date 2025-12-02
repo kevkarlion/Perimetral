@@ -1,3 +1,4 @@
+//componentes/VariantPage/VariantPage.tsx
 "use client";
 
 import {
@@ -49,9 +50,10 @@ interface VariantPageProps {
 }
 
 export default function VariantPage({ initialProduct }: VariantPageProps) {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { products, loading, error, initializeStore } = useProductStore();
+  const { products, loading, error } = useProductStore();
 
   // Inicializar el store con el producto recibido del servidor
   useEffect(() => {
@@ -63,6 +65,8 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
     }
   }, [initialProduct]);
 
+
+  console.log('InitialProduct', initialProduct)
   const productId = searchParams.get("productId");
   const productName = searchParams.get("productName");
   
@@ -142,7 +146,7 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
           </h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {product.variaciones.map((variante) => {
+            {product.variaciones.map((variante: any) => {
               const firstImage = getFirstImage(variante);
 
               // NUEVO: determinar si tiene poco stock
@@ -209,14 +213,16 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
                         <div className="mb-2">
                           <h4 className="text-xs text-gray-500 mb-1">Especificaciones</h4>
                           <div className="flex flex-wrap gap-1">
-                            {variante.atributos.map((atributo, index) => (
-                              <span
-                                key={index}
-                                className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
-                              >
-                                {atributo.nombre}: {atributo.valor}
-                              </span>
-                            ))}
+                            {variante.atributos.map(
+                              (atributo: { nombre: string; valor: string }, index: number) => (
+                                <span
+                                  key={index}
+                                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                                >
+                                  {atributo.nombre}: {atributo.valor}
+                                </span>
+                              )
+                            )}
                           </div>
                         </div>
                       )}
