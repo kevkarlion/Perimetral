@@ -1,3 +1,5 @@
+//app/(main)/pago-exitoso/success/page.tsx
+
 'use client'
 import Link from 'next/link';
 import { verifyPayment } from '@/backend/lib/services/mercadoPagoPayment'; // Función que debes crear
