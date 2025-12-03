@@ -1,7 +1,7 @@
 import { Preference } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
 
-const urlFront = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+const urlFront = process.env.BASE_URL
 
 
 export class MercadoPagoService {
@@ -9,23 +9,6 @@ export class MercadoPagoService {
     console.log("order en createPreference", order);
     console.log("🔍 Verificando acceso a rutas...");
 
-    try {
-      const testResponse = await fetch(
-        "http://localhost:3000/pago-exitoso/success"
-      );
-      console.log("✅ Ruta /pago-exitoso/success:", {
-        status: testResponse.status,
-        ok: testResponse.ok,
-        redirected: testResponse.redirected,
-        url: testResponse.url,
-      });
-    } catch (error) {
-  if (error instanceof Error) {
-    console.log('❌ No se puede acceder a /pago-exitoso/success:', error.message);
-  } else {
-    console.log('❌ Error desconocido:', error);
-  }
-}
     try {
       const client = getClient();
       const preference = new Preference(client);
