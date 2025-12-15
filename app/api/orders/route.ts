@@ -19,12 +19,12 @@ export async function POST(req: Request) {
   try {
     const orderData = await req.json();
 
-    console.log('📦 Datos recibidos del carrito:', {
-      itemsCount: orderData.items.length,
-      subtotal: orderData.subtotal,
-      iva: orderData.iva,
-      total: orderData.total
-    });
+    // console.log('📦 Datos recibidos del carrito:', {
+    //   itemsCount: orderData.items.length,
+    //   subtotal: orderData.subtotal,
+    //   iva: orderData.iva,
+    //   total: orderData.total
+    // });
 
     // Validar el carrito (ahora preservará el total con IVA)
     const validatedCart = await validateCart({
@@ -34,11 +34,11 @@ export async function POST(req: Request) {
       iva: orderData.iva // Pasar IVA si está disponible
     });
 
-    console.log('✅ Carrito validado:', {
-      subtotalValidado: validatedCart.subtotal,
-      ivaValidado: validatedCart.vat,
-      totalValidado: validatedCart.total // Debe ser igual al total recibido
-    });
+    // console.log('✅ Carrito validado:', {
+    //   subtotalValidado: validatedCart.subtotal,
+    //   ivaValidado: validatedCart.vat,
+    //   totalValidado: validatedCart.total 
+    // });
 
     // Crear la orden con el total correcto (que incluye IVA)
     const newOrder = await createOrder({

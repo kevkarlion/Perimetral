@@ -107,17 +107,16 @@ export default function CartPage() {
 
       const orderData = await response.json();
 
-
       // Si es pago en efectivo, redirigir a la página específica de confirmación de efectivo
       if (selectedPaymentMethod === "efectivo") {
         // Usar la redirectUrl proporcionada por el servicio si está disponible
         if (orderData.redirectUrl) {
           // Limpiar el carrito después de una orden exitosa
-          
+
           window.location.href = orderData.redirectUrl;
         } else {
           // Fallback: construir la URL manualmente
-          
+
           window.location.href = `${window.location.origin}/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
         }
       }
@@ -215,7 +214,9 @@ export default function CartPage() {
                             {baseName}
                           </h3>
                           {medida && (
-                            <p className="text-xs text-gray-500 mt-1">{medida}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {medida}
+                            </p>
                           )}
                           <div className="mt-1 md:hidden">
                             <span className="text-xs font-medium text-gray-800">
@@ -381,7 +382,9 @@ export default function CartPage() {
                         <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">Mercado Pago</span>
+                        <span className="font-medium text-sm md:text-base">
+                          Mercado Pago
+                        </span>
                         <p className="text-xs text-gray-500">
                           Tarjeta de crédito/débito o transferencia
                         </p>
@@ -402,7 +405,9 @@ export default function CartPage() {
                         <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">Pago en Efectivo</span>
+                        <span className="font-medium text-sm md:text-base">
+                          Pago en Efectivo
+                        </span>
                         <p className="text-xs text-gray-500">
                           Abonás al retirar en nuestro local
                         </p>
@@ -417,9 +422,7 @@ export default function CartPage() {
                       Información importante
                     </h4>
                     <ul className="text-xs md:text-sm text-yellow-700 list-disc pl-4 space-y-1">
-                      <li>
-                        Contactanos para finalizar el pedido
-                      </li>
+                      <li>Contactanos para finalizar el pedido</li>
                       <li>
                         Horario de atención: [Lunes a Viernes de 8:00 a 18:00]
                       </li>
@@ -435,19 +438,25 @@ export default function CartPage() {
                 </h3>
                 <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm md:text-base">Subtotal</span>
+                    <span className="text-gray-600 text-sm md:text-base">
+                      Subtotal
+                    </span>
                     <span className="font-medium text-gray-800 text-sm md:text-base">
                       {formatPrice(subtotal)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm md:text-base">IVA (21%)</span>
+                    <span className="text-gray-600 text-sm md:text-base">
+                      IVA (21%)
+                    </span>
                     <span className="font-medium text-gray-800 text-sm md:text-base">
                       {formatPrice(iva)}
                     </span>
                   </div>
                   <div className="flex justify-between pt-3 md:pt-4 border-t border-gray-200">
-                    <span className="text-gray-900 font-bold text-sm md:text-base">Total</span>
+                    <span className="text-gray-900 font-bold text-sm md:text-base">
+                      Total
+                    </span>
                     <span className="text-gray-900 font-bold text-sm md:text-base">
                       {formatPrice(total)}
                     </span>
@@ -469,7 +478,9 @@ export default function CartPage() {
                   ) : selectedPaymentMethod === "efectivo" ? (
                     <>
                       <DollarSign className="h-4 w-4 md:h-5 md:w-5" />
-                      <span className="text-xs md:text-sm">Confirmar pedido para pago en efectivo</span>
+                      <span className="text-xs md:text-sm">
+                        Confirmar pedido para pago en efectivo
+                      </span>
                     </>
                   ) : (
                     <>
@@ -481,7 +492,9 @@ export default function CartPage() {
                           className="object-contain"
                         />
                       </div>
-                      <span className="text-xs md:text-sm">Pagar con Mercado Pago</span>
+                      <span className="text-xs md:text-sm">
+                        Pagar con Mercado Pago
+                      </span>
                     </>
                   )}
                 </Button>

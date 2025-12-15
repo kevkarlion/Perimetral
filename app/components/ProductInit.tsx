@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useProductStore } from '@/app/components/store/product-store'
 
 export function ProductInitializer() {
-  const { initialized, initializeProducts, setLoading, setError } = useProductStore()
+  const { products ,initialized, initializeProducts, setLoading, setError } = useProductStore()
 
   useEffect(() => {
     if (!initialized) {
@@ -16,6 +16,7 @@ export function ProductInitializer() {
           if (!response.ok) throw new Error(`Error HTTP: ${response.status}`)
           
           const result = await response.json()
+          console.log('Productos cargados:', result)
           if (result?.data) {
             initializeProducts(result.data)
           } else {

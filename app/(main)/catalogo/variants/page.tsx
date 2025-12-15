@@ -14,21 +14,21 @@ export default async function Page({
   const productId = params.productId;  // ← Ahora viene de ?productId=
   const productName = params.productName;
   
-  console.log("Product ID from query:", productId); // Para debug
-  console.log("Product Name from query:", productName); // Para debug
+  // console.log("Product ID from query:", productId); 
+  // console.log("Product Name from query:", productName); 
   
-  const URL = process.env.BASE_URL;
+  const URL = process.env.NEXT_PUBLIC_BASE_URL;
 
   // Verificación más robusta de la URL
   if (!URL) {
     console.error("BASE_URL no está definida en las variables de entorno");
-    return <VariantPage initialProduct={null} />;
+    return <VariantPage initialProduct={undefined} />;
   }
 
   // Si no hay productId, mostrar error
   if (!productId) {
     console.error("No productId provided in query parameters");
-    return <VariantPage initialProduct={null} />;
+    return <VariantPage initialProduct={undefined} />;
   }
 
   // Asegurarse de que la URL tenga el formato correcto
@@ -45,13 +45,13 @@ export default async function Page({
 
     if (!res.ok) {
       console.error(`Error ${res.status}: ${res.statusText}`);
-      return <VariantPage initialProduct={null} />;
+      return <VariantPage initialProduct={undefined} />;
     }
 
     const { data: product } = await res.json();
     return <VariantPage initialProduct={product} />;
   } catch (error) {
     console.error("Error fetching product:", error);
-    return <VariantPage initialProduct={null} />;
+    return <VariantPage initialProduct={undefined} />;
   }
 }

@@ -103,7 +103,7 @@ const validateVariations = (variations: IVariation[]): ApiError | null => {
 // Obtener todos los productos
 export async function getAllProducts() {
   const result = await productService.getAllProducts();
-
+  console.log('Resultado de getAllProducts controlador:', result);
   if (!result.success) {
     return NextResponse.json(
       {

@@ -13,13 +13,13 @@ export class MercadoPagoService {
       const client = getClient();
       const preference = new Preference(client);
 
-      console.log("💰 MercadoPago - Orden recibida:", {
-        orderId: order._id,
-        orderNumber: order.orderNumber,
-        totalConIVA: order.total,
-        itemsCount: order.items.length,
-        customerEmail: order.customer.email,
-      });
+      // console.log("💰 MercadoPago - Orden recibida:", {
+      //   orderId: order._id,
+      //   orderNumber: order.orderNumber,
+      //   totalConIVA: order.total,
+      //   itemsCount: order.items.length,
+      //   customerEmail: order.customer.email,
+      // });
 
       // VERIFICAR QUE EL TOTAL INCLUYE IVA
       if (!order.total || order.total <= 0) {
@@ -38,18 +38,18 @@ export class MercadoPagoService {
         },
       ];
 
-      console.log("📦 Item creado para MercadoPago:", {
-        title: items[0].title,
-        unit_price: items[0].unit_price,
-        total: items[0].unit_price * items[0].quantity,
-      });
+      // console.log("📦 Item creado para MercadoPago:", {
+      //   title: items[0].title,
+      //   unit_price: items[0].unit_price,
+      //   total: items[0].unit_price * items[0].quantity,
+      // });
 
 
       const orderIdString = order._id.toString
         ? order._id.toString()
         : String(order._id);
 
-      console.log("orderIdString:", orderIdString);
+      // console.log("orderIdString:", orderIdString);
 
       const response = await preference.create({
         body: {
@@ -69,7 +69,6 @@ export class MercadoPagoService {
           external_reference: order._id.toString(),
           notification_url: `${urlFront}/api/mercadopago/webhooks`,
           auto_return: "approved",
-
           back_urls: {
             success: `${urlFront}/pago-exitoso/success?order_id=${orderIdString}`,
             failure: `${urlFront}/pago-fallido/failure?order_id=${orderIdString}`,
@@ -91,12 +90,12 @@ export class MercadoPagoService {
         },
       });
 
-      console.log("✅ Preferencia de MercadoPago creada exitosamente:", {
-        preferenceId: response.id,
-        totalEnviado: order.total,
-        paymentUrl: response.init_point || (response as any).sandbox_init_point,
-        sandbox: !!(response as any).sandbox_init_point,
-      });
+      // console.log("✅ Preferencia de MercadoPago creada exitosamente:", {
+      //   preferenceId: response.id,
+      //   totalEnviado: order.total,
+      //   paymentUrl: response.init_point || (response as any).sandbox_init_point,
+      //   sandbox: !!(response as any).sandbox_init_point,
+      // });
 
       return {
         id: response.id,
@@ -107,14 +106,14 @@ export class MercadoPagoService {
         total_processed: order.total,
       };
     } catch (error: any) {
-      console.error("❌ Error creando preferencia de MercadoPago:", {
-        error: error.message,
-        status: error.status,
-        orderId: order?._id,
-        orderNumber: order?.orderNumber,
-        total: order?.total,
-        items: order?.items?.length,
-      });
+      // console.error("❌ Error creando preferencia de MercadoPago:", {
+      //   error: error.message,
+      //   status: error.status,
+      //   orderId: order?._id,
+      //   orderNumber: order?.orderNumber,
+      //   total: order?.total,
+      //   items: order?.items?.length,
+      // });
 
       // Error más específico para el frontend
       let errorMessage = "Error al procesar el pago con Mercado Pago";

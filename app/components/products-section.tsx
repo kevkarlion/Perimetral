@@ -8,7 +8,7 @@ import ProductGrid from "./ProductGridMain"
 import { useProductStore } from "@/app/components/store/product-store"
 
 export default function ProductSection() {
-  const { products, loading, error } = useProductStore()
+  const { loading, error } = useProductStore()
 
   if (loading) return <ProductsLoading />
 

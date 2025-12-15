@@ -1,4 +1,4 @@
-// src/app/api/webhooks/mercadopago/route.ts
+// src/app/api/mercadopago/webhooks/route.ts
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
@@ -8,11 +8,8 @@ import type {
   MercadoPagoPayment,
   WebhookResponse,
   StockUpdateResult,
-  MercadoPagoItem
+  MercadoPagoItem,
 } from "@/types/mercadopagoTypes";
-
-
-
 
 // Función para validar y convertir los datos del pago
 function parsePaymentData(paymentData: any): MercadoPagoPayment {
@@ -36,19 +33,21 @@ function parsePaymentData(paymentData: any): MercadoPagoPayment {
     additional_info: paymentData.additional_info
       ? {
           reference: paymentData.additional_info.reference,
-          items: paymentData.additional_info.items?.map((item: MercadoPagoItem) => ({
-            id: String(item.id || ""),
-            title: item.title,
-            description: item.description,
-            quantity: Number(item.quantity) || 0,
-            unit_price: Number(item.unit_price) || 0,
-            variation_id: item.variation_id
-              ? String(item.variation_id)
-              : undefined,
-            category_id: item.category_id
-              ? String(item.category_id)
-              : undefined,
-          })),
+          items: paymentData.additional_info.items?.map(
+            (item: MercadoPagoItem) => ({
+              id: String(item.id || ""),
+              title: item.title,
+              description: item.description,
+              quantity: Number(item.quantity) || 0,
+              unit_price: Number(item.unit_price) || 0,
+              variation_id: item.variation_id
+                ? String(item.variation_id)
+                : undefined,
+              category_id: item.category_id
+                ? String(item.category_id)
+                : undefined,
+            })
+          ),
           payer: paymentData.additional_info.payer,
         }
       : undefined,
@@ -60,9 +59,6 @@ export async function POST(
 ): Promise<NextResponse<WebhookResponse>> {
   try {
     const body = await request.json();
-
-   
-
     // Validación básica del webhook
     if (!body?.data?.id) {
       return NextResponse.json(
@@ -70,15 +66,11 @@ export async function POST(
         { status: 400 }
       );
     }
-
     // Obtener detalles del pago
     const client = getClient();
- 
     const payment = new Payment(client);
     const rawPaymentData = await payment.get({ id: body.data.id });
- 
     const paymentDetails = parsePaymentData(rawPaymentData);
- 
 
     // Verificar que el pago esté aprobado
     if (paymentDetails.status !== "approved") {
@@ -88,21 +80,20 @@ export async function POST(
       });
     }
 
-     if (paymentDetails.status === "approved") {
+    if (paymentDetails.status === "approved") {
       // Limpiar el carrito llamando al endpoint
-
-      
-      const clearResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/clear`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const clearResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/clear`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!clearResponse.ok) {
         console.error("Error al limpiar carrito:", await clearResponse.json());
       }
     }
-
-
     // Validar información adicional
     // Por esto (usando external_reference):
     const orderId = paymentDetails.external_reference;
@@ -132,8 +123,6 @@ export async function POST(
         if (!item.id) {
           throw new Error("ID de producto faltante");
         }
-
-     
 
         const payload: any = {
           productId: item.id,
@@ -172,8 +161,6 @@ export async function POST(
         });
       }
     }
-
-    
 
     return NextResponse.json({
       success: true,

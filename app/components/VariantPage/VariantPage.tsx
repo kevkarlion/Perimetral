@@ -1,86 +1,77 @@
-//componentes/VariantPage/VariantPage.tsx
+// componentes/VariantPage/VariantPage.tsx
 "use client";
 
-import {
-  Star,
-  Check,
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import Slider from "react-slick";
 import Image from "next/image";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useProductStore } from "@/app/components/store/product-store";
 import { IProduct } from "@/types/productTypes";
 import { SkeletonVariantPage } from "@/app/components/VariantPage/SkeletonVariantPage";
 import Link from "next/link";
-import { useEffect } from "react";
-
-const CustomArrow = ({
-  direction,
-  onClick,
-}: {
-  direction: "next" | "prev";
-  onClick?: () => void;
-}) => {
-  const Icon = direction === "next" ? ChevronRight : ChevronLeft;
-  return (
-    <button
-      type="button"
-      className={`absolute top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 focus:outline-none ${
-        direction === "next" ? "right-1" : "left-1"
-      }`}
-      onClick={onClick}
-      aria-label={`${direction === "next" ? "Next" : "Previous"} image`}
-    >
-      <div className="bg-brand hover:bg-brandHover rounded-full p-1 transition-colors shadow-md">
-        <Icon className="h-4 w-4 text-white" />
-      </div>
-    </button>
-  );
-};
+import { useState, useEffect } from "react";
 
 interface VariantPageProps {
-  initialProduct?: any; // Define el tipo adecuado para tu producto
+  initialProduct?: IProduct;
 }
 
 export default function VariantPage({ initialProduct }: VariantPageProps) {
-  
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { products, loading, error } = useProductStore();
+  
+  // SOLO LECTURA del store - NO ESCRITURA
+  const { products, loading, error, getProductById } = useProductStore();
+  
+  const [localProduct, setLocalProduct] = useState<IProduct | null>(null);
+  const [localLoading, setLocalLoading] = useState(true);
 
-  // Inicializar el store con el producto recibido del servidor
-  useEffect(() => {
-    if (initialProduct) {
-      useProductStore.setState(state => ({
-        products: [initialProduct],
-        initialized: true
-      }));
-    }
-  }, [initialProduct]);
-
-
-  console.log('InitialProduct', initialProduct)
   const productId = searchParams.get("productId");
   const productName = searchParams.get("productName");
-  
-  // Usar el producto del store o el initialProduct
-  const product = products.find((p) => p._id === productId) || initialProduct;
+
+  // ===== CORRECCIÓN: SOLO BUSCAR, NO MODIFICAR =====
+  useEffect(() => {
+    console.log('🔍 VariantPage - Buscando producto:', {
+      productId,
+      tieneInitialProduct: !!initialProduct,
+      totalProductosEnStore: products.length
+    });
+
+    // Estrategia de búsqueda (solo lectura):
+    let foundProduct: IProduct | null = null;
+
+    // 1. Buscar en el store por ID
+    if (productId) {
+      foundProduct = getProductById(productId) || null;
+      console.log('📦 Encontrado en store:', !!foundProduct);
+    }
+
+    // 2. Si no está en store, usar initialProduct (solo para esta página)
+    if (!foundProduct && initialProduct) {
+      foundProduct = initialProduct;
+      console.log('📥 Usando initialProduct');
+    }
+
+    setLocalProduct(foundProduct);
+    setLocalLoading(false);
+
+    // Debug: mostrar qué productos hay en el store
+    console.log('📊 Estado del store (solo lectura):', {
+      productos: products.length,
+      ids: products.map(p => p._id)
+    });
+
+  }, [productId, initialProduct, getProductById, products.length]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
 
-  // Mostrar skeleton si está cargando y no tenemos producto inicial
-  if (loading && !initialProduct) return <SkeletonVariantPage productName={productName} />;
-  
-  // Mostrar error si hay error y no tenemos producto
-  if (error && !product)
+  // Mostrar skeleton si está cargando
+  if (loading || localLoading) {
+    return <SkeletonVariantPage productName={productName} />;
+  }
+
+  // Mostrar error
+  if (error && !localProduct) {
     return (
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -88,21 +79,22 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
             Error al cargar el producto
           </h1>
           <p className="text-md md:text-lg text-gray-600 max-w-3xl mx-auto">
-            {error || "El producto solicitado no existe"}
+            {error}
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/")}
             className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mt-4 mx-auto"
           >
             <ArrowLeft size={16} className="mr-2" />
-            Volver
+            Volver al inicio
           </button>
         </div>
       </div>
     );
+  }
 
-  // Si no hay producto después de la carga, mostrar mensaje
-  if (!product)
+  // Si no hay producto
+  if (!localProduct) {
     return (
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -113,21 +105,25 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
             El producto que buscas no está disponible.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/")}
             className="flex items-center text-brand font-bold hover:text-brandHover transition-colors mt-4 mx-auto"
           >
             <ArrowLeft size={16} className="mr-2" />
-            Volver
+            Volver al inicio
           </button>
         </div>
       </div>
     );
+  }
 
   // Función para obtener la primera imagen disponible de la variación
   const getFirstImage = (variacion: any) => {
     if (variacion.imagenes && variacion.imagenes.length > 0) return variacion.imagenes[0];
     return null;
   };
+
+  // Usar localProduct en lugar de product
+  const product = localProduct;
 
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
@@ -148,9 +144,6 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {product.variaciones.map((variante: any) => {
               const firstImage = getFirstImage(variante);
-
-              // NUEVO: determinar si tiene poco stock
-              const sinStock = variante.stock !== undefined && variante.stock <= 3;
 
               return (
                 <div
@@ -179,8 +172,6 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
                         Imagen no disponible
                       </div>
                     )}
-
-                   
                   </div>
 
                   <div className="p-3 flex-grow flex flex-col">

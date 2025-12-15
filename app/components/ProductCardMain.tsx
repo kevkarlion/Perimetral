@@ -90,6 +90,7 @@ export default function ProductCardMain({ product }: ProductCardProps) {
 
   const handleViewDetails = () => {
     setCurrentProduct(product);
+    
 
     // Lógica idéntica a CatalogoPage
     if (tieneVariaciones) {
