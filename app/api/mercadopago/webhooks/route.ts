@@ -59,6 +59,7 @@ export async function POST(
 ): Promise<NextResponse<WebhookResponse>> {
   try {
     const body = await request.json();
+    console.log('Webhook recibido:', body);
     // Validación básica del webhook
     if (!body?.data?.id) {
       return NextResponse.json(
@@ -83,7 +84,7 @@ export async function POST(
     if (paymentDetails.status === "approved") {
       // Limpiar el carrito llamando al endpoint
       const clearResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/clear`,
+        `${process.env.BASE_URL}/api/cart/clear`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -135,7 +136,7 @@ export async function POST(
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/stock`,
+          `${process.env.BASE_URL}/api/stock`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
