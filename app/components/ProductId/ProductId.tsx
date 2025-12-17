@@ -106,7 +106,7 @@ export default function ProductId({
   // Función para abrir WhatsApp con el mensaje preconfigurado
   const openWhatsApp = () => {
     // Reemplaza este número con el número de tu negocio (en formato internacional sin +)
-    const phoneNumber = "542984252859";
+    const phoneNumber = "5492984392148";
     const message = generateWhatsAppMessage();
     
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");

@@ -124,6 +124,7 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
 
   // Usar localProduct en lugar de product
   const product = localProduct;
+  console.log('🛍️ Mostrando variantes para el producto:', product);
 
   return (
     <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0">
@@ -191,24 +192,22 @@ export default function VariantPage({ initialProduct }: VariantPageProps) {
 
                     {variante.medida && variante.medida.trim() !== "" && (
                       <div className="mb-2">
-                        <h4 className="text-xs text-gray-500 mb-1">Medida</h4>
+                        <h4 className="text-xs text-black mb-1">Medida</h4>
                         <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full">
                           {variante.medida}
                         </span>
                       </div>
                     )}
 
-                    {(!variante.medida || variante.medida.trim() === "") &&
-                      variante.atributos &&
-                      variante.atributos.length > 0 && (
+                    { variante.atributos.length > 0 &&  (
                         <div className="mb-2">
-                          <h4 className="text-xs text-gray-500 mb-1">Especificaciones</h4>
+                          <h4 className="text-xs text-black mb-1">Especificaciones</h4>
                           <div className="flex flex-wrap gap-1">
                             {variante.atributos.map(
                               (atributo: { nombre: string; valor: string }, index: number) => (
                                 <span
                                   key={index}
-                                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                                  className="bg-gray-100 text-gray-800 text-xs lg:text-[.7rem]  font-medium px-2 py-0.5 rounded-full"
                                 >
                                   {atributo.nombre}: {atributo.valor}
                                 </span>
