@@ -78,6 +78,8 @@ export async function POST(
 
     // Obtener detalles del pago
     const client = getClient();
+    console.log("Obteniendo detalles del pago para ID:", body.data.id);
+    console.log("Client info:", client);
     const payment = new Payment(client);
     const rawPaymentData = await payment.get({ id: body.data.id });
     const paymentDetails = parsePaymentData(rawPaymentData);

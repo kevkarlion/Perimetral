@@ -119,7 +119,7 @@ export class OrderService {
       if (orderData.paymentMethod === "efectivo") {
         return {
           ...order.toObject(),
-          redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/pago-pendiente/efectivo?orderNumber=${order.orderNumber}&total=${order.total}&token=${order.accessToken}`,
+          redirectUrl: `${process.env.BASE_URL}/pago-pendiente/efectivo?orderNumber=${order.orderNumber}&total=${order.total}&token=${order.accessToken}`,
         };
       }
 
