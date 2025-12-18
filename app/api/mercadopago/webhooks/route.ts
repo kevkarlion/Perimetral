@@ -58,21 +58,21 @@ export async function POST(
   request: Request
 ): Promise<NextResponse<WebhookResponse>> {
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+
+    if (!rawBody) {
+      return NextResponse.json({ success: true });
+    }
+
+    const body = JSON.parse(rawBody);
+
     console.log("Webhook recibido:", body);
 
-    // ✅ NUEVO: solo procesar el SEGUNDO aviso
-    if (body?.action !== "payment.updated") {
+    // 👉 SOLO procesamos el SEGUNDO AVISO
+    if (body.action !== "payment.updated") {
       return NextResponse.json({ success: true });
     }
 
-    // 🔴 FIX SOLO PARA TEST DE MERCADO PAGO
-    if (body?.live_mode === false && body?.data?.id === "123456") {
-      return NextResponse.json({ success: true });
-    }
-    // 🔴 FIN FIX TEST
-
-    // Validación básica del webhook
     if (!body?.data?.id) {
       return NextResponse.json(
         { success: false, error: "Datos de webhook inválidos" },
@@ -80,34 +80,23 @@ export async function POST(
       );
     }
 
-    // Obtener detalles del pago
     const client = getClient();
-    console.log("Obteniendo detalles del pago para ID:", body.data.id);
     const payment = new Payment(client);
+
+    console.log("Obteniendo detalles del pago para ID:", body.data.id);
+
     const rawPaymentData = await payment.get({ id: body.data.id });
     const paymentDetails = parsePaymentData(rawPaymentData);
 
-    // Verificar que el pago esté aprobado
+    // 👉 SOLO cuando está aprobado
     if (paymentDetails.status !== "approved") {
-      return NextResponse.json({
-        success: true,
-        details: `Pago no aprobado, estado: ${paymentDetails.status}`,
-      });
+      return NextResponse.json({ success: true });
     }
 
-    if (paymentDetails.status === "approved") {
-      const clearResponse = await fetch(
-        `${process.env.BASE_URL}/api/cart/clear`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!clearResponse.ok) {
-        console.error("Error al limpiar carrito:", await clearResponse.json());
-      }
-    }
+    // Limpiar carrito (sin romper si no hay body)
+    await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
+      method: "POST",
+    });
 
     const orderId = paymentDetails.external_reference;
     const items = paymentDetails.additional_info?.items || [];
@@ -130,10 +119,6 @@ export async function POST(
 
     for (const item of items) {
       try {
-        if (!item.id) {
-          throw new Error("ID de producto faltante");
-        }
-
         const payload: any = {
           productId: item.id,
           stock: -Math.abs(item.quantity),
@@ -153,21 +138,22 @@ export async function POST(
           }
         );
 
-        const result = await response.json();
+        // 🔴 NO romper si no hay JSON
+        const text = await response.text();
+        const result = text ? JSON.parse(text) : null;
 
         stockUpdates.push({
           productId: item.id,
           variationId: item.variation_id,
           success: response.ok,
           newStock: result?.data?.stock,
-          ...(!response.ok && { error: result.error || "Error desconocido" }),
         });
-      } catch (error) {
+      } catch (err) {
         stockUpdates.push({
           productId: item.id,
           variationId: item.variation_id,
           success: false,
-          error: error instanceof Error ? error.message : "Error desconocido",
+          error: "Error actualizando stock",
         });
       }
     }
@@ -180,12 +166,7 @@ export async function POST(
   } catch (error: any) {
     console.error("Error en webhook:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Error procesando el webhook",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      },
+      { success: false, error: "Error procesando el webhook" },
       { status: 500 }
     );
   }
