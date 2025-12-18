@@ -41,49 +41,98 @@ export async function POST(
     const body = JSON.parse(rawBody);
     console.log("🔔 Webhook recibido:", body);
 
-    // Solo procesamos payment.updated
-    if (body.action !== "payment.updated") {
+    const topic = body.topic || body.type || body.action;
+    console.log("🧪 Topic recibido:", topic);
+
+    const client = getClient();
+
+    let paymentDetails: MercadoPagoPayment | null = null;
+
+    // ============================
+    // 🔹 CASO 1: merchant_order
+    // ============================
+    if (topic === "merchant_order" && body.resource) {
+      const merchantOrderId = body.resource.split("/").pop();
+
+      console.log("📦 Merchant order ID:", merchantOrderId);
+
+      const merchantOrder = await fetch(
+        `https://api.mercadolibre.com/merchant_orders/${merchantOrderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+          },
+        }
+      ).then((res) => res.json());
+
+      console.log("📦 Merchant order data:", merchantOrder);
+
+      const approvedPayment = merchantOrder.payments?.find(
+        (p: any) => p.status === "approved"
+      );
+
+      if (!approvedPayment) {
+        console.log("⏳ No hay pagos aprobados todavía");
+        return NextResponse.json({ success: true });
+      }
+
+      paymentDetails = {
+        id: approvedPayment.id,
+        status: approvedPayment.status,
+        transaction_amount: approvedPayment.transaction_amount,
+        payment_method_id: approvedPayment.payment_method_id,
+        external_reference: merchantOrder.external_reference,
+      };
+    }
+
+    // ============================
+    // 🔹 CASO 2: payment / payment.updated
+    // ============================
+    if (
+      (topic === "payment" || topic === "payment.updated") &&
+      body?.data?.id
+    ) {
+      const payment = new Payment(client);
+      const rawPayment = await payment.get({ id: body.data.id });
+
+      paymentDetails = parsePaymentData(rawPayment);
+    }
+
+    // ============================
+    // 🔹 Nada procesable
+    // ============================
+    if (!paymentDetails) {
+      console.log("⚠️ Webhook ignorado (sin datos útiles)");
       return NextResponse.json({ success: true });
     }
 
-    if (!body?.data?.id) {
-      return NextResponse.json(
-        { success: false, error: "ID de pago faltante" },
-        { status: 400 }
-      );
-    }
-
-    // Obtener pago desde MP
-    const client = getClient();
-    const payment = new Payment(client);
-
-    const rawPayment = await payment.get({ id: body.data.id });
-    const paymentDetails = parsePaymentData(rawPayment);
-
-    // Solo cuando está aprobado
+    // ============================
+    // 🔹 Solo pagos aprobados
+    // ============================
     if (paymentDetails.status !== "approved") {
+      console.log("⏳ Pago no aprobado:", paymentDetails.status);
       return NextResponse.json({ success: true });
     }
 
     const orderToken = paymentDetails.external_reference;
 
     if (!orderToken) {
+      console.error("❌ Pago sin external_reference");
       return NextResponse.json(
         { success: false, error: "Orden sin external_reference" },
         { status: 400 }
       );
     }
 
+    console.log("✅ Pago aprobado para orden:", orderToken);
+
     // 🛒 Limpiar carrito
     await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
-      
       method: "POST",
     });
 
-    // ✅ ACÁ ESTÁ LA CLAVE:
-    // delegamos TODO a la ruta de órdenes
+    // ✅ Actualizar orden (esto dispara stock + lógica interna)
     await fetch(`${process.env.BASE_URL}/api/orders/${orderToken}`, {
-     
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -98,6 +147,8 @@ export async function POST(
         },
       }),
     });
+
+    console.log("🎉 Orden completada correctamente");
 
     return NextResponse.json({
       success: true,
