@@ -12,10 +12,11 @@ import ScrollToTop from "@/app/components/ScrollTop/ScrollToTop";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Corralón - Materiales para la construcción",
+  title: "Materiales de Construcción y Cercos Perimetrales | Perimetral",
   description:
-    "Todo lo que necesitas para tu proyecto de construcción en un solo lugar",
-  generator: "v0.dev",
+    "Venta minorista y mayorista de materiales para la construcción. Especialistas en provisión e instalación de cercos perimetrales para obras y hogares.",
+  keywords: ["materiales para construcción", "cercos perimetrales", "colocación de cercos", "obra civil"],
+  authors: [{ name: "Perimetral" }],
 };
 
 export default function RootLayout({
