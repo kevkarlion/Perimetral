@@ -1,103 +1,110 @@
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
-import { OrderService } from "@/backend/lib/services/order.services";
 
 import type {
   MercadoPagoPayment,
   WebhookResponse,
 } from "@/types/mercadopagoTypes";
 
-// Función para validar y convertir los datos del pago
+// ----------------------------
+// Parseo seguro del pago
+// ----------------------------
 function parsePaymentData(paymentData: any): MercadoPagoPayment {
   if (typeof paymentData?.id !== "number") {
-    throw new Error("ID de pago inválido o faltante");
+    throw new Error("ID de pago inválido");
   }
 
   if (typeof paymentData?.status !== "string") {
-    throw new Error("Estado de pago inválido o faltante");
+    throw new Error("Estado de pago inválido");
   }
 
   return {
     id: paymentData.id,
     status: paymentData.status,
-    status_detail: paymentData.status_detail,
     transaction_amount: paymentData.transaction_amount || 0,
-    date_approved: paymentData.date_approved,
     payment_method_id: paymentData.payment_method_id,
-    payment_type_id: paymentData.payment_type_id,
     external_reference: paymentData.external_reference,
   };
 }
 
+// ----------------------------
+// Webhook
+// ----------------------------
 export async function POST(
   request: Request
 ): Promise<NextResponse<WebhookResponse>> {
   try {
     const rawBody = await request.text();
-
-    // Webhooks de MP a veces vienen vacíos (reintentos)
-    if (!rawBody) {
-      return NextResponse.json({ success: true });
-    }
+    if (!rawBody) return NextResponse.json({ success: true });
 
     const body = JSON.parse(rawBody);
+    console.log("🔔 Webhook recibido:", body);
 
-    console.log("Webhook recibido:", body);
-
-    // 👉 SOLO procesamos el segundo aviso
-    // payment.created -> ignorar
-    // payment.updated -> procesar
+    // Solo procesamos payment.updated
     if (body.action !== "payment.updated") {
       return NextResponse.json({ success: true });
     }
 
     if (!body?.data?.id) {
       return NextResponse.json(
-        { success: false, error: "Datos de webhook inválidos" },
+        { success: false, error: "ID de pago faltante" },
         { status: 400 }
       );
     }
 
+    // Obtener pago desde MP
     const client = getClient();
     const payment = new Payment(client);
 
-    console.log("Obteniendo detalles del pago para ID:", body.data.id);
+    const rawPayment = await payment.get({ id: body.data.id });
+    const paymentDetails = parsePaymentData(rawPayment);
 
-    const rawPaymentData = await payment.get({ id: body.data.id });
-    const paymentDetails = parsePaymentData(rawPaymentData);
-
-    // 👉 SOLO cuando Mercado Pago confirma APPROVED
+    // Solo cuando está aprobado
     if (paymentDetails.status !== "approved") {
       return NextResponse.json({ success: true });
     }
 
-    const orderId = paymentDetails.external_reference;
+    const orderToken = paymentDetails.external_reference;
 
-    if (!orderId) {
+    if (!orderToken) {
       return NextResponse.json(
-        { success: false, error: "No se encontró referencia de orden" },
+        { success: false, error: "Orden sin external_reference" },
         { status: 400 }
       );
     }
 
-    // ✅ ÚNICA acción de negocio del webhook
-    // El stock se descuenta INTERNAMENTE cuando la orden pasa a completed
-    await OrderService.updateOrderStatus(orderId, "completed", {
-      paymentStatus: paymentDetails.status,
-      paymentId: paymentDetails.id.toString(),
-      paidAmount: paymentDetails.transaction_amount,
-      paymentMethod: paymentDetails.payment_method_id,
+    // 🛒 Limpiar carrito
+    await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
+      method: "POST",
+    });
+
+    // ✅ ACÁ ESTÁ LA CLAVE:
+    // delegamos TODO a la ruta de órdenes
+    await fetch(`${process.env.BASE_URL}/api/orders/${orderToken}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: "completed",
+        additionalData: {
+          paymentStatus: paymentDetails.status,
+          paymentId: paymentDetails.id.toString(),
+          paidAmount: paymentDetails.transaction_amount,
+          paymentMethod: paymentDetails.payment_method_id,
+        },
+      }),
     });
 
     return NextResponse.json({
       success: true,
-      orderId,
+      orderToken,
     });
-  } catch (error: any) {
-    console.error("Error en webhook:", error);
+  } catch (error) {
+    console.error("❌ Error en webhook:", error);
     return NextResponse.json(
-      { success: false, error: "Error procesando el webhook" },
+      { success: false, error: "Error procesando webhook" },
       { status: 500 }
     );
   }
