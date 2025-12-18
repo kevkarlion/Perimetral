@@ -1,4 +1,3 @@
-// src/app/api/mercadopago/webhooks/route.ts
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
@@ -7,8 +6,6 @@ import { OrderService } from "@/backend/lib/services/order.services";
 import type {
   MercadoPagoPayment,
   WebhookResponse,
-  StockUpdateResult,
-  MercadoPagoItem,
 } from "@/types/mercadopagoTypes";
 
 // Función para validar y convertir los datos del pago
@@ -30,27 +27,6 @@ function parsePaymentData(paymentData: any): MercadoPagoPayment {
     payment_method_id: paymentData.payment_method_id,
     payment_type_id: paymentData.payment_type_id,
     external_reference: paymentData.external_reference,
-    additional_info: paymentData.additional_info
-      ? {
-          reference: paymentData.additional_info.reference,
-          items: paymentData.additional_info.items?.map(
-            (item: MercadoPagoItem) => ({
-              id: String(item.id || ""),
-              title: item.title,
-              description: item.description,
-              quantity: Number(item.quantity) || 0,
-              unit_price: Number(item.unit_price) || 0,
-              variation_id: item.variation_id
-                ? String(item.variation_id)
-                : undefined,
-              category_id: item.category_id
-                ? String(item.category_id)
-                : undefined,
-            })
-          ),
-          payer: paymentData.additional_info.payer,
-        }
-      : undefined,
   };
 }
 
@@ -60,6 +36,7 @@ export async function POST(
   try {
     const rawBody = await request.text();
 
+    // Webhooks de MP a veces vienen vacíos (reintentos)
     if (!rawBody) {
       return NextResponse.json({ success: true });
     }
@@ -68,7 +45,9 @@ export async function POST(
 
     console.log("Webhook recibido:", body);
 
-    // 👉 SOLO procesamos el SEGUNDO AVISO
+    // 👉 SOLO procesamos el segundo aviso
+    // payment.created -> ignorar
+    // payment.updated -> procesar
     if (body.action !== "payment.updated") {
       return NextResponse.json({ success: true });
     }
@@ -88,18 +67,12 @@ export async function POST(
     const rawPaymentData = await payment.get({ id: body.data.id });
     const paymentDetails = parsePaymentData(rawPaymentData);
 
-    // 👉 SOLO cuando está aprobado
+    // 👉 SOLO cuando Mercado Pago confirma APPROVED
     if (paymentDetails.status !== "approved") {
       return NextResponse.json({ success: true });
     }
 
-    // Limpiar carrito (sin romper si no hay body)
-    await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
-      method: "POST",
-    });
-
     const orderId = paymentDetails.external_reference;
-    const items = paymentDetails.additional_info?.items || [];
 
     if (!orderId) {
       return NextResponse.json(
@@ -108,6 +81,8 @@ export async function POST(
       );
     }
 
+    // ✅ ÚNICA acción de negocio del webhook
+    // El stock se descuenta INTERNAMENTE cuando la orden pasa a completed
     await OrderService.updateOrderStatus(orderId, "completed", {
       paymentStatus: paymentDetails.status,
       paymentId: paymentDetails.id.toString(),
@@ -115,53 +90,9 @@ export async function POST(
       paymentMethod: paymentDetails.payment_method_id,
     });
 
-    const stockUpdates: StockUpdateResult[] = [];
-
-    for (const item of items) {
-      try {
-        const payload: any = {
-          productId: item.id,
-          stock: -Math.abs(item.quantity),
-          action: "increment",
-        };
-
-        if (item.variation_id) {
-          payload.variationId = item.variation_id;
-        }
-
-        const response = await fetch(
-          `${process.env.BASE_URL}/api/stock`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        // 🔴 NO romper si no hay JSON
-        const text = await response.text();
-        const result = text ? JSON.parse(text) : null;
-
-        stockUpdates.push({
-          productId: item.id,
-          variationId: item.variation_id,
-          success: response.ok,
-          newStock: result?.data?.stock,
-        });
-      } catch (err) {
-        stockUpdates.push({
-          productId: item.id,
-          variationId: item.variation_id,
-          success: false,
-          error: "Error actualizando stock",
-        });
-      }
-    }
-
     return NextResponse.json({
       success: true,
       orderId,
-      stockUpdates,
     });
   } catch (error: any) {
     console.error("Error en webhook:", error);
