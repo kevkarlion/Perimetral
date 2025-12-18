@@ -61,8 +61,12 @@ export async function POST(
     const body = await request.json();
     console.log("Webhook recibido:", body);
 
+    // ✅ NUEVO: solo procesar el SEGUNDO aviso
+    if (body?.action !== "payment.updated") {
+      return NextResponse.json({ success: true });
+    }
+
     // 🔴 FIX SOLO PARA TEST DE MERCADO PAGO
-    // El test envía un ID falso (ej: "123456")
     if (body?.live_mode === false && body?.data?.id === "123456") {
       return NextResponse.json({ success: true });
     }
@@ -79,7 +83,6 @@ export async function POST(
     // Obtener detalles del pago
     const client = getClient();
     console.log("Obteniendo detalles del pago para ID:", body.data.id);
-    console.log("Client info:", client);
     const payment = new Payment(client);
     const rawPaymentData = await payment.get({ id: body.data.id });
     const paymentDetails = parsePaymentData(rawPaymentData);
