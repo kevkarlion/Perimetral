@@ -13,13 +13,6 @@ export class MercadoPagoService {
       const client = getClient();
       const preference = new Preference(client);
 
-      // console.log("💰 MercadoPago - Orden recibida:", {
-      //   orderId: order._id,
-      //   orderNumber: order.orderNumber,
-      //   totalConIVA: order.total,
-      //   itemsCount: order.items.length,
-      //   customerEmail: order.customer.email,
-      // });
 
       // VERIFICAR QUE EL TOTAL INCLUYE IVA
       if (!order.total || order.total <= 0) {
@@ -38,13 +31,7 @@ export class MercadoPagoService {
         },
       ];
 
-      // console.log("📦 Item creado para MercadoPago:", {
-      //   title: items[0].title,
-      //   unit_price: items[0].unit_price,
-      //   total: items[0].unit_price * items[0].quantity,
-      // });
-
-
+    
       const orderIdString = order._id.toString
         ? order._id.toString()
         : String(order._id);
@@ -66,7 +53,7 @@ export class MercadoPagoService {
                 }
               : undefined,
           },
-          external_reference: order._id.toString(),
+          external_reference: order.accessToken,
           notification_url: `${urlFront}/api/mercadopago/webhooks`,
           auto_return: "approved",
           back_urls: {

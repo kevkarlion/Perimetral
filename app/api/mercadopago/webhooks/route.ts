@@ -76,12 +76,14 @@ export async function POST(
 
     // 🛒 Limpiar carrito
     await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
+      
       method: "POST",
     });
 
     // ✅ ACÁ ESTÁ LA CLAVE:
     // delegamos TODO a la ruta de órdenes
     await fetch(`${process.env.BASE_URL}/api/orders/${orderToken}`, {
+     
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
