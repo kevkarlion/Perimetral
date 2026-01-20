@@ -4,7 +4,7 @@ import { StockService } from "@/backend/lib/services/stockService";
 
 import {
   getAllProducts,
-  createProduct,
+  createProductController,
   deleteProductById,
   updateProduct,
   updateStock,
@@ -30,18 +30,14 @@ export async function GET() {
 }
 
 // POST - Crear nuevo producto
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = req.body ? await req.json() : {};
- 
-    return await createProduct(body); // <<-- Asegúrate de usar await
+    return await createProductController(req); // pasamos el NextRequest directamente
   } catch (error) {
     console.error("Error al parsear JSON:", error);
-    return new Response(
-      JSON.stringify({ error: "Cuerpo de solicitud inválido" }),
-      {
-        status: 400,
-      }
+    return NextResponse.json(
+      { error: "Cuerpo de solicitud inválido" },
+      { status: 400 }
     );
   }
 }

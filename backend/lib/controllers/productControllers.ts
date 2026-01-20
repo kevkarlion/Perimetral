@@ -1,10 +1,13 @@
 // lib/controllers/productController.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
+import { CreateProductService } from "@/backend/lib/services/CreateProductService";
 import productService from "@/backend/lib/services/productService";
 import Product from "@/backend/lib/models/Product";
 import { IProduct, IVariation } from "@/types/productTypes";
 import { StockService } from "@/backend/lib/services/stockService";
+
+
 
 // Tipos para respuestas
 type ApiError = {
@@ -13,6 +16,7 @@ type ApiError = {
   field?: string;
 };
 
+
 type ApiResponse<T> = NextResponse<{
   success: boolean;
   data?: T;
@@ -20,6 +24,8 @@ type ApiResponse<T> = NextResponse<{
   details?: any;
   message?: string;
 }>;
+
+
 
 type PromiseApiResponse<T> = Promise<ApiResponse<T>>;
 
@@ -34,76 +40,76 @@ const errorResponse = (error: ApiError, status: number): ApiResponse<never> => {
       details: error.details,
       field: error.field,
     },
-    { status }
+    { status },
   );
 };
 
 // Validación de datos de producto
-const validateProductData = (data: Partial<IProduct>): ApiError | null => {
-  const requiredFields: Array<keyof IProduct> = [
-    "codigoPrincipal",
-    "nombre",
-    "categoria",
-    "descripcionCorta",
-  ];
+// const validateProductData = (data: Partial<IProduct>): ApiError | null => {
+//   const requiredFields: Array<keyof IProduct> = [
+//     "codigoPrincipal",
+//     "nombre",
+//     "categoria",
+//     "descripcionCorta",
+//   ];
 
-  for (const field of requiredFields) {
-    const value = data[field];
-    if (!value || value.toString().trim().length === 0) {
-      console.error(`Campo ${field} vacío o inválido:`, value);
-      return {
-        error: `${
-          field === "descripcionCorta" ? "Descripción corta" : field
-        } es requerido`,
-        field,
-      };
-    }
-  }
+//   for (const field of requiredFields) {
+//     const value = data[field];
+//     if (!value || value.toString().trim().length === 0) {
+//       console.error(`Campo ${field} vacío o inválido:`, value);
+//       return {
+//         error: `${
+//           field === "descripcionCorta" ? "Descripción corta" : field
+//         } es requerido`,
+//         field,
+//       };
+//     }
+//   }
 
-  if (!data.tieneVariaciones) {
-    if (data.precio === undefined || data.precio <= 0) {
-      return { error: "Precio válido es requerido", field: "precio" };
-    }
-    if (data.stock === undefined || data.stock < 0) {
-      return { error: "Stock válido es requerido", field: "stock" };
-    }
-  }
+//   if (!data.tieneVariaciones) {
+//     if (data.precio === undefined || data.precio <= 0) {
+//       return { error: "Precio válido es requerido", field: "precio" };
+//     }
+//     if (data.stock === undefined || data.stock < 0) {
+//       return { error: "Stock válido es requerido", field: "stock" };
+//     }
+//   }
 
-  return null;
-};
+//   return null;
+// };
 
 // Validación de variaciones
-const validateVariations = (variations: IVariation[]): ApiError | null => {
-  if (!variations || variations.length === 0) {
-    return {
-      error: "Se requiere al menos una variación",
-      field: "variaciones",
-    };
-  }
+// const validateVariations = (variations: IVariation[]): ApiError | null => {
+//   if (!variations || variations.length === 0) {
+//     return {
+//       error: "Se requiere al menos una variación",
+//       field: "variaciones",
+//     };
+//   }
 
-  for (const [index, variation] of variations.entries()) {
-    if (!variation.medida?.trim() && !variation.uMedida?.trim()) {
-      return {
-        error: "Medida descriptiva o Unidad de medida es requerida",
-        field: `variaciones[${index}].medida`,
-      };
-    }
+//   for (const [index, variation] of variations.entries()) {
+//     if (!variation.medida?.trim() && !variation.uMedida?.trim()) {
+//       return {
+//         error: "Medida descriptiva o Unidad de medida es requerida",
+//         field: `variaciones[${index}].medida`,
+//       };
+//     }
 
-    if (variation.precio <= 0) {
-      return {
-        error: "Precio debe ser mayor a 0",
-        field: `variaciones[${index}].precio`,
-      };
-    }
-  }
+//     if (variation.precio <= 0) {
+//       return {
+//         error: "Precio debe ser mayor a 0",
+//         field: `variaciones[${index}].precio`,
+//       };
+//     }
+//   }
 
-  return null;
-};
+//   return null;
+// };
 
 // Obtener todos los productos
 export async function getAllProducts() {
   const result = await productService.getAllProducts();
-  console.log('Resultado de getAllProducts controlador:', result);
+  console.log("Resultado de getAllProducts controlador:", result);
   if (!result.success) {
     return NextResponse.json(
       {
@@ -111,7 +117,7 @@ export async function getAllProducts() {
         error: result.error,
         details: result.details,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -145,234 +151,45 @@ export async function getAllProducts() {
   });
 }
 
+
+
+
 // Crear un nuevo producto
-export async function createProduct(body: any): Promise<ApiResponse<IProduct>> {
+//crea producto y en service crea tambien el movimiento
+export async function createProductController(req: NextRequest) {
   try {
-    const productValidationError = validateProductData(body);
-    if (productValidationError) {
-      return errorResponse(productValidationError, 400);
-    }
+    const body = await req.json();
 
-    if (body.categoria === null || body.categoria === undefined) {
-      return errorResponse(
-        {
-          error: "La categoría es requerida",
-          field: "categoria",
-        },
-        400
-      );
-    }
-
-    if (body.tieneVariaciones) {
-      const variationValidationError = validateVariations(
-        body.variaciones || []
-      );
-      if (variationValidationError) {
-        return errorResponse(variationValidationError, 400);
-      }
-    } else {
-      if (body.precio === undefined || body.precio <= 0) {
-        return errorResponse(
-          {
-            error: "Precio válido es requerido para productos sin variaciones",
-            field: "precio",
-          },
-          400
-        );
-      }
-      if (body.stock === undefined || body.stock < 0) {
-        return errorResponse(
-          {
-            error: "Stock válido es requerido para productos sin variaciones",
-            field: "stock",
-          },
-          400
-        );
-      }
-    }
-
-    let categoriaId: Types.ObjectId | null = null;
-
-    if (
-      typeof body.categoria === "string" &&
-      Types.ObjectId.isValid(body.categoria)
-    ) {
-      categoriaId = new Types.ObjectId(body.categoria);
-    } else if (
-      body.categoria &&
-      typeof body.categoria === "object" &&
-      "_id" in body.categoria
-    ) {
-      categoriaId = new Types.ObjectId(body.categoria._id);
-    } else if (body.categoria instanceof Types.ObjectId) {
-      categoriaId = body.categoria;
-    } else {
-      return errorResponse(
-        {
-          error: "Formato de categoría no válido",
-          field: "categoria",
-        },
-        400
-      );
-    }
-
-    const productData: any = {
-      ...body,
-      categoria: categoriaId,
-      stockMinimo: body.stockMinimo ?? 5,
-      activo: body.activo !== false,
-      destacado: body.destacado || false,
-    };
-
-    let variationsWithProductId: any[] = [];
-    if (
-      body.tieneVariaciones &&
-      body.variaciones &&
-      body.variaciones.length > 0
-    ) {
-      productData.variaciones = [];
-      productData.precio = undefined;
-      productData.stock = undefined;
-      productData.stockMinimo = undefined;
-
-      variationsWithProductId = body.variaciones.map((variation: any) => ({
-        ...variation,
-        precio: Number(variation.precio) || 0,
-        stock: Number(variation.stock) || 0,
-        stockMinimo: Number(variation.stockMinimo) || 5,
-      }));
-    } else {
-      productData.variaciones = [];
-      productData.precio = Number(body.precio) || 0;
-      productData.stock = Number(body.stock) || 0;
-    }
-
-    const ProductCollection = Product.collection;
-    const result = await ProductCollection.insertOne(productData);
-
-    const productId = result.insertedId;
-
-    if (body.tieneVariaciones && variationsWithProductId.length > 0) {
-      const finalVariations = variationsWithProductId.map((variation) => ({
-        ...variation,
-        productId: productId,
-        _id: new Types.ObjectId(),
-      }));
-
-      await ProductCollection.updateOne(
-        { _id: productId },
-        {
-          $set: {
-            variaciones: finalVariations,
-            tieneVariaciones: true,
-          },
-        }
-      );
-    }
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return errorResponse(
-        {
-          error: "Error al recuperar el producto creado",
-        },
-        500
-      );
-    }
-
-    // 🔹 MOVIMIENTOS DE STOCK CORREGIDOS - CON previousStock Y newStock
-    if (product.variaciones && product.variaciones.length > 0) {
-      for (const variation of product.variaciones) {
-        const categoryName =
-          product.categoria && typeof product.categoria === "object"
-            ? product.categoria.nombre
-            : "";
-
-        // ✅ CORRECCIÓN: Incluir previousStock y newStock obligatorios
-        await StockService.createMovement({
-          productId: product._id.toString(),
-          variationId: variation._id.toString(),
-          type: "initial" as const,
-          quantity: variation.stock || 0,
-          previousStock: 0, // ✅ Stock anterior (0 porque es inicial)
-          newStock: variation.stock || 0, // ✅ Stock nuevo
-          reason: "initial_stock",
-          productName: product.nombre,
-          productCode: product.codigoPrincipal,
-          categoryName: categoryName,
-          variationName: variation.nombre || "",
-          variationCode: variation.codigo || "",
-        });
-      }
-    } else if (!product.tieneVariaciones) {
-      // ✅ MOVIMIENTO DE STOCK PARA PRODUCTOS SIN VARIACIONES
-      const categoryName =
-        product.categoria && typeof product.categoria === "object"
-          ? product.categoria.nombre
-          : "";
-
-      await StockService.createMovement({
-        productId: product._id.toString(),
-        type: "initial" as const,
-        quantity: product.stock || 0,
-        previousStock: 0, // ✅ Stock anterior
-        newStock: product.stock || 0, // ✅ Stock nuevo
-        reason: "initial_stock",
-        productName: product.nombre,
-        productCode: product.codigoPrincipal,
-        categoryName: categoryName,
-      });
-    }
-
-    const responseData: IProduct = {
-      ...product.toObject(),
-      _id: product._id.toString(),
-      categoria:
-        body.categoria && typeof body.categoria === "object"
-          ? {
-              _id: body.categoria._id.toString(),
-              nombre: body.categoria.nombre,
-            }
-          : null,
-    };
+    const product = await CreateProductService.createProduct(body);
 
     return NextResponse.json(
       {
         success: true,
-        data: responseData,
+        data: product,
         message: "Producto creado exitosamente",
       },
-      {
-        status: 201,
-      }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating product:", error);
 
-    if (error instanceof Error && "code" in error && error.code === 11000) {
-      return errorResponse(
-        {
-          error: "El código principal ya existe",
-          details: "Por favor use un código diferente",
-          field: "codigoPrincipal",
-        },
-        400
-      );
-    }
-
-    return errorResponse(
+    return NextResponse.json(
       {
-        error: "Error al crear producto",
-        details: error instanceof Error ? error.message : String(error),
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       },
-      500
+      { status: 500 },
     );
   }
 }
 
+
+
+
+
 // Eliminar un producto por ID
 export async function deleteProductById(
-  req: Request
+  req: Request,
 ): PromiseApiResponse<{ message: string }> {
   try {
     const { searchParams } = new URL(req.url);
@@ -398,7 +215,7 @@ export async function deleteProductById(
         error: "Error al eliminar producto",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      500
+      500,
     );
   }
 }
@@ -412,21 +229,21 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, error: "ID de producto no válido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (price === undefined || isNaN(Number(price))) {
       return NextResponse.json(
         { success: false, error: "Precio no válido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (action && action !== "set" && action !== "increment") {
       return NextResponse.json(
         { success: false, error: 'Acción no válida. Use "set" o "increment"' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -435,13 +252,13 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
       updatedProduct = await productService.incrementProductPrice(
         productId,
         Number(price),
-        variationId
+        variationId,
       );
     } else {
       updatedProduct = await productService.updateProductPrice(
         productId,
         Number(price),
-        variationId
+        variationId,
       );
     }
 
@@ -457,14 +274,14 @@ export async function updatePrice(req: Request): Promise<NextResponse> {
         error: "Error al procesar la solicitud",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 // Actualizar un producto
 export async function updateProduct(
-  req: Request
+  req: Request,
 ): PromiseApiResponse<IProduct> {
   try {
     const { searchParams } = new URL(req.url);
@@ -476,7 +293,7 @@ export async function updateProduct(
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, error: "ID de producto no válido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -489,7 +306,7 @@ export async function updateProduct(
           success: false,
           error: 'Acción no válida. Use "add-variation" o "remove-variation"',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -497,7 +314,7 @@ export async function updateProduct(
       if (!variation) {
         return NextResponse.json(
           { success: false, error: "Datos de variación no proporcionados" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -519,7 +336,7 @@ export async function updateProduct(
             error: "El precio debe ser mayor a 0",
             field: "precio",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -548,13 +365,13 @@ export async function updateProduct(
 
       const result = await productService.addProductVariation(
         productId,
-        fullVariation
+        fullVariation,
       );
 
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: result.error },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -584,7 +401,7 @@ export async function updateProduct(
         } catch (stockError) {
           console.error(
             "Error al crear movimiento de stock para variación:",
-            stockError
+            stockError,
           );
         }
       }
@@ -599,13 +416,13 @@ export async function updateProduct(
       if (!variationId) {
         return NextResponse.json(
           { success: false, error: "ID de variación no proporcionado" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       const updatedProduct = await productService.removeProductVariation(
         productId,
-        variationId
+        variationId,
       );
       return NextResponse.json({
         success: true,
@@ -618,7 +435,7 @@ export async function updateProduct(
     if ((error as any).code === 11000) {
       return NextResponse.json(
         { success: false, error: "El código de variación ya existe" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -628,13 +445,13 @@ export async function updateProduct(
         error: "Error al procesar la solicitud",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
   return NextResponse.json(
     { success: false, error: "Acción no reconocida" },
-    { status: 400 }
+    { status: 400 },
   );
 }
 
@@ -646,7 +463,7 @@ export async function getProductById(id: string): PromiseApiResponse<IProduct> {
     if (!serviceResponse) {
       return NextResponse.json(
         { success: false, error: "Producto no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -655,7 +472,7 @@ export async function getProductById(id: string): PromiseApiResponse<IProduct> {
         success: true,
         data: serviceResponse,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error en controlador:", error);
@@ -670,7 +487,7 @@ export async function getProductById(id: string): PromiseApiResponse<IProduct> {
               : String(error)
             : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -683,7 +500,7 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
     if (!productId || !Types.ObjectId.isValid(productId)) {
       return NextResponse.json(
         { success: false, error: "ID de producto no válido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -693,14 +510,14 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
           success: false,
           error: 'Acción no válida. Use "set", "increment" o "decrement"',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (action === "set" && (stock === undefined || stock < 0)) {
       return NextResponse.json(
         { success: false, error: "Stock no válido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -710,7 +527,7 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
     ) {
       return NextResponse.json(
         { success: false, error: "Cantidad no válida" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -734,7 +551,7 @@ export async function updateStock(req: Request): PromiseApiResponse<any> {
         error: "Error al actualizar stock",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -9,14 +9,13 @@ import {
 } from "@/types/stockTypes";
 import { Types } from "mongoose";
 
+
+
 export class StockService {
   static async createMovement(
     movementData: StockMovementCreateData
   ): Promise<any> {
     await dbConnect();
-
-   
-
     const productId = new Types.ObjectId(movementData.productId);
     const createdBy = movementData.createdBy
       ? new Types.ObjectId(movementData.createdBy)
@@ -95,6 +94,10 @@ export class StockService {
     }
   }
 
+
+
+
+  
   static async getMovements(filter: StockMovementFilter = {}): Promise<{
     movements: any[];
     total: number;
