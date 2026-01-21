@@ -1,6 +1,12 @@
-// app/catalogo/page.tsx
-import CatalogoPage from "@/app/components/CatalogoPage/CatalogoPage";
+import CatalogoPage from '@/app/components/CatalogoPage/CatalogoPage';
+import React from 'react';
 
-export default function Catalogo() {
-  return <CatalogoPage />;
+const Page = () => {
+      return (
+            <div>
+                  <CatalogoPage />
+            </div>
+      );
 }
+
+export default Page;

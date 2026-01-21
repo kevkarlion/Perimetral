@@ -1,18 +1,20 @@
 import ProductCard from "./ProductCardMain"
-import { useProductStore } from "@/app/components/store/product-store"
+import { IProductBase } from "@/types/productTypes"
 
-export default function ProductGrid() {
-  const { products } = useProductStore()
-  console.log('Renderizando ProductGrid con productos:', products)
+interface ProductGridProps {
+  products: IProductBase[]
+}
+
+export default function ProductGrid({ products }: ProductGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-     
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((product) => (
-        <ProductCard
-          key={product._id.toString()}
-          product={product}
-        />
-      ))}
+  <ProductCard
+    key={product._id.toString()} // 🔑 convertir ObjectId a string
+    product={product}
+  />
+))}
+
     </div>
   )
 }

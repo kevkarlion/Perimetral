@@ -6,8 +6,10 @@ import "../globals.css";
 import { ThemeProvider } from "@/app/components/theme-provider";
 import Navbar from "@/app/components/navbar";
 import Footer from "@/app/components/footer";
-import { ProductInitializer } from "@/app/components/ProductInit";
 import ScrollToTop from "@/app/components/ScrollTop/ScrollToTop";
+import { ProductInitializer } from "@/app/components/ProductInitializer"; // o donde esté tu componente
+import { ClientInitializers  } from '@/app/components/ClientInitializers/ClientInitializers'
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -54,8 +56,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ScrollToTop />
-          <ProductInitializer />
+         
           <Navbar />
+          <ClientInitializers  />
           {children}
           <WhatsAppCTA />
           <Footer />

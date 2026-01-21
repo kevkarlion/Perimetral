@@ -1,44 +1,69 @@
 // src/lib/models/Categoria.ts
-import { Schema, model, models } from 'mongoose';
-import { ICategoria } from '@/types/categoria';
+import { Schema, model, models, Types } from "mongoose";
+import { ICategoria } from "@/types/categoria";
 
-const CategoriaSchema = new Schema<ICategoria>({
-  nombre: { 
-    type: String, 
-    required: [true, 'El nombre es requerido'],
-    unique: true,
-    trim: true,
-    maxlength: [50, 'El nombre no puede exceder los 50 caracteres']
-  },
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  descripcion: {
+const CategoriaSchema = new Schema<ICategoria>(
+  {
+    nombre: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 50,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    descripcion: {
       type: String,
       trim: true,
-      maxlength: [200, 'La descripción no puede exceder los 200 caracteres'],
+      maxlength: 200,
+    },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Categoria",
+      default: null,
     },
     activo: {
       type: Boolean,
       default: true,
     },
-}, {
-  timestamps: true // Agrega createdAt y updatedAt automáticamente
-});
+  },
+  { timestamps: true }
+);
 
-// Middleware para generar el slug antes de guardar
-CategoriaSchema.pre<ICategoria>('save', function(next) {
-  if (!this.slug) {
-    this.slug = this.nombre
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
+
+CategoriaSchema.pre("validate", async function (next) {
+  if (!this.nombre) return next();
+
+  const baseSlug = this.nombre
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "");
+
+  if (this.parentId) {
+    const parent = await model("Categoria").findById(this.parentId);
+    if (parent) {
+      this.slug = `${parent.slug}/${baseSlug}`;
+    } else {
+      this.slug = baseSlug;
+    }
+  } else {
+    this.slug = baseSlug;
   }
+
   next();
 });
 
-export default models?.Categoria || model<ICategoria>('Categoria', CategoriaSchema);
+
+
+const Categoria =
+  models.Categoria || model<ICategoria>("Categoria", CategoriaSchema);
+
+export default Categoria;
+
+
+

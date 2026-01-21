@@ -1,54 +1,71 @@
-// src/services/categoriaService.ts
-import Categoria from '@/backend/lib/models/Categoria';
-import { dbConnect } from '@/backend/lib/dbConnect/dbConnect';
-import { Types } from 'mongoose';
-import Product from '@/backend/lib/models/Product';
+// backend/lib/services/categoriaService.ts
+import CategoriaSchema from "@/backend/lib/models/Categoria";
+import { ICategoria } from "@/types/categoria";
+import { Types } from "mongoose";
 
-export class CategoriaService {
-  static async getAllCategories() {
-    await dbConnect();
-    return await Categoria.find().sort({ nombre: 1 }).lean();
-  }
-
-  static async findOrCreate(nombre: string) {
-    await dbConnect();
-    
-    const slug = this.generateSlug(nombre);
-    
-    // Buscar por nombre o slug (insensitive)
-    const existing = await Categoria.findOne({
-      $or: [
-        { nombre: { $regex: new RegExp(`^${nombre}$`, 'i') } },
-        { slug: { $regex: new RegExp(`^${slug}$`, 'i') } }
-      ]
-    });
-    
-    return await Categoria.create({ nombre, slug });
-  }
-
-  static async deleteCategory(id: string) {
-    await dbConnect();
-    
-    // Verificar si hay productos asociados
-    const productosAsociados = await Product.countDocuments({ categoria: id });
-    if (productosAsociados > 0) {
-      throw new Error('No se puede eliminar: existen productos asociados a esta categoría');
+export const categoriaService = {
+  async create(data: Partial<ICategoria>) {
+    if (!data.nombre) {
+      throw new Error("El nombre de la categoría es obligatorio");
     }
 
-    return await Categoria.findByIdAndDelete(id);
-  }
+    if (data.parentId) {
+      const parentExists = await CategoriaSchema.exists({
+        _id: data.parentId,
+      });
 
-  static async categoryExists(id: Types.ObjectId) {
-    await dbConnect();
-    return await Categoria.exists({ _id: id });
-  }
+      if (!parentExists) {
+        throw new Error("La categoría padre no existe");
+      }
+    }
 
-  private static generateSlug(text: string): string {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Elimina acentos
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
-  }
-}
+    const categoria = await CategoriaSchema.create({
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      parentId: data.parentId ?? null,
+      activo: data.activo ?? true,
+    });
+
+    return categoria;
+  },
+
+  async getAll() {
+    return CategoriaSchema.find()
+      .populate("parentId", "nombre slug")
+      .sort({ createdAt: 1 });
+  },
+
+  async getById(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("ID de categoría inválido");
+    }
+
+    const categoria = await CategoriaSchema.findById(id).populate(
+      "parentId",
+      "nombre slug"
+    );
+
+    if (!categoria) {
+      throw new Error("Categoría no encontrada");
+    }
+
+    return categoria;
+  },
+
+  async getRoots() {
+    return CategoriaSchema.find({ parentId: null, activo: true }).sort({
+      nombre: 1,
+    });
+  },
+
+  async getChildren(parentId: string) {
+    if (!Types.ObjectId.isValid(parentId)) {
+      throw new Error("ID de categoría inválido");
+    }
+
+    return CategoriaSchema.find({
+      parentId,
+      activo: true,
+    }).sort({ nombre: 1 });
+  },
+};

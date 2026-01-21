@@ -1,9 +1,14 @@
 import Hero from "@/app/components/hero"
 import SocialBanner from "@/app/components/SocialBanner"
 import InfoBanner from "@/app/components/info-banner"
-import ProductsSection from "@/app/components/products-section"
+import CategoriesPageHome from "@/app/components/CategoriesPageHome"
+import { CategoryInitializer } from '@/app/components/CategoryInitializer'
+
+
+
 import Novedades from "@/app/components/novedades"
 import Faq from "@/app/components/faq"
+import { ProductInitializer } from "../components/ProductInitializer"
 
 
 export default function Home() {
@@ -11,7 +16,9 @@ export default function Home() {
     <main className="min-h-screen">
     
       <Hero />
-      <ProductsSection />
+      <CategoryInitializer />
+      <CategoriesPageHome /> {/* Muestra las categorías */}
+      <ProductInitializer />
       <SocialBanner />
       <InfoBanner />
       <Novedades />
