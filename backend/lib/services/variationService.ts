@@ -1,5 +1,6 @@
+// File: backend/lib/services/variationService.ts
 import { Types } from "mongoose";
-import Variation from "@/backend/lib/models/Variation";
+import Variation from "@/backend/lib/models/VariationModel";
 import Product from "@/backend/lib/models/Product";
 import { UpdateVariationDTO } from '@/backend/lib/dto/variation'
 
@@ -69,6 +70,21 @@ export const variationService = {
     }).sort({ createdAt: 1 });
   },
 
+
+
+  async getById(id: string) {
+  if (!Types.ObjectId.isValid(id)) {
+    throw new Error("ID de variación inválido");
+  }
+  const variation = await Variation.findById(id).populate(
+    "product",
+    "nombre codigoPrincipal"
+  );
+  if (!variation) {
+    throw new Error("Variación no encontrada");
+  }
+  return variation;
+},
 
 
   async update(id: string, data: UpdateVariationDTO) {

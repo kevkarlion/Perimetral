@@ -3,25 +3,26 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-
 export interface ICategoriaRef {
-  _id: string
-  nombre: string
-  slug?: string
+  _id: string;
+  nombre: string;
+  slug?: string;
 }
 
 export interface IProduct {
   _id: string;
   nombre: string;
   slug?: string;
-  categoria: ICategoriaRef; // guardamos el _id de la categoría
+  categoria: ICategoriaRef;
   descripcionCorta?: string;
   descripcionLarga?: string;
   precio?: number;
+  codigoPrincipal: string
   tieneVariaciones?: boolean;
   variaciones?: any[];
   imagen?: string;
   activo?: boolean;
+  variationsCount: number;
 }
 
 interface ProductStore {
@@ -30,44 +31,59 @@ interface ProductStore {
   error: string | null;
   initialized: boolean;
 
+  // setters
   setProducts: (products: IProduct[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   initializeProducts: (products: IProduct[]) => void;
+
+  // acciones
   refreshProducts: () => Promise<void>;
   clearStore: () => void;
+
+  // selectores derivados
+  getByCategory: (categoryId: string) => IProduct[];
+  getById: (productId: string) => IProduct | undefined;
 }
 
 export const useProductStore = create<ProductStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       products: [],
-      loading: true,
-      error: null,
+      loading: false, // 👈 NO true
       initialized: false,
+
+      error: null,
 
       setProducts: (products) => set({ products }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
+
       initializeProducts: (products) =>
-        set({ products, loading: false, error: null, initialized: true }),
+        set({
+          products,
+          loading: false,
+          error: null,
+          initialized: true,
+        }),
 
       refreshProducts: async () => {
         set({ loading: true, error: null });
+
         try {
-          const res = await fetch("/api/products", { cache: "no-store" }); // 🔹 cambiar aquí
+          const res = await fetch("/api/products", { cache: "no-store" });
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+
           const result = await res.json();
-          if (result?.data) {
-            set({
-              products: result.data,
-              loading: false,
-              error: null,
-              initialized: true,
-            });
-          } else {
-            throw new Error(result.error || "Formato inválido");
-          }
+
+          if (!result?.data) throw new Error("Formato inválido");
+
+          set({
+            products: result.data,
+            loading: false,
+            error: null,
+            initialized: true,
+          });
         } catch (err) {
           set({
             error: err instanceof Error ? err.message : "Error desconocido",
@@ -76,8 +92,21 @@ export const useProductStore = create<ProductStore>()(
         }
       },
 
+      // 🔍 filtros en memoria
+      getByCategory: (categoryId) =>
+        get().products.filter(
+          (p) => p.categoria && p.categoria._id === categoryId,
+        ),
+
+      getById: (productId) => get().products.find((p) => p._id === productId),
+
       clearStore: () =>
-        set({ products: [], loading: true, error: null, initialized: false }),
+        set({
+          products: [],
+          loading: true,
+          error: null,
+          initialized: false,
+        }),
     }),
     {
       name: "product-store",

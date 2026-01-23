@@ -1,11 +1,13 @@
 import { productService } from "@/backend/lib/services/productService";
 import { NextResponse } from "next/server";
+import { mapCreateProductToDomain } from "@/backend/lib/mappers/product-mappers";
 
 export const productController = {
   async create(req: Request) {
     try {
       const body = await req.json();
-      const product = await productService.create(body);
+      const domain = mapCreateProductToDomain(body);
+      const product = await productService.create(domain);
 
       return NextResponse.json({
         success: true,
@@ -18,7 +20,7 @@ export const productController = {
           error: "Error al crear el producto",
           details: error.message,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   },
@@ -38,7 +40,7 @@ export const productController = {
           error: "Error al obtener productos",
           details: error.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   },
@@ -58,51 +60,65 @@ export const productController = {
           error: "Producto no encontrado",
           details: error.message,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
   },
 
-async update(req: Request, id: string) {
-  try {
-    const body = await req.json();
-    const product = await productService.update(id, body);
+  async getByCategory(categoryId: string) {
+    try {
+      const products = await productService.getByCategory(categoryId);
+      return NextResponse.json({ success: true, data: products });
+    } catch (error: any) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error al obtener productos",
+          details: error.message,
+        },
+        { status: 400 },
+      );
+    }
+  },
 
-    return NextResponse.json({
-      success: true,
-      data: product,
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Error al actualizar el producto",
-        details: error.message,
-      },
-      { status: 400 }
-    );
-  }
-},
+  async update(req: Request, id: string) {
+    try {
+      const body = await req.json();
+      const product = await productService.update(id, body);
 
-async deactivate(id: string) {
-  try {
-    const product = await productService.deactivate(id);
+      return NextResponse.json({
+        success: true,
+        data: product,
+      });
+    } catch (error: any) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error al actualizar el producto",
+          details: error.message,
+        },
+        { status: 400 },
+      );
+    }
+  },
 
-    return NextResponse.json({
-      success: true,
-      data: product,
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Error al desactivar el producto",
-        details: error.message,
-      },
-      { status: 400 }
-    );
-  }
-},
+  async deactivate(id: string) {
+    try {
+      const product = await productService.deactivate(id);
 
-
+      return NextResponse.json({
+        success: true,
+        data: product,
+      });
+    } catch (error: any) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error al desactivar el producto",
+          details: error.message,
+        },
+        { status: 400 },
+      );
+    }
+  },
 };

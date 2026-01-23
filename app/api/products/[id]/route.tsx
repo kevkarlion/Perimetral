@@ -1,3 +1,4 @@
+//api/products/[id]/route.tsx
 import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 
 import { productController } from "@/backend/lib/controllers/productControllers";

@@ -1,11 +1,10 @@
-// components/ProductBasicInfo.tsx
 "use client";
 
-import { ProductFormData } from "@/types/productTypes";
+import { ProductFormData } from "@/types/ProductFormData";
 
 interface ProductBasicInfoProps {
   formData: ProductFormData;
-  errors: Record<string, string>;
+  errors: Partial<Record<keyof ProductFormData, string>>;
   onFieldChange: (field: keyof ProductFormData, value: any) => void;
 }
 
@@ -18,17 +17,28 @@ export default function ProductBasicInfo({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    const finalValue = type === "checkbox" && "checked" in e.target
-      ? (e.target as HTMLInputElement).checked
-      : type === "number"
-      ? Number(value)
-      : value;
+
+    let finalValue: any;
+
+    // Checkbox
+    if (type === "checkbox" && e.target instanceof HTMLInputElement) {
+      finalValue = e.target.checked;
+    } 
+    // Number input
+    else if (type === "number") {
+      finalValue = Number(value);
+    } 
+    // Otros tipos
+    else {
+      finalValue = value;
+    }
 
     onFieldChange(name as keyof ProductFormData, finalValue);
   };
 
   const labelClass = "block font-semibold text-gray-700 mb-1";
-  const inputClass = "border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400";
+  const inputClass =
+    "border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400";
   const errorClass = "text-red-500 text-sm mt-1";
 
   return (
@@ -44,8 +54,10 @@ export default function ProductBasicInfo({
             type="text"
             name="codigoPrincipal"
             placeholder="Ej: CERCO-ALAMBRE"
-            className={`${inputClass} ${errors.codigoPrincipal ? "border-red-500" : ""}`}
-            value={formData.codigoPrincipal}
+            className={`${inputClass} ${
+              errors.codigoPrincipal ? "border-red-500" : ""
+            }`}
+            value={formData.codigoPrincipal || ""}
             onChange={handleChange}
             required
           />
@@ -65,7 +77,7 @@ export default function ProductBasicInfo({
             name="nombre"
             placeholder="Ej: Alambre de púas galvanizado"
             className={`${inputClass} ${errors.nombre ? "border-red-500" : ""}`}
-            value={formData.nombre}
+            value={formData.nombre || ""}
             onChange={handleChange}
             required
           />
@@ -83,7 +95,7 @@ export default function ProductBasicInfo({
             name="proveedor"
             placeholder="Nombre del proveedor"
             className={inputClass}
-            value={formData.proveedor}
+            value={formData.proveedor || ""}
             onChange={handleChange}
           />
         </div>
@@ -98,8 +110,10 @@ export default function ProductBasicInfo({
             type="text"
             name="descripcionCorta"
             placeholder="Breve descripción del producto"
-            className={`${inputClass} ${errors.descripcionCorta ? "border-red-500" : ""}`}
-            value={formData.descripcionCorta}
+            className={`${inputClass} ${
+              errors.descripcionCorta ? "border-red-500" : ""
+            }`}
+            value={formData.descripcionCorta || ""}
             onChange={handleChange}
             required
           />
@@ -118,7 +132,7 @@ export default function ProductBasicInfo({
             name="descripcionLarga"
             placeholder="Descripción técnica completa"
             className={`${inputClass} h-24 resize-y`}
-            value={formData.descripcionLarga}
+            value={formData.descripcionLarga || ""}
             onChange={handleChange}
           />
         </div>
@@ -126,7 +140,9 @@ export default function ProductBasicInfo({
         {/* Información sobre imágenes */}
         <div className="col-span-4">
           <div className="bg-blue-50 p-4 rounded-lg border">
-            <h4 className="font-semibold text-blue-800 mb-2">Información sobre imágenes</h4>
+            <h4 className="font-semibold text-blue-800 mb-2">
+              Información sobre imágenes
+            </h4>
             <p className="text-blue-700 text-sm">
               Las imágenes ahora se agregan directamente en cada variación del producto. 
               Puedes subir imágenes específicas para cada variación en la sección de variaciones.

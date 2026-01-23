@@ -5,12 +5,13 @@ export interface IOrderItem {
   variationId?: string | Types.ObjectId;
   name: string;
   quantity: number;
-  price: number; // Precio unitario SIN IVA
-  priceWithVat?: number; // Precio unitario CON IVA (calculado)
+  price: number; // unitario SIN IVA
+  priceWithVat?: number;
   image?: string;
   medida?: string;
   sku?: string;
 }
+
 export interface IOrderData {
   _id: string;
   orderNumber: string;
@@ -95,5 +96,5 @@ export type CreateOrderDTO = Omit<
   IOrder,
   keyof Document | "createdAt" | "updatedAt"
 > & {
-  items: Array<Omit<IOrderItem, "priceWithVat">>;
+  items: Array<Omit<IOrderItem, "priceWithVat" | "productId"> & { productId: string }>;
 };

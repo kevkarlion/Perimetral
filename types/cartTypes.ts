@@ -1,23 +1,22 @@
-import { VariableIcon } from "lucide-react";
-import { ObjectId } from "mongoose";
-import { Types } from "mongoose";
+import { IVariation } from "./ProductFormData";
 
-// types/cart.ts
+// cartTypes.ts
 export interface CartItem {
-  id: string | Types.ObjectId; // Cambiado a string para compatibilidad con el ID de producto
+  id: string;           // combinación productId-variationId si aplica
+  productId: string;    // id del producto
+  variationId?: string; // id de la variación (si aplica)
   name: string;
   price: number;
   quantity: number;
+  medida?: string;
   image?: string;
-  medida?: string; // Nueva propiedad para variantes
-  variation?: IVariation; // Nueva propiedad para la variación
 }
 
+// cartTypes.ts
+// cartTypes.ts
 export interface CartStore {
   items: CartItem[];
-
-  // utilidad de TypeScript que crea un nuevo tipo excluyendo una propiedad específica
-  addItem: (product: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (variation: IVariation) => void; // recibe IVariation
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -25,21 +24,3 @@ export interface CartStore {
   getTotalPrice: () => number;
 }
 
-export interface IVariation {
-  medida: string ;
-  codigo: string ;
-  price?: number;
-  stock?: number;
-}
-
-
-
-export interface CartItemForm {
-  id: string | Types.ObjectId; // Cambiado a string para compatibilidad con el ID de producto
-  name: string;
-  price: number;
-  quantity?: number;
-  image?: string;
-  medida?: string; // Nueva propiedad para variantes
-  variation?: IVariation; // Nueva propiedad para la variación
-}

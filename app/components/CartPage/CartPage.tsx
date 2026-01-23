@@ -1,20 +1,13 @@
+//(main)/variant/page.tsx
 "use client";
 
-import { Button } from "@/app/components/ui/button";
-import {
-  X,
-  ChevronLeft,
-  Plus,
-  Minus,
-  Loader2,
-  CreditCard,
-  DollarSign,
-} from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCartStore } from "@/app/components/store/cartStore";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
+import { X, ChevronLeft, Plus, Minus, Loader2, CreditCard, DollarSign } from "lucide-react";
+import { useCartStore } from "@/app/components/store/cartStore";
 
 export default function CartPage() {
   const router = useRouter();
@@ -28,8 +21,7 @@ export default function CartPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>("mercadopago");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"mercadopago" | "efectivo">("mercadopago");
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
@@ -37,31 +29,20 @@ export default function CartPage() {
     address: "",
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  };
-
   const subtotal = getTotalPrice();
   const iva = subtotal * 0.21;
   const total = subtotal + iva;
 
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCustomerInfo((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setCustomerInfo((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
-
-    // Validación mejorada
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       setError("Por favor complete nombre, email y teléfono");
       return;
@@ -76,189 +57,117 @@ export default function CartPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cartItems.map((item) => ({
-            productId: item.id.toString().split("-")[0],
-            // Solo incluir variationId si el ID contiene un guión (indica que tiene variación)
-            ...(item.id.toString().includes("-") && {
-              variationId: item.id.toString().split("-")[1],
-            }),
+            productId: item.productId,
+            variationId: item.variationId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
-            image: item.image || undefined,
-            medida: item.medida, // Asegúrate de incluir la medida si existe
+            image: item.image,
+            medida: item.medida,
           })),
-          total, // Envía el total con IVA incluido
-          customer: {
-            name: customerInfo.name,
-            email: customerInfo.email,
-            phone: customerInfo.phone,
-            address: customerInfo.address || "",
-          },
+          total,
+          customer: customerInfo,
           paymentMethod: selectedPaymentMethod,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || errorData.message || "Error al procesar el pedido"
-        );
+        const data = await response.json();
+        throw new Error(data.message || "Error al procesar el pedido");
       }
 
       const orderData = await response.json();
+      clearCart();
 
-      // Si es pago en efectivo, redirigir a la página específica de confirmación de efectivo
       if (selectedPaymentMethod === "efectivo") {
-        // Usar la redirectUrl proporcionada por el servicio si está disponible
-        if (orderData.redirectUrl) {
-          // Limpiar el carrito después de una orden exitosa
-
-          window.location.href = orderData.redirectUrl;
-        } else {
-          // Fallback: construir la URL manualmente
-
-          window.location.href = `${window.location.origin}/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
-        }
-      }
-      // Si es Mercado Pago, redirigir a la URL de pago
-      else if (orderData.paymentUrl) {
-        // Para redirecciones externas, es mejor usar window.location
-        // pero con un pequeño delay para permitir que React actualice el estado
-        setTimeout(() => {
-          window.location.href = orderData.paymentUrl;
-        }, 100);
+        window.location.href = orderData.redirectUrl || `/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
+      } else if (orderData.paymentUrl) {
+        setTimeout(() => window.location.href = orderData.paymentUrl, 100);
       } else {
-        // Redirigir a página de confirmación por defecto
         router.push(`/order/${orderData.accessToken}`);
       }
+
     } catch (err: any) {
-      setError(
-        err.message || "Error al procesar tu pedido. Intenta nuevamente."
-      );
+      setError(err.message || "Error al procesar tu pedido");
+      setIsProcessing(false);
       console.error("Checkout error:", err);
-      setIsProcessing(false); // Asegurar que se quite el estado de loading en caso de error
     }
   };
 
   return (
     <section className="py-8 md:py-16 bg-gray-50">
-      <div className="container mx-auto py-4 px-4 sm:px-6 lg:px-8 mt-[40px] md:mt-0">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-4xl font-bold text-gray-800 mb-3">
-            Tu <span className="text-brand">Carrito</span>
-          </h2>
-          <p className="max-w-[700px] mx-auto text-gray-600 text-sm md:text-lg">
-            Revisa tus productos antes de finalizar la compra
-          </p>
-        </div>
+      <div className="container mx-auto px-4 mt-[40px] md:mt-0">
+        <h2 className="text-2xl md:text-4xl font-bold text-gray-800 mb-3 text-center">
+          Tu <span className="text-brand">Carrito</span>
+        </h2>
+        <p className="text-gray-600 text-sm md:text-lg text-center mb-8 md:mb-12">
+          Revisa tus productos antes de finalizar la compra
+        </p>
 
         {error && (
-          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-red-100 text-red-700 rounded-lg border border-red-200 text-sm">
+          <div className="mb-4 md:mb-6 p-3 bg-red-100 text-red-700 rounded-lg border border-red-200 text-sm">
             {error}
           </div>
         )}
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          {/* Lista de productos */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            {/* Lista de productos */}
-            {cartItems.length > 0 ? (
+            {cartItems.length === 0 ? (
+              <div className="py-8 md:py-12 text-center bg-white rounded-lg shadow-sm">
+                <p className="text-gray-600 mb-4">Tu carrito está vacío</p>
+                <Link href="/catalogo" className="text-brand font-medium text-sm md:text-base hover:text-brandHover">
+                  Ir al catálogo
+                </Link>
+              </div>
+            ) : (
               <>
+                {/* Cabecera */}
                 <div className="hidden md:grid grid-cols-12 gap-4 mb-4 pb-2 border-b border-gray-200">
-                  <div className="col-span-5 font-medium text-gray-800">
-                    Producto
-                  </div>
-                  <div className="col-span-2 font-medium text-gray-800 text-center">
-                    Precio
-                  </div>
-                  <div className="col-span-3 font-medium text-gray-800 text-center">
-                    Cantidad
-                  </div>
-                  <div className="col-span-2 font-medium text-gray-800 text-right">
-                    Total
-                  </div>
+                  <div className="col-span-5 font-medium text-gray-800">Producto</div>
+                  <div className="col-span-2 font-medium text-gray-800 text-center">Precio</div>
+                  <div className="col-span-3 font-medium text-gray-800 text-center">Cantidad</div>
+                  <div className="col-span-2 font-medium text-gray-800 text-right">Total</div>
                 </div>
 
                 {cartItems.map((item) => {
                   const itemTotal = item.price * item.quantity;
-                  const nameParts = item.name.split(" - ");
-                  const baseName = nameParts[0];
-                  const medida =
-                    nameParts.length > 1 ? nameParts[1] : item.medida;
 
                   return (
-                    <div
-                      key={`${item.id}-${item.medida || ""}`}
-                      className="grid grid-cols-12 gap-3 md:gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-3 md:px-4 shadow-sm"
-                    >
+                    <div key={item.id} className="grid grid-cols-12 gap-3 md:gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-3 md:px-4 shadow-sm">
                       <div className="col-span-6 md:col-span-5 flex items-center">
-                        <button
-                          onClick={() => removeItem(item.id.toString())}
-                          className="mr-2 md:mr-3 text-gray-500 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
-                          aria-label="Eliminar producto"
-                        >
+                        <button onClick={() => removeItem(item.id)} className="mr-2 md:mr-3 text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-red-50">
                           <X className="h-3 w-3 md:h-4 md:w-4" />
                         </button>
                         <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                          {item.image && (
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-contain p-1"
-                              sizes="(max-width: 768px) 56px, 64px"
-                            />
-                          )}
+                          {item.image && <Image src={item.image} alt={item.name} fill className="object-contain p-1" />}
                         </div>
                         <div className="ml-3 md:ml-4 min-w-0">
-                          <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-2 md:line-clamp-1">
-                            {baseName}
-                          </h3>
-                          {medida && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {medida}
-                            </p>
-                          )}
+                          <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-2 md:line-clamp-1">{item.name}</h3>
+                          {item.medida && <p className="text-xs text-gray-500 mt-1">{item.medida}</p>}
                           <div className="mt-1 md:hidden">
-                            <span className="text-xs font-medium text-gray-800">
-                              {formatPrice(item.price)} c/u
-                            </span>
+                            <span className="text-xs font-medium text-gray-800">{formatPrice(item.price)} c/u</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="col-span-2 text-center hidden md:block">
-                        <span className="text-sm font-medium text-gray-800">
-                          {formatPrice(item.price)}
-                        </span>
+                        <span className="text-sm font-medium text-gray-800">{formatPrice(item.price)}</span>
                       </div>
 
                       <div className="col-span-4 md:col-span-3 flex items-center justify-center">
                         <div className="flex items-center border border-gray-300 rounded-md bg-gray-50">
                           <button
-                            onClick={() =>
-                              updateQuantity(
-                                item.id.toString(),
-                                item.quantity - 1
-                              )
-                            }
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                             className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-40"
-                            aria-label="Reducir cantidad"
                           >
                             <Minus className="h-3 w-3 md:h-4 md:w-4" />
                           </button>
-                          <span className="px-2 md:px-3 py-1 text-xs md:text-sm font-medium text-gray-800 min-w-[2rem] text-center">
-                            {item.quantity}
-                          </span>
+                          <span className="px-2 md:px-3 py-1 text-xs md:text-sm font-medium text-gray-800 min-w-[2rem] text-center">{item.quantity}</span>
                           <button
-                            onClick={() =>
-                              updateQuantity(
-                                item.id.toString(),
-                                item.quantity + 1
-                              )
-                            }
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
-                            aria-label="Aumentar cantidad"
                           >
                             <Plus className="h-3 w-3 md:h-4 md:w-4" />
                           </button>
@@ -266,115 +175,51 @@ export default function CartPage() {
                       </div>
 
                       <div className="col-span-6 md:col-span-2 flex flex-col items-end">
-                        <span className="text-sm font-medium text-gray-800">
-                          {formatPrice(itemTotal)}
-                        </span>
-                        <span className="text-xs text-gray-500 hidden md:block mt-1">
-                          {formatPrice(item.price)} c/u
-                        </span>
+                        <span className="text-sm font-medium text-gray-800">{formatPrice(itemTotal)}</span>
+                        <span className="text-xs text-gray-500 hidden md:block mt-1">{formatPrice(item.price)} c/u</span>
                       </div>
                     </div>
                   );
                 })}
-              </>
-            ) : (
-              <div className="py-8 md:py-12 text-center bg-white rounded-lg shadow-sm">
-                <p className="text-gray-600 mb-4">Tu carrito está vacío</p>
-                <Link
-                  href="/catalogo"
-                  className="text-brand hover:text-brandHover font-medium text-sm md:text-base"
-                >
-                  Ir al catálogo
-                </Link>
-              </div>
-            )}
 
-            {cartItems.length > 0 && (
-              <div className="mt-6 md:mt-8">
-                <Link
-                  href="/catalogo"
-                  className="flex items-center text-brand hover:text-brandHover font-medium text-sm md:text-base"
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Seguir comprando
-                </Link>
-              </div>
+                <div className="mt-6 md:mt-8">
+                  <Link href="/catalogo" className="flex items-center text-brand font-medium text-sm md:text-base hover:text-brandHover">
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Seguir comprando
+                  </Link>
+                </div>
+              </>
             )}
           </div>
 
+          {/* Resumen y datos del cliente */}
           {cartItems.length > 0 && (
             <div className="lg:col-span-1 space-y-4 md:space-y-6">
+              {/* Datos cliente */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
-                  Datos del cliente
-                </h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Datos del cliente</h3>
                 <div className="space-y-3 md:space-y-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      Nombre completo*
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={customerInfo.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      Email*
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={customerInfo.email}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      Teléfono*
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={customerInfo.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      Dirección
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={customerInfo.address}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                    />
-                  </div>
+                  {["name", "email", "phone", "address"].map((field) => (
+                    <div key={field}>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">{field === "name" ? "Nombre completo*" : field === "phone" ? "Teléfono*" : field === "email" ? "Email*" : "Dirección"}</label>
+                      <input
+                        type={field === "email" ? "email" : "text"}
+                        name={field}
+                        value={customerInfo[field as keyof typeof customerInfo]}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                        required={field !== "address" ? true : false}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Selección de método de pago */}
+              {/* Método de pago */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
-                  Método de pago
-                </h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Método de pago</h3>
                 <div className="space-y-2 md:space-y-3">
                   <div
-                    className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${
-                      selectedPaymentMethod === "mercadopago"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${selectedPaymentMethod === "mercadopago" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
                     onClick={() => setSelectedPaymentMethod("mercadopago")}
                   >
                     <div className="flex items-center">
@@ -382,22 +227,14 @@ export default function CartPage() {
                         <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">
-                          Mercado Pago
-                        </span>
-                        <p className="text-xs text-gray-500">
-                          Tarjeta de crédito/débito o transferencia
-                        </p>
+                        <span className="font-medium text-sm md:text-base">Mercado Pago</span>
+                        <p className="text-xs text-gray-500">Tarjeta de crédito/débito o transferencia</p>
                       </div>
                     </div>
                   </div>
 
                   <div
-                    className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${
-                      selectedPaymentMethod === "efectivo"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${selectedPaymentMethod === "efectivo" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
                     onClick={() => setSelectedPaymentMethod("efectivo")}
                   >
                     <div className="flex items-center">
@@ -405,12 +242,8 @@ export default function CartPage() {
                         <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">
-                          Pago en Efectivo
-                        </span>
-                        <p className="text-xs text-gray-500">
-                          Abonás al retirar en nuestro local
-                        </p>
+                        <span className="font-medium text-sm md:text-base">Pago en Efectivo</span>
+                        <p className="text-xs text-gray-500">Abonás al retirar en nuestro local</p>
                       </div>
                     </div>
                   </div>
@@ -418,49 +251,23 @@ export default function CartPage() {
 
                 {selectedPaymentMethod === "efectivo" && (
                   <div className="mt-3 md:mt-4 p-3 md:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800 mb-2 text-sm md:text-base">
-                      Información importante
-                    </h4>
+                    <h4 className="font-medium text-yellow-800 mb-2 text-sm md:text-base">Información importante</h4>
                     <ul className="text-xs md:text-sm text-yellow-700 list-disc pl-4 space-y-1">
                       <li>Contactanos para finalizar el pedido</li>
-                      <li>
-                        Horario de atención: [Lunes a Viernes de 8:00 a 18:00]
-                      </li>
+                      <li>Horario de atención: Lunes a Viernes de 8:00 a 18:00</li>
                       <li>Tu pedido se preparará una vez confirmado el pago</li>
                     </ul>
                   </div>
                 )}
               </div>
 
+              {/* Resumen */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 sticky bottom-0 md:static">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
-                  Resumen del pedido
-                </h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Resumen del pedido</h3>
                 <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm md:text-base">
-                      Subtotal
-                    </span>
-                    <span className="font-medium text-gray-800 text-sm md:text-base">
-                      {formatPrice(subtotal)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm md:text-base">
-                      IVA (21%)
-                    </span>
-                    <span className="font-medium text-gray-800 text-sm md:text-base">
-                      {formatPrice(iva)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-3 md:pt-4 border-t border-gray-200">
-                    <span className="text-gray-900 font-bold text-sm md:text-base">
-                      Total
-                    </span>
-                    <span className="text-gray-900 font-bold text-sm md:text-base">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
+                  <div className="flex justify-between"><span className="text-gray-600 text-sm md:text-base">Subtotal</span><span className="font-medium text-gray-800 text-sm md:text-base">{formatPrice(subtotal)}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600 text-sm md:text-base">IVA (21%)</span><span className="font-medium text-gray-800 text-sm md:text-base">{formatPrice(iva)}</span></div>
+                  <div className="flex justify-between pt-3 md:pt-4 border-t border-gray-200"><span className="text-gray-900 font-bold text-sm md:text-base">Total</span><span className="text-gray-900 font-bold text-sm md:text-base">{formatPrice(total)}</span></div>
                 </div>
 
                 <Button
@@ -468,41 +275,13 @@ export default function CartPage() {
                   disabled={isProcessing || cartItems.length === 0}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 flex items-center justify-center gap-2 rounded-md shadow-sm transition text-sm md:text-base"
                 >
-                  {isProcessing ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {selectedPaymentMethod === "efectivo"
-                        ? "Procesando pedido..."
-                        : "Redirigiendo a pago..."}
-                    </span>
-                  ) : selectedPaymentMethod === "efectivo" ? (
-                    <>
-                      <DollarSign className="h-4 w-4 md:h-5 md:w-5" />
-                      <span className="text-xs md:text-sm">
-                        Confirmar pedido para pago en efectivo
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-4 w-12 md:h-5 md:w-16 relative">
-                        <Image
-                          src="/payment-methods/mercado-pago.svg"
-                          alt="Mercado Pago"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <span className="text-xs md:text-sm">
-                        Pagar con Mercado Pago
-                      </span>
-                    </>
-                  )}
+                  {isProcessing ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{selectedPaymentMethod === "efectivo" ? "Procesando pedido..." : "Redirigiendo a pago..."}</span> :
+                    selectedPaymentMethod === "efectivo" ? <><DollarSign className="h-4 w-4 md:h-5 md:w-5" /><span className="text-xs md:text-sm">Confirmar pedido para pago en efectivo</span></> :
+                      <><Image src="/payment-methods/mercado-pago.svg" alt="Mercado Pago" width={64} height={20} className="object-contain" /><span className="text-xs md:text-sm">Pagar con Mercado Pago</span></>}
                 </Button>
 
                 <div className="mt-3 text-xs text-gray-500">
-                  <p>
-                    * Los gastos de envío se calcularán al finalizar la compra.
-                  </p>
+                  <p>* Los gastos de envío se calcularán al finalizar la compra.</p>
                   <p>* Precios incluyen IVA cuando corresponda.</p>
                 </div>
               </div>

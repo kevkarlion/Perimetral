@@ -1,56 +1,23 @@
-// app/api/orders/route.ts
-import { NextResponse } from 'next/server';
-import { getOrders, createOrder } from '@/backend/lib/controllers/orderController';
-import { validateCart } from '@/backend/lib/services/validate.cart.services';
-
-export async function GET() {
-  try {
-    const orders = await getOrders();
-    return NextResponse.json(orders);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al obtener las órdenes' },
-      { status: 500 }
-    );
-  }
-}
+//api/orders/route.ts
+import { NextResponse } from "next/server";
+import type { CreateOrderDTO, OrderResponse } from "@/types/orderTypes";
+import { OrderService } from "@/backend/lib/services/orderServices";
 
 export async function POST(req: Request) {
   try {
-    const orderData = await req.json();
+    const body: CreateOrderDTO = await req.json(); // Tipado limpio
 
- 
-    // Validar el carrito (ahora preservará el total con IVA)
-    const validatedCart = await validateCart({
-      items: orderData.items,
-      total: orderData.total, // Este incluye IVA
-      subtotal: orderData.subtotal, // Pasar subtotal si está disponible
-      iva: orderData.iva // Pasar IVA si está disponible
-    });
+    // Delegamos todo al servicio
+    const order: OrderResponse = await OrderService.createOrder(body);
 
-  
-
-    // Crear la orden con el total correcto (que incluye IVA)
-    const newOrder = await createOrder({
-      ...orderData,
-      items: validatedCart.items,
-      subtotal: validatedCart.subtotal,
-      iva: validatedCart.vat,
-      total: validatedCart.total, // ← Este ya incluye IVA y se usará para Mercado Pago
-      status: 'pending'
-    });
-
-    return NextResponse.json(newOrder, { status: 201 });
-    
+    return NextResponse.json(order, { status: 201 });
   } catch (error: any) {
-    console.error('❌ Error creating order:', error);
-    const status = error.message.includes('no coincide') ? 400 : 500;
-    
+    console.error("❌ Error en /api/orders:", error);
     return NextResponse.json(
-      { error: error.message },
-      { status }
+      { error: error.message || "Error al crear la orden" },
+      { status: 400 }
     );
   }
 }
-// Configuración de Next.js para métodos HTTP
-export const dynamic = 'force-dynamic'; // Opcional: para evitar caching
+
+export const dynamic = "force-dynamic";

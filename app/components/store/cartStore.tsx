@@ -1,67 +1,83 @@
-//app/components/store/cartStore.tsx
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { CartItem, CartStore } from '@/types/cartTypes';
+"use client";
+
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { CartItem, CartStore } from "@/types/cartTypes";
+import { IVariation } from "@/types/ProductFormData";
+
+// 🔹 Convierte una variación en un CartItem listo para el carrito
+const variationToCartItem = (variation: IVariation): CartItem => {
+  if (!variation._id || !variation.productId) {
+    throw new Error("La variación debe tener _id y productId");
+  }
+
+  return {
+    id: `${variation.productId}-${variation._id}`, // id único en carrito
+    productId: variation.productId,
+    variationId: variation._id,
+    name: variation.nombre,
+    price: variation.precio,
+    quantity: 1,
+    medida: variation.medida,
+    image: variation.imagenes?.[0] || "",
+  };
+};
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      
-      addItem: (item) => {
-        const existing = get().items.find(i => i.id === item.id);
-        set({
-          items: existing
-            ? get().items.map(i =>
-                i.id === item.id
-                  ? { ...i, quantity: i.quantity + 1 }  // Cambiado de 'cantidad' a 'quantity'
-                  : i
-              )
-            : [...get().items, { ...item, quantity: 1 }]  // Cambiado de 'cantidad' a 'quantity'
-        });
+
+      // 🔹 Agrega un producto al carrito o incrementa cantidad si ya existe
+      addToCart: (variation: IVariation) => {
+        const item = variationToCartItem(variation);
+        const existing = get().items.find((i) => i.id === item.id);
+
+        if (existing) {
+          set({
+            items: get().items.map((i) =>
+              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            ),
+          });
+        } else {
+          set({ items: [...get().items, item] });
+        }
       },
-      
-      removeItem: (id) => {
-        set({
-          items: get().items.filter(item => item.id !== id)  // Eliminado .toString() ya que id es string
-        });
+
+      // 🔹 Remueve un item del carrito
+      removeItem: (id: string) => {
+        set({ items: get().items.filter((i) => i.id !== id) });
       },
-      
-      updateQuantity: (id, quantity) => {
+
+      // 🔹 Actualiza la cantidad de un item
+      updateQuantity: (id: string, quantity: number) => {
         if (quantity < 1) return;
         set({
-          items: get().items.map(item =>
-            item.id === id ? { ...item, quantity } : item  // Cambiado de 'cantidad' a 'quantity' y eliminado .toString()
-          )
+          items: get().items.map((i) =>
+            i.id === id ? { ...i, quantity } : i
+          ),
         });
       },
-      
+
+      // 🔹 Vacía el carrito
       clearCart: () => set({ items: [] }),
-      
-      getTotalItems: () => {  // Añadido este método que faltaba
-        return get().items.reduce((total, item) => total + item.quantity, 0);
-      },
-      
-      getTotalPrice: () => {
-        return get().items.reduce(
-          (total, item) => total + (item.price * item.quantity),  // Cambiado de 'precioUnitario' a 'price'
-          0
-        );
-      }
+
+      // 🔹 Total de items en el carrito
+      getTotalItems: () => get().items.reduce((total, i) => total + i.quantity, 0),
+
+      // 🔹 Total en precio del carrito
+      getTotalPrice: () =>
+        get().items.reduce((total, i) => total + i.price * i.quantity, 0),
     }),
     {
-      name: 'cart-storage',
+      name: "cart-storage", // key en localStorage
     }
   )
-
 );
 
-// Exportar funciones directas para uso en API routes
+// 🔹 Función para limpiar carrito desde fuera de React
 export const clearCart = () => {
-  if (typeof window !== 'undefined') {
-    // Ejecutar en cliente
+  if (typeof window !== "undefined") {
     useCartStore.getState().clearCart();
-  } else {
-    // Opcional: lógica para servidor (ej. limpiar localStorage simulado)
   }
 };

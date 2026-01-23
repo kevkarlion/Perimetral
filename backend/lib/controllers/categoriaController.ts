@@ -44,6 +44,27 @@ export const categoriaController = {
     }
   },
 
+
+  async delete(id: string) {
+    try {
+      await categoriaService.delete(id);
+
+      return NextResponse.json({
+        success: true,
+        message: "Categoría eliminada correctamente",
+      });
+    } catch (error: any) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error al eliminar la categoría",
+          details: error.message,
+        },
+        { status: 400 }
+      );
+    }
+  },
+
   async getById(id: string) {
     try {
       const categoria = await categoriaService.getById(id);
@@ -63,4 +84,26 @@ export const categoriaController = {
       );
     }
   },
+
+  async update(req: Request, id: string) {
+  try {
+    const body = await req.json()
+    const updatedCategoria = await categoriaService.update(id, body)
+
+    return NextResponse.json({
+      success: true,
+      data: updatedCategoria,
+    })
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Error al actualizar la categoría",
+        details: error.message,
+      },
+      { status: 400 }
+    )
+  }
+}
+
 };

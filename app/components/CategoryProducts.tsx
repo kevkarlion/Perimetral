@@ -13,7 +13,17 @@ export default function CategoryProducts({ categoryId }: CategoryProductsProps) 
   if (loading) return <p className="text-center py-8">Cargando productos...</p>
   if (error) return <p className="text-center py-8 text-red-500">{error}</p>
 
-  const filteredProducts = products.filter(p => p.categoria._id === categoryId)
+  const filteredProducts = products.filter(p => {
+  if (!p.categoria) return false;
+
+  if (typeof p.categoria === "string") {
+    return p.categoria === categoryId;
+  }
+
+  return p.categoria._id === categoryId;
+});
+
+
 
   
   console.log('categoryId:', categoryId)
