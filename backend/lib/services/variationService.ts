@@ -91,25 +91,20 @@ export const variationService = {
     if (!Types.ObjectId.isValid(id)) {
       throw new Error("ID de variación inválido");
     }
-
     if (data.precio !== undefined && data.precio < 0) {
       throw new Error("El precio no puede ser negativo");
     }
-
     if (data.stock !== undefined && data.stock < 0) {
       throw new Error("El stock no puede ser negativo");
     }
-
     const variation = await Variation.findByIdAndUpdate(
       id,
       { $set: data },
       { new: true, runValidators: true }
     );
-
     if (!variation) {
       throw new Error("Variación no encontrada");
     }
-
     return variation;
   },
 
@@ -134,8 +129,24 @@ export const variationService = {
   },
 
 
+   async decrementStock(
+    variationId: Types.ObjectId,
+    quantity: number
+  ) {
+    const variation = await Variation.findById(variationId);
 
-};
+    if (!variation) throw new Error("Variación no encontrada");
+
+    if (variation.stock < quantity) {
+      throw new Error("Stock insuficiente");
+    }
+
+    variation.stock -= quantity;
+    await variation.save();
+  }
+}
+
+
 
 
 

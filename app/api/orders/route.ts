@@ -1,23 +1,14 @@
-//api/orders/route.ts
+// /api/orders/route.ts
 import { NextResponse } from "next/server";
-import type { CreateOrderDTO, OrderResponse } from "@/types/orderTypes";
-import { OrderService } from "@/backend/lib/services/orderServices";
+import { OrderController } from "@/backend/lib/controllers/orderController";
+import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
+
+// Conectamos a la base de datos antes de manejar las solicitudes
+await dbConnect();
 
 export async function POST(req: Request) {
-  try {
-    const body: CreateOrderDTO = await req.json(); // Tipado limpio
-
-    // Delegamos todo al servicio
-    const order: OrderResponse = await OrderService.createOrder(body);
-
-    return NextResponse.json(order, { status: 201 });
-  } catch (error: any) {
-    console.error("❌ Error en /api/orders:", error);
-    return NextResponse.json(
-      { error: error.message || "Error al crear la orden" },
-      { status: 400 }
-    );
-  }
+  return OrderController.createOrder(req);
 }
 
+// Indicamos que la ruta es dinámica (Next.js 14)
 export const dynamic = "force-dynamic";

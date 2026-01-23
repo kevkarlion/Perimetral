@@ -1,4 +1,4 @@
-// lib/mercadoPago.ts
+//services/mercadoPagoPayment.ts
 import { MercadoPagoConfig, Payment } from "mercadopago";
 
 // No acceder al token de inmediato

@@ -1,16 +1,43 @@
 import { Document, Types } from "mongoose";
 
+
+//solo DB
 export interface IOrderItem {
-  productId: string | Types.ObjectId;
-  variationId?: string | Types.ObjectId;
+  productId: Types.ObjectId;
+  variationId?: Types.ObjectId;
   name: string;
   quantity: number;
-  price: number; // unitario SIN IVA
+  price: number;
   priceWithVat?: number;
   image?: string;
   medida?: string;
   sku?: string;
 }
+
+
+//FRONT
+export interface CartItemDTO {
+  productId: string;
+  variationId: string;
+  quantity: number;
+}
+
+
+
+// Resultado de la validación de items del carrito
+export interface ValidatedCartItem {
+  productId: Types.ObjectId;
+  variationId: Types.ObjectId;
+  name: string;
+  quantity: number;
+  price: number;
+  image?: string;
+  medida?: string;
+  sku?: string;
+  stock: number;
+}
+
+
 
 export interface IOrderData {
   _id: string;
@@ -92,9 +119,10 @@ export interface OrderResponse {
 }
 
 // Tipo para crear nuevas órdenes (sin campos de Mongoose)
+// Tipado para crear orden desde frontend
 export type CreateOrderDTO = Omit<
   IOrder,
-  keyof Document | "createdAt" | "updatedAt"
+  keyof Document | "createdAt" | "updatedAt" | "items"
 > & {
-  items: Array<Omit<IOrderItem, "priceWithVat" | "productId"> & { productId: string }>;
+  items: CartItemDTO[];
 };

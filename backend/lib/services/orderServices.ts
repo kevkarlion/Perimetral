@@ -1,35 +1,115 @@
-import { Types } from "mongoose";
-import  Order  from "@/backend/lib/models/Order";
+import mongoose, { Types } from "mongoose";
+import Order from "@/backend/lib/models/Order";
 import type { CreateOrderDTO, OrderResponse, IOrder } from "@/types/orderTypes";
+import { validateCartItems } from "@/backend/lib/herlpers/cartHelpers";
+import  { calculateTotals }  from "@/backend/lib/herlpers/totalsHelpers";
+import { MercadoPagoService } from "@/backend/lib/services/mercadoPago.services";
+import { StockService } from "@/backend/lib/services/stockService";
+
 
 export class OrderService {
   static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
-    // Convertir IDs a ObjectId
-    const items = data.items.map(item => ({
-      ...item,
-      productId: new Types.ObjectId(item.productId),
-      variationId: item.variationId ? new Types.ObjectId(item.variationId) : undefined,
-    }));
 
-    // Calcular totales
-    const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
-    const vat = subtotal * 0.21; // ejemplo 21%
-    const total = subtotal + vat + (data.shippingCost || 0) - (data.discount || 0);
+  // 1️⃣ Validar carrito contra DB (strings)
+  const validatedItems = await validateCartItems(data.items);
 
-    // Crear la orden
-    const order: IOrder = new Order({
-      ...data,
-      items,
-      subtotal,
-      vat,
-      total,
+  // 2️⃣ Totales (con precios reales)
+  const { subtotal, iva } = calculateTotals(validatedItems);
+
+  const total =
+    subtotal +
+    iva +
+    (data.shippingCost || 0) -
+    (data.discount || 0);
+
+  // 3️⃣ Normalizar IDs para Mongo
+  const dbItems = validatedItems.map((item) => ({
+    ...item,
+    productId: new Types.ObjectId(item.productId),
+    variationId: item.variationId
+      ? new Types.ObjectId(item.variationId)
+      : undefined,
+  }));
+
+  // 4️⃣ Crear orden (sin pisar fields)
+  const order: IOrder = new Order({
+    customer: data.customer,
+    items: dbItems,
+    subtotal,
+    vat: iva,
+    total,
+    shippingCost: data.shippingCost || 0,
+    discount: data.discount || 0,
+    paymentMethod: data.paymentMethod,
+    status: "pending",
+    orderNumber: `ORD-${Date.now()}`,
+    accessToken: Math.random().toString(36).substring(2, 10),
+  });
+
+  await order.save();
+
+  let paymentUrl: string | undefined;
+
+  // 5️⃣ MercadoPago
+  if (data.paymentMethod === "mercadopago") {
+    const preference = await MercadoPagoService.createPreference(order);
+
+    order.paymentDetails = {
+      method: "mercadopago",
       status: "pending",
-      orderNumber: `ORD-${Date.now()}`,
-      accessToken: Math.random().toString(36).substring(2, 10),
-    });
+      mercadopagoPreferenceId: preference.id,
+      paymentUrl: preference.init_point,
+    };
 
+    order.status = "pending_payment";
     await order.save();
 
-    return { success: true, order };
+    paymentUrl = preference.init_point;
+  }
+
+  return {
+    success: true,
+    order,
+    paymentUrl,
+  };
+}
+
+
+
+
+  static async completeOrder(
+    token: string,
+    data: { status: string; additionalData?: any },
+  ) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const order = await Order.findOne({ accessToken: token }).session(
+        session,
+      );
+      if (!order) throw new Error("Orden no encontrada");
+      if (order.status === "completed") return order; //idempotencia evita dobles cargos
+
+      await StockService.discountFromOrder(order);
+
+      order.status = data.status;
+      if (data.additionalData) {
+        order.paymentDetails = {
+          ...order.paymentDetails,
+          ...data.additionalData,
+        };
+      }
+
+      await order.save({ session });
+
+      await session.commitTransaction();
+      return order;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
+    }
   }
 }

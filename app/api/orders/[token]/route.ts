@@ -1,21 +1,28 @@
-// // app/api/orders/route.ts
-// import { NextResponse } from "next/server";
-// import { createOrderController } from "@/backend/lib/controllers/orderController";
+//api/orders/[token]/route.ts
+import { NextResponse } from "next/server";
+import { OrderService } from "@/backend/lib/services/orderServices";
+import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 
-// export async function POST(req: Request) {
-//   try {
-//     const body = await req.json();
 
-//     const order = await createOrderController(body);
+await dbConnect();
+type Params = {
+  params: { token: string };
+};
 
-//     return NextResponse.json(order, { status: 201 });
-//   } catch (error: any) {
-//     console.error("❌ Error en /api/orders:", error);
-//     return NextResponse.json(
-//       { error: error.message || "Error al crear la orden" },
-//       { status: 400 }
-//     );
-//   }
-// }
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  try {
+    const { token } = await params; // 👈 importante
+    const body = await req.json();
 
-// export const dynamic = "force-dynamic";
+    const order = await OrderService.completeOrder(token, body);
+    return NextResponse.json({ success: true, order });
+  } catch (error: any) {
+    console.error("❌ Error actualizando orden:", error);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export const dynamic = "force-dynamic";

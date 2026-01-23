@@ -1,3 +1,4 @@
+//api/mercadopago/webhooks/route.ts
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
@@ -126,10 +127,7 @@ export async function POST(
 
     console.log("✅ Pago aprobado para orden:", orderToken);
 
-    // 🛒 Limpiar carrito
-    await fetch(`${process.env.BASE_URL}/api/cart/clear`, {
-      method: "POST",
-    });
+  
 
     // ✅ Actualizar orden (esto dispara stock + lógica interna)
     await fetch(`${process.env.BASE_URL}/api/orders/${orderToken}`, {
