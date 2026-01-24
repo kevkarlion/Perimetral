@@ -16,7 +16,7 @@ export async function PATCH(
   try {
     const { token } = await params; // 👈 importante
     const body = await req.json();
-
+    console.log("🔵 Actualizando orden con token:", token, "y body:", body);
     const order = await OrderService.completeOrder(token, body);
     return NextResponse.json({ success: true, order });
   } catch (error: any) {
