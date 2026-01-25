@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import Sidebar from './Sidebar'
 import CatalogTab from './catalog/CatalogoTab'
+import StockOverviewTab from './StockOverviewTab'
 import ProductsTab from './ProductsTab'
+import StockMovementTab from '@/app/components/dashboard/StockMovementTab'
+import { Order } from 'mercadopago'
+import OrdersTab from './OrdersTab'
 
 export default function DashboardLayout() {
   const [view, setView] = useState<'stock' | 'manage' | 'movements' | 'orders'>('stock')
@@ -18,10 +22,10 @@ export default function DashboardLayout() {
         </h1>
 
         <div className="bg-white/5 rounded-2xl p-5 backdrop-blur border border-white/10 shadow-xl">
-          {view === 'stock' && <div>Stock completo</div>}
+          {view === 'stock' && <StockOverviewTab />}
           {view === 'manage' && <CatalogTab />}
-          {view === 'movements' && <div>Historial de movimientos</div>}
-          {view === 'orders' && <div>Órdenes</div>}
+          {view === 'movements' && <div><StockMovementTab /> </div>}
+          {view === 'orders' && <div><OrdersTab /></div>}
         </div>
       </main>
     </div>

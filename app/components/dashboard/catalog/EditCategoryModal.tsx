@@ -44,9 +44,9 @@ export default function EditCategoryModal({ isOpen, category, onClose }: EditCat
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Editar Categoría</h2>
+        <h2 className="text-xl font-bold mb-4 text-black">Editar Categoría</h2>
 
-        <label className="block mb-2 font-semibold">Nombre</label>
+        <label className="block mb-2 font-semibold text-black">Nombre</label>
         <input
           type="text"
           value={nombre}
@@ -54,7 +54,7 @@ export default function EditCategoryModal({ isOpen, category, onClose }: EditCat
           className="w-full border rounded px-3 py-2 mb-4"
         />
 
-        <label className="block mb-2 font-semibold">Slug</label>
+        <label className="block mb-2 font-semibold text-black">Slug</label>
         <input
           type="text"
           value={slug}
@@ -65,7 +65,7 @@ export default function EditCategoryModal({ isOpen, category, onClose }: EditCat
         <div className="flex justify-end space-x-2 mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded border hover:bg-gray-100"
+            className="px-4 py-2 rounded border hover:bg-gray-100 "
           >
             Cancelar
           </button>

@@ -71,7 +71,7 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
             {adminModalOpen === cat._id && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h2 className="text-xl font-bold mb-4">Administrar "{cat.nombre}"</h2>
+                  <h2 className="text-xl text-black font-bold mb-4">Administrar "{cat.nombre}"</h2>
 
                   <div className="flex flex-col space-y-2">
                     <button
@@ -105,7 +105,7 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
                   <div className="flex justify-end mt-4">
                     <button
                       onClick={() => setAdminModalOpen(null)}
-                      className="px-4 py-2 rounded border hover:bg-gray-100"
+                      className="px-4 py-2 rounded border hover:bg-gray-100 text-black"
                     >
                       Cerrar
                     </button>
