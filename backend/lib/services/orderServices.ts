@@ -70,51 +70,67 @@ export class OrderService {
   }
 
   // Completar orden por webhook o patch
-static async completeOrder(
-  token: string,
-  data: { status: string; additionalData?: any },
-) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  static async completeOrder(
+    token: string,
+    data: { status: string; additionalData?: any },
+  ) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    console.log("🔵 Iniciando transacción para completar orden con token:", token);
+    try {
+      const order = await Order.findOne({ accessToken: token }).session(
+        session,
+      );
+      if (!order) throw new Error("Orden no encontrada");
+      if (order.status === "completed") return order; // idempotencia
 
-  try {
-    const order = await Order.findOne({ accessToken: token }).session(session);
-    if (!order) throw new Error("Orden no encontrada");
-    if (order.status === "completed") return order; // idempotencia
+      // Descontar stock
+      await StockService.discountFromOrder(order);
 
-    // Descontar stock
-    await StockService.discountFromOrder(order);
+      // Actualizar estado
+      order.status = data.status;
 
-    // Actualizar estado
-    order.status = data.status;
+      console.log("🔵 Actualizando orden", order._id, "a estado:", "data", data);
+      // Actualizar notas y paymentDetails
+      if (data.additionalData) {
+        const { notes, ...paymentData } = data.additionalData;
 
-    // Actualizar notas y paymentDetails
-    if (data.additionalData) {
-      const { notes, ...paymentData } = data.additionalData;
+        if (Object.keys(paymentData).length > 0) {
+          order.paymentDetails = {
+            ...order.paymentDetails,
+            ...paymentData,
+          };
+        }
 
-      if (Object.keys(paymentData).length > 0) {
-        order.paymentDetails = {
-          ...order.paymentDetails,
-          ...paymentData,
-        };
+        if (notes !== undefined) {
+          order.notes = notes;
+          order.markModified("notes"); // 🔹 asegura que se guarde
+        }
       }
 
-      if (notes !== undefined) {
-        order.notes = notes;
-        order.markModified("notes"); // 🔹 asegura que se guarde
-      }
+      await order.save({ session });
+      await session.commitTransaction();
+      return order;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
     }
-
-    await order.save({ session });
-    await session.commitTransaction();
-    return order;
-  } catch (err) {
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    session.endSession();
   }
+
+
+  static async updateNotes(token: string, notes: string) {
+  const order = await Order.findOne({ accessToken: token });
+  if (!order) throw new Error("Orden no encontrada");
+
+  order.notes = notes;
+  order.markModified("notes");
+
+  await order.save();
+  return order;
 }
+
 
   static async listOrders() {
     // Trae todas las órdenes ordenadas por creación
