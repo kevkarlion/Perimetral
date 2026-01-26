@@ -6,3 +6,9 @@ export async function GET(req: Request) {
   await dbConnect();
   return productController.get(req);
 }
+
+
+export async function POST(req: Request) {
+  await dbConnect();
+  return productController.create(req);
+} 

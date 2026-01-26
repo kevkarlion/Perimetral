@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useCategoryStore, ICategory } from "@/app/components/store/category-store"
+import CloudinaryUploader from "@/app/components/CloudinaryUploader"
 
 interface AddCategoryModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
   const [descripcion, setDescripcion] = useState("")
   const [activo, setActivo] = useState(true)
   const [parentId, setParentId] = useState<string | null>(null)
+  const [imagen, setImagen] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,11 +30,12 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
     setError(null)
 
     const payload: ICategory = {
-      _id: "", // no se usa, lo genera el backend
+      _id: "",
       nombre: nombre.trim(),
       descripcion: descripcion.trim() || undefined,
       activo,
       parentId: parentId || undefined,
+      imagen: imagen || undefined, // agregamos la imagen
     }
 
     try {
@@ -42,6 +45,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
       setDescripcion("")
       setActivo(true)
       setParentId(null)
+      setImagen(null)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido")
@@ -54,7 +58,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md overflow-y-auto max-h-[80vh]">
         <h2 className="text-xl font-bold mb-4 text-black">Agregar Nueva Categoría</h2>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}
@@ -94,6 +98,26 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
           />
           <span>Activo</span>
         </label>
+
+        {/* CLOUDINARY UPLOADER */}
+        <label className="block mb-2 font-semibold text-black">Imagen de Categoría</label>
+        <CloudinaryUploader
+          existingImages={imagen ? [imagen] : []}
+          onImageUpload={(url) => setImagen(url)}
+          folder="categories"
+        />
+        {imagen && (
+          <div className="mt-2 relative w-32 h-32">
+            <img src={imagen} alt="Categoría" className="w-full h-full object-cover rounded border" />
+            <button
+              type="button"
+              onClick={() => setImagen(null)}
+              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-80 hover:opacity-100"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         <div className="flex justify-end space-x-2 mt-4">
           <button

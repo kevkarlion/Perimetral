@@ -29,30 +29,36 @@ export default function CategoriesPageHome() {
           Nuestras <span className="text-brand">Categorías</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {categories.map((cat) => (
             <div
               key={cat._id}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col"
+              className="bg-white rounded-3xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col group"
             >
-              {cat.imagen ? (
-                <div className="relative h-48 w-full">
+              {/* IMAGEN */}
+              <div className="relative h-56 w-full overflow-hidden rounded-t-3xl">
+                {cat.imagen ? (
                   <img
                     src={cat.imagen}
                     alt={cat.nombre}
-                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                   />
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">Sin imagen</span>
-                </div>
-              )}
+                ) : (
+                  <div className="h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400">Sin imagen</span>
+                  </div>
+                )}
 
+                {/* Overlay con nombre */}
+                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent px-4 py-2">
+                  <h3 className="text-white font-semibold text-lg">{cat.nombre}</h3>
+                </div>
+              </div>
+
+              {/* CONTENIDO */}
               <div className="p-4 flex flex-col flex-grow">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{cat.nombre}</h3>
                 {cat.descripcion && (
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-3">
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {cat.descripcion}
                   </p>
                 )}
@@ -60,9 +66,10 @@ export default function CategoriesPageHome() {
                   <span>{cat.parentId ? "Subcategoría" : "Categoría principal"}</span>
                   {cat.createdAt && <span>{new Date(cat.createdAt).toLocaleDateString()}</span>}
                 </div>
+
                 <Link
                   href={`/categoria?category=${cat._id}`}
-                  className="mt-4 inline-block bg-brand text-white text-center py-2 px-4 rounded hover:bg-brandHover transition-colors"
+                  className="mt-4 inline-block bg-brand text-white text-center py-2 px-4 rounded-full hover:bg-brandHover transition-colors"
                 >
                   Ver productos
                 </Link>

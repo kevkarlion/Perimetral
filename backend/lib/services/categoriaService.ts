@@ -1,5 +1,5 @@
 // backend/lib/services/categoriaService.ts
-import CategoriaSchema from "@/backend/lib/models/Categoria";
+import Categoria from "@/backend/lib/models/Categoria";
 import { ICategoria } from "@/types/categoria";
 import { Types } from "mongoose";
 
@@ -10,7 +10,7 @@ export const categoriaService = {
     }
 
     if (data.parentId) {
-      const parentExists = await CategoriaSchema.exists({
+      const parentExists = await Categoria.exists({
         _id: data.parentId,
       });
 
@@ -19,9 +19,10 @@ export const categoriaService = {
       }
     }
 
-    const categoria = await CategoriaSchema.create({
+    const categoria = await Categoria.create({
       nombre: data.nombre,
       descripcion: data.descripcion,
+      imagen: data.imagen ?? null, // 👈 AHORA SE GUARDA
       parentId: data.parentId ?? null,
       activo: data.activo ?? true,
     });
@@ -30,7 +31,7 @@ export const categoriaService = {
   },
 
   async getAll() {
-    return CategoriaSchema.find()
+    return Categoria.find()
       .populate("parentId", "nombre slug")
       .sort({ createdAt: 1 });
   },
@@ -40,9 +41,9 @@ export const categoriaService = {
       throw new Error("ID de categoría inválido");
     }
 
-    const categoria = await CategoriaSchema.findById(id).populate(
+    const categoria = await Categoria.findById(id).populate(
       "parentId",
-      "nombre slug"
+      "nombre slug",
     );
 
     if (!categoria) {
@@ -53,7 +54,7 @@ export const categoriaService = {
   },
 
   async getRoots() {
-    return CategoriaSchema.find({ parentId: null, activo: true }).sort({
+    return Categoria.find({ parentId: null, activo: true }).sort({
       nombre: 1,
     });
   },
@@ -63,61 +64,60 @@ export const categoriaService = {
       throw new Error("ID de categoría inválido");
     }
 
-    return CategoriaSchema.find({
+    return Categoria.find({
       parentId,
       activo: true,
     }).sort({ nombre: 1 });
   },
 
   async update(id: string, data: Partial<ICategoria>) {
-  if (!Types.ObjectId.isValid(id)) {
-    throw new Error("ID de categoría inválido")
-  }
-
-  const categoria = await CategoriaSchema.findById(id)
-  if (!categoria) {
-    throw new Error("Categoría no encontrada")
-  }
-
-  // Validar parentId si viene
-  if (data.parentId) {
-    if (!Types.ObjectId.isValid(data.parentId)) {
-      throw new Error("ID de categoría padre inválido")
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("ID de categoría inválido");
     }
 
-    const parentExists = await CategoriaSchema.exists({ _id: data.parentId })
-    if (!parentExists) {
-      throw new Error("La categoría padre no existe")
+    const categoria = await Categoria.findById(id);
+    if (!categoria) {
+      throw new Error("Categoría no encontrada");
     }
 
-    categoria.parentId = data.parentId as any
-  } else if (data.parentId === null) {
-    categoria.parentId = null
-  }
+    // Validar parentId si viene
+    if (data.parentId) {
+      if (!Types.ObjectId.isValid(data.parentId)) {
+        throw new Error("ID de categoría padre inválido");
+      }
 
-  // Actualizar campos opcionales
-  if (data.nombre !== undefined) categoria.nombre = data.nombre
-  if (data.descripcion !== undefined) categoria.descripcion = data.descripcion
-  if (data.activo !== undefined) categoria.activo = data.activo
+      const parentExists = await Categoria.exists({ _id: data.parentId });
+      if (!parentExists) {
+        throw new Error("La categoría padre no existe");
+      }
 
-  await categoria.save()
+      categoria.parentId = data.parentId as any;
+    } else if (data.parentId === null) {
+      categoria.parentId = null;
+    }
 
-  return categoria
-},
+    // Actualizar campos opcionales
+    if (data.nombre !== undefined) categoria.nombre = data.nombre;
+    if (data.descripcion !== undefined)
+      categoria.descripcion = data.descripcion;
+    if (data.activo !== undefined) categoria.activo = data.activo;
 
- async delete(id: string) {
-  if (!Types.ObjectId.isValid(id)) {
-    throw new Error("ID de categoría inválido");
-  }
+    await categoria.save();
 
-  const categoria = await CategoriaSchema.findByIdAndDelete(id);
+    return categoria;
+  },
 
-  if (!categoria) {
-    throw new Error("Categoría no encontrada");
-  }
+  async delete(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("ID de categoría inválido");
+    }
 
-  return true; // confirmación
-}
+    const categoria = await Categoria.findByIdAndDelete(id);
 
+    if (!categoria) {
+      throw new Error("Categoría no encontrada");
+    }
 
+    return true; // confirmación
+  },
 };

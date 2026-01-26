@@ -8,6 +8,7 @@ export interface ICategoria {
   parentId?: Types.ObjectId | null;
   createdAt?: Date;
   updatedAt?: Date;
+  imagen?: string;
 }
 
 /**

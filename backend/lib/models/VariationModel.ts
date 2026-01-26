@@ -2,13 +2,15 @@ import { Schema, model, models, Types } from "mongoose";
 import { IVariationDocument } from "@/types/variationsTypes";
 
 // 🔹 Subschema de atributos
+// 🔹 Subschema de atributos
 const AttributeSchema = new Schema(
   {
-    nombre: { type: String, required: true, trim: true },
-    valor: { type: Schema.Types.Mixed, required: true },
+    nombre: { type: String, required: true, trim: true }, // ej: "Material", "Color"
+    valor: { type: String, required: true, trim: true },  // ej: "Acero galvanizado", "Rojo"
   },
   { _id: false },
-);
+)
+
 
 // 🔹 Schema principal de Variación
 const VariationSchema = new Schema<IVariationDocument>(

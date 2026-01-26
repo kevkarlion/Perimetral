@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from "react"
-import { ICategory } from "@/app/components/store/category-store"
+import { IProduct } from "@/app/components/store/product-store"
 
 interface CreateProductModalProps {
   isOpen: boolean
-  category: ICategory
+  category: IProduct["categoria"]
   onClose: () => void
 }
 

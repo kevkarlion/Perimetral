@@ -9,7 +9,7 @@ export interface ICategory {
   nombre: string;
   slug?: string;
   descripcion?: string;
-  imagen?: string;
+  imagen?: string | null; // 👈 permitir null
   activo?: boolean;
   parentId?: string | null;
   createdAt?: string;
@@ -84,17 +84,26 @@ export const useCategoryStore = create<CategoryStore>()(
       addCategory: async (category) => {
         set({ loading: true, error: null });
         try {
+          const payload = {
+            nombre: category.nombre,
+            descripcion: category.descripcion,
+            imagen: category.imagen ?? null, // 👈 CLAVE
+            parentId: category.parentId ?? null,
+            activo: category.activo ?? true,
+          };
+
           const res = await fetch("/api/categories", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(category),
+            body: JSON.stringify(payload),
           });
+
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const result = await res.json();
+
           if (!result?.data)
             throw new Error(result.error || "Error creando categoría");
 
-          // actualizamos el store
           set({
             categories: [...get().categories, result.data],
             loading: false,
