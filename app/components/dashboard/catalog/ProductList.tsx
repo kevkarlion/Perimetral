@@ -15,21 +15,19 @@ export default function ProductList({
   onSelectProduct,
 }: ProductListProps) {
   const {
-  loading,
-  error,
-  initialized,
-  refreshProducts,
-  getByCategory,
-  products
-} = useProductStore()
-
+    loading,
+    error,
+    initialized,
+    refreshProducts,
+    getByCategory,
+    products,
+  } = useProductStore();
 
   useEffect(() => {
-  if (!initialized || products.length === 0) {
-    refreshProducts()
-  }
-}, [initialized])
-
+    if (!initialized || products.length === 0) {
+      refreshProducts();
+    }
+  }, [initialized]);
 
   if (!categoryId)
     return <p className="text-gray-400">Seleccioná una categoría</p>;
@@ -44,9 +42,7 @@ export default function ProductList({
       <h2 className="text-xl font-bold mb-2">Productoss</h2>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-500">
-          No hay productos en esta categoría.
-        </p>
+        <p className="text-gray-500">No hay productos en esta categoría.</p>
       ) : (
         <ul className="space-y-2">
           {filtered.map((p) => (
@@ -60,9 +56,19 @@ export default function ProductList({
                     : "hover:bg-gray-100"
                 }`}
             >
-              <div className="font-semibold">{p.nombre}</div>
-              <div className="text-sm text-gray-500">
-                {p.codigoPrincipal}
+              <div className="flex items-center gap-2">
+                <div>
+                  <p className="font-medium">{p.nombre}</p>
+                  <p className="text-sm text-gray-500">
+                    Cod: {p.codigoPrincipal}
+                  </p>
+                </div>
+
+                {p.variationsCount && p.variationsCount > 1 && (
+                  <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                    {p.variationsCount} var
+                  </span>
+                )}
               </div>
             </li>
           ))}

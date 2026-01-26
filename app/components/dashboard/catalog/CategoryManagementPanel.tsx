@@ -35,26 +35,31 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-bold">Categorías</h2>
-        {/* Botón global para agregar nueva categoría */}
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-white">Categorías</h2>
+
         <button
           onClick={() => setAddModalOpen(true)}
-          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+          className="px-4 py-2 rounded-full text-sm bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition"
         >
-          + Agregar Nueva Categoría
+          + Nueva categoría
         </button>
       </div>
 
-      {loading && <p>Cargando categorías...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {loading && <p className="text-white/50">Cargando categorías…</p>}
+      {error && <p className="text-red-400">{error}</p>}
 
-      <ul className="space-y-1">
+      {/* Lista */}
+      <div className="rounded-xl border border-white/10 overflow-hidden">
         {categories.map(cat => (
-          <li key={cat._id} className="flex justify-between items-center border-b py-1 px-2">
+          <div
+            key={cat._id}
+            className="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/5 transition"
+          >
             <span
-              className="cursor-pointer hover:underline"
+              className="text-white cursor-pointer hover:text-indigo-300 transition"
               onClick={() => onSelectCategory?.(cat._id)}
             >
               {cat.nombre}
@@ -62,33 +67,35 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
 
             <button
               onClick={() => setAdminModalOpen(cat._id)}
-              className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+              className="px-3 py-1 text-xs rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition"
             >
               Administrar
             </button>
 
-            {/* Modal de administrar solo para editar / eliminar / explorar productos */}
+            {/* Modal administrador */}
             {adminModalOpen === cat._id && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h2 className="text-xl text-black font-bold mb-4">Administrar "{cat.nombre}"</h2>
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-[#0f0f14] border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4">
+                  <h3 className="text-lg font-semibold text-white">
+                    {cat.nombre}
+                  </h3>
 
-                  <div className="flex flex-col space-y-2">
+                  <div className="space-y-2">
                     <button
                       onClick={() => {
                         setEditModalCategory(cat)
                         setAdminModalOpen(null)
                       }}
-                      className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
                     >
-                      Editar Categoría
+                      Editar categoría
                     </button>
 
                     <button
                       onClick={() => handleDelete(cat._id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      className="w-full px-4 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition"
                     >
-                      Eliminar Categoría
+                      Eliminar categoría
                     </button>
 
                     <button
@@ -96,16 +103,16 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
                         setProductsModalCategory(cat)
                         setAdminModalOpen(null)
                       }}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                      className="w-full px-4 py-2 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition"
                     >
-                      Explorar Productos
+                      Ver productos
                     </button>
                   </div>
 
-                  <div className="flex justify-end mt-4">
+                  <div className="flex justify-end">
                     <button
                       onClick={() => setAdminModalOpen(null)}
-                      className="px-4 py-2 rounded border hover:bg-gray-100 text-black"
+                      className="text-sm text-white/50 hover:text-white transition"
                     >
                       Cerrar
                     </button>
@@ -113,9 +120,9 @@ export default function CategoryManagementPanel({ onSelectCategory }: CategoryMa
                 </div>
               </div>
             )}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
       {/* Modales */}
       <AddCategoryModal

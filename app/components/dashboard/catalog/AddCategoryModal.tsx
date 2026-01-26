@@ -55,11 +55,11 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Agregar Nueva Categoría</h2>
+        <h2 className="text-xl font-bold mb-4 text-black">Agregar Nueva Categoría</h2>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}
 
-        <label className="block mb-2 font-semibold">Nombre *</label>
+        <label className="block mb-2 font-semibold text-black">Nombre *</label>
         <input
           type="text"
           value={nombre}
@@ -67,14 +67,14 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
           className="w-full border rounded px-3 py-2 mb-4"
         />
 
-        <label className="block mb-2 font-semibold">Descripción</label>
+        <label className="block mb-2 font-semibold text-black">Descripción</label>
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
           className="w-full border rounded px-3 py-2 mb-4"
         />
 
-        <label className="block mb-2 font-semibold">Categoría Padre</label>
+        <label className="block mb-2 font-semibold text-black">Categoría Padre</label>
         <select
           value={parentId || ""}
           onChange={(e) => setParentId(e.target.value || null)}
@@ -86,7 +86,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
           ))}
         </select>
 
-        <label className="flex items-center mb-4 space-x-2">
+        <label className="flex items-center mb-4 space-x-2 text-black">
           <input
             type="checkbox"
             checked={activo}
@@ -98,7 +98,7 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
         <div className="flex justify-end space-x-2 mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded border hover:bg-gray-100"
+            className="px-4 py-2 rounded border hover:bg-gray-100 text-black"
             disabled={loading}
           >
             Cancelar

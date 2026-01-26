@@ -41,50 +41,57 @@ export default function CatalogTab() {
   // );
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500">
-        Catálogo
-        {selectedCategory && ` > Categoría`}
-        {selectedProduct && ` > Producto`}
-      </div>
+  <div className="space-y-6">
+    <h1 className="text-2xl font-bold text-white">
+      Gestionar stock
+    </h1>
 
-      {/* Categorías */}
-      <CategoryManagementPanel
-        onSelectCategory={(id) => {
-          setSelectedCategory(id);
-          setSelectedProduct(null);
-        }}
-      />
-
-      {/* Productos */}
-      {selectedCategory && (
-        <ProductList
-          categoryId={selectedCategory}
-          selectedProductId={selectedProduct}
-          onSelectProduct={(id) => setSelectedProduct(id)}
-        />
-      )}
-
-      {/* Variaciones reales */}
-      {selectedProduct && (
-        <>
-          {loadingVariations && <p>Cargando variaciones...</p>}
-          {variationError && <p className="text-red-500">{variationError}</p>}
-
-          <VariationList
-            variations={variations}
-            onEditVariation={(v) => {
-              setSelectedVariation(v);
-              setIsVariationModalOpen(true);
-            }}
-            onDeleteVariation={(id) => {
-              if (!id) return;
-              console.log("Eliminar variación", id);
-            }}
-          />
-        </>
-      )}
+    {/* Breadcrumb */}
+    <div className="text-sm text-gray-500">
+      
+      {selectedCategory && ` > Categoría`}
+      {selectedProduct && ` > Producto`}
     </div>
-  );
+
+    {/* Categorías */}
+    <CategoryManagementPanel
+      onSelectCategory={(id) => {
+        setSelectedCategory(id);
+        setSelectedProduct(null);
+      }}
+    />
+
+    {/* Productos */}
+    {selectedCategory && (
+      <ProductList
+        categoryId={selectedCategory}
+        selectedProductId={selectedProduct}
+        onSelectProduct={(id) => setSelectedProduct(id)}
+      />
+    )}
+
+    {/* Variaciones */}
+    {selectedProduct && (
+      <>
+        {loadingVariations && <p>Cargando variaciones...</p>}
+        {variationError && (
+          <p className="text-red-500">{variationError}</p>
+        )}
+
+        <VariationList
+          variations={variations}
+          onEditVariation={(v) => {
+            setSelectedVariation(v);
+            setIsVariationModalOpen(true);
+          }}
+          onDeleteVariation={(id) => {
+            if (!id) return;
+            console.log("Eliminar variación", id);
+          }}
+        />
+      </>
+    )}
+  </div>
+);
+
 }

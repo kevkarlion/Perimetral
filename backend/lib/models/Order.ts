@@ -39,6 +39,8 @@ export interface IOrder extends Document {
   accessToken: string;
   customer: ICustomerData;
   items: IOrderItem[];
+  totalBeforeDiscount?: number;
+  discountPercentage?: number;
   total: number;
   subtotal?: number;
   vat?: number;
@@ -118,6 +120,17 @@ const orderSchema = new Schema<IOrder>(
       ],
       default: "pending",
     },
+      totalBeforeDiscount: {
+    type: Number,
+    required: false, // Opcional, solo se llena cuando hay descuento
+  },
+  
+  discountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
     paymentMethod: { type: String, required: true },
     paymentDetails: {
       status: {

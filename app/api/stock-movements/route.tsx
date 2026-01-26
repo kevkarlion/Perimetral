@@ -4,8 +4,9 @@ import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 
 await dbConnect();
 
-export async function GET() {
-  return StockMovementController.getAll();
+export async function GET(req: Request) {
+  return StockMovementController.getAll(req);
 }
+
 
 export const dynamic = "force-dynamic";

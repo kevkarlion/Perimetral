@@ -22,12 +22,32 @@ export class StockMovementService {
     return StockMovement.create(data);
   }
 
-  static async getAll() {
-    return StockMovement.find()
-      .sort({ createdAt: -1 })
-      .populate("productId", "name")
-      .populate("variationId", "sku medida");
-  }
+// backend/lib/services/StockMovementService.ts
+static async getAll(page = 1, limit = 20) {
+  const skip = (page - 1) * limit;
+
+  // Obtener movimientos con paginado
+  const movements = await StockMovement.find()
+    .populate({
+      path: "productId",
+      select: "nombre codigoPrincipal",
+    })
+    .populate({
+      path: "variationId",
+      select: "nombre medida",
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  // Contar total de documentos para frontend
+  const total = await StockMovement.countDocuments();
+
+  return { data: movements, total, page, limit };
+}
+
+
 
   static async getByProduct(productId: string) {
     return StockMovement.find({

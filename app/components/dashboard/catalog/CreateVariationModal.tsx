@@ -63,37 +63,98 @@ export default function CreateVariationModal({ product, isOpen, onClose }: Props
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[80]">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">
-          Nueva variación de "{product.nombre}"
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[80] mt-12">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+
+      {/* HEADER */}
+      <div className="px-6 py-4 border-b bg-gray-50">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Nueva variación
         </h2>
-
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-
-        <input placeholder="Código *" value={codigo} onChange={e => setCodigo(e.target.value)} className="input" />
-        <input placeholder="Nombre *" value={nombre} onChange={e => setNombre(e.target.value)} className="input" />
-        <input placeholder="Descripción" value={descripcion} onChange={e => setDescripcion(e.target.value)} className="input" />
-        <input placeholder="Medida" value={medida} onChange={e => setMedida(e.target.value)} className="input" />
-        <input placeholder="Unidad de medida" value={uMedida} onChange={e => setUMedida(e.target.value)} className="input" />
-
-        <input type="number" placeholder="Precio *" value={precio} onChange={e => setPrecio(+e.target.value)} className="input" />
-        <input type="number" placeholder="Stock *" value={stock} onChange={e => setStock(+e.target.value)} className="input" />
-
-        <input
-          placeholder="Imágenes (urls separadas por coma) *"
-          value={imagenes}
-          onChange={e => setImagenes(e.target.value)}
-          className="input"
-        />
-
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="btn-secondary">Cancelar</button>
-          <button onClick={handleSave} className="btn-primary" disabled={loading}>
-            {loading ? "Guardando..." : "Crear"}
-          </button>
-        </div>
+        <p className="text-sm text-gray-500">
+          Producto: <span className="font-medium">{product.nombre}</span>
+        </p>
       </div>
+
+      {/* BODY */}
+      <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+
+        {error && (
+          <div className="bg-red-50 text-red-600 px-4 py-2 rounded text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+
+          <Field label="Código *">
+            <input value={codigo} onChange={e => setCodigo(e.target.value)} className="field" />
+          </Field>
+
+          <Field label="Nombre *">
+            <input value={nombre} onChange={e => setNombre(e.target.value)} className="field" />
+          </Field>
+
+          <Field label="Precio *">
+            <input type="number" value={precio} onChange={e => setPrecio(+e.target.value)} className="field" />
+          </Field>
+
+          <Field label="Stock *">
+            <input type="number" value={stock} onChange={e => setStock(+e.target.value)} className="field" />
+          </Field>
+
+          <Field label="Medida">
+            <input value={medida} onChange={e => setMedida(e.target.value)} className="field" />
+          </Field>
+
+          <Field label="Unidad">
+            <input value={uMedida} onChange={e => setUMedida(e.target.value)} className="field" />
+          </Field>
+        </div>
+
+        <Field label="Descripción">
+          <textarea
+            value={descripcion}
+            onChange={e => setDescripcion(e.target.value)}
+            className="field resize-none h-24"
+          />
+        </Field>
+
+        <Field label="Imágenes (urls separadas por coma) *">
+          <input value={imagenes} onChange={e => setImagenes(e.target.value)} className="field" />
+        </Field>
+      </div>
+
+      {/* FOOTER */}
+      <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {loading ? "Guardando..." : "Crear variación"}
+        </button>
+      </div>
+    </div>
+  </div>
+)
+
+}
+
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-medium text-gray-600">{label}</label>
+      {children}
     </div>
   )
 }
+

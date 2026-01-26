@@ -105,4 +105,88 @@ export class InventoryOverviewService {
 
     return result;
   }
+
+  static async getOverviewTable({
+  page = 1,
+  limit = 20,
+  search,
+  alerta,
+}: {
+  page?: number
+  limit?: number
+  search?: string
+  alerta?: boolean
+}) {
+  const skip = (page - 1) * limit
+
+  const match: any = { activo: true }
+
+  if (search) {
+    match.nombre = { $regex: search, $options: "i" }
+  }
+
+  if (alerta !== undefined) {
+    match.$expr = { $lte: ["$stock", "$stockMinimo"] }
+  }
+
+  const pipeline = [
+    { $match: match },
+    {
+      $lookup: {
+        from: "products",
+        localField: "product",
+        foreignField: "_id",
+        as: "product",
+      },
+    },
+    { $unwind: "$product" },
+    {
+      $lookup: {
+        from: "categorias",
+        localField: "product.categoria",
+        foreignField: "_id",
+        as: "categoria",
+      },
+    },
+    {
+      $unwind: {
+        path: "$categoria",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        variacion: "$nombre",
+        stock: 1,
+        minimo: "$stockMinimo",
+        precio: 1,
+        alerta: { $lte: ["$stock", "$stockMinimo"] },
+        producto: "$product.nombre",
+        codigo: "$product.codigoPrincipal",
+        categoria: { $ifNull: ["$categoria.nombre", "Sin categoría"] },
+      },
+    },
+    { $skip: skip },
+    { $limit: limit },
+  ]
+
+  const data = await Variation.aggregate(pipeline)
+
+  const total = await Variation.aggregate([
+    { $match: match },
+    { $count: "total" },
+  ])
+
+  return {
+    data,
+    pagination: {
+      page,
+      limit,
+      total: total[0]?.total || 0,
+      pages: Math.ceil((total[0]?.total || 0) / limit),
+    },
+  }
+}
+
 }

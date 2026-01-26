@@ -7,6 +7,7 @@ import EditVariationModal from "./EditVariationModal"
 interface Product {
   _id: string
   nombre: string
+    variationsCount?: number; // 👈 NUEVO
 }
 
 interface Variation {
@@ -59,7 +60,7 @@ export default function ProductVariationsModal({
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70]">
       <div className="bg-white rounded-lg p-6 w-full max-w-3xl">
-        <h2 className="text-xl font-bold mb-3">
+        <h2 className="text-xl font-bold mb-3 text-black">
           Variaciones de "{product.nombre}"
         </h2>
 
@@ -73,7 +74,7 @@ export default function ProductVariationsModal({
         {loading && <p>Cargando...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
-        <ul className="space-y-2 max-h-96 overflow-y-auto border-t pt-3">
+        <ul className="space-y-2 max-h-96 overflow-y-auto border-t pt-3 text-black">
           {variations.map((v) => (
             <li
               key={v._id}
@@ -116,7 +117,7 @@ export default function ProductVariationsModal({
         <div className="flex justify-end mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded"
+            className="px-4 py-2 border rounded text-black"
           >
             Cerrar
           </button>

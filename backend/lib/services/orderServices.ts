@@ -69,68 +69,137 @@ export class OrderService {
     };
   }
 
-  // Completar orden por webhook o patch
-  static async completeOrder(
+  // En OrderService
+  static async updateOrder(
     token: string,
-    data: { status: string; additionalData?: any },
+    data: {
+      notes?: string;
+      status?: string;
+      discountPercentage?: number;
+      additionalData?: any;
+    },
   ) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    console.log("🔵 Iniciando transacción para completar orden con token:", token);
     try {
       const order = await Order.findOne({ accessToken: token }).session(
         session,
       );
       if (!order) throw new Error("Orden no encontrada");
-      if (order.status === "completed") return order; // idempotencia
+      // --- 1. Manejo de notas ---
+      if (data.notes !== undefined) {
+        order.notes = data.notes;
+      }
+      // --- 2. Manejo de descuento (REVISIÓN COMPLETA) ---
+      if (data.discountPercentage !== undefined) {
+        const newDiscountPercentage = Math.min(
+          Math.max(data.discountPercentage, 0),
+          100,
+        );
+        const currentDiscountPercentage = order.discountPercentage || 0;
 
-      // Descontar stock
-      await StockService.discountFromOrder(order);
+        console.log(`💰 === MANEJO DE DESCUENTO ===`);
+        console.log(`💰 Descuento actual: ${currentDiscountPercentage}%`);
+        console.log(`💰 Descuento nuevo: ${newDiscountPercentage}%`);
+        console.log(`💰 Total actual: $${order.total}`);
+        console.log(
+          `💰 totalBeforeDiscount: ${order.totalBeforeDiscount ? "$" + order.totalBeforeDiscount : "No definido"}`,
+        );
 
-      // Actualizar estado
-      order.status = data.status;
+        // Guardar el porcentaje de descuento
+        order.discountPercentage = newDiscountPercentage;
 
-      console.log("🔵 Actualizando orden", order._id, "a estado:", "data", data);
-      // Actualizar notas y paymentDetails
-      if (data.additionalData) {
-        const { notes, ...paymentData } = data.additionalData;
-
-        if (Object.keys(paymentData).length > 0) {
-          order.paymentDetails = {
-            ...order.paymentDetails,
-            ...paymentData,
-          };
+        // Si hay descuento > 0
+        if (newDiscountPercentage > 0) {
+          // Determinar el total base para el cálculo
+          let baseTotal: number;
+          // CASO A: Si ya tenemos totalBeforeDiscount, usarlo
+          if (order.totalBeforeDiscount) {
+            baseTotal = order.totalBeforeDiscount;
+          }
+          // CASO B: Si no tenemos totalBeforeDiscount pero el total actual ya tiene descuento
+          else if (currentDiscountPercentage > 0) {
+            // Revertir el descuento actual para obtener el total original
+            baseTotal = Math.round(
+              order.total / (1 - currentDiscountPercentage / 100),
+            );
+            order.totalBeforeDiscount = baseTotal;
+          }
+          // CASO C: Primer descuento aplicado
+          else {
+            baseTotal = order.total;
+            order.totalBeforeDiscount = baseTotal;
+          }
+          // Calcular el nuevo total con el descuento
+          const discountAmount = Math.round(
+            (baseTotal * newDiscountPercentage) / 100,
+          );
+          const newTotal = baseTotal - discountAmount;
+          order.total = newTotal;
         }
-
-        if (notes !== undefined) {
-          order.notes = notes;
-          order.markModified("notes"); // 🔹 asegura que se guarde
+        // Si el descuento es 0 (eliminar descuento)
+        else {
+          // Restaurar al total original si existe totalBeforeDiscount
+          if (order.totalBeforeDiscount) {
+            order.total = order.totalBeforeDiscount;
+            order.totalBeforeDiscount = undefined;
+          } else {
+            // Si no hay totalBeforeDiscount, recalcular desde subtotal, vat, shipping
+            const recalculatedTotal =
+              (order.subtotal || 0) +
+              (order.vat || 0) +
+              (order.shippingCost || 0);
+            order.total = recalculatedTotal;
+          }
         }
       }
+      // --- 3. Manejo del estado ---
+      if (data.status !== undefined) {
+        const validStatuses = [
+          "pending",
+          "pending_payment",
+          "processing",
+          "completed",
+          "payment_failed",
+          "cancelled",
+        ];
+        if (!validStatuses.includes(data.status)) {
+          throw new Error("Estado no válido");
+        }
+        const isCompletingOrder =
+          data.status === "completed" && order.status !== "completed";
+        if (order.status !== data.status) {
+          order.status = data.status;
 
+          if (isCompletingOrder) {
+            console.log(
+              "📦 Orden pasando a 'completed' por primera vez. Descontando stock...",
+            );
+            await StockService.discountFromOrder(order);
+          }
+        }
+      }
+      // --- 4. Guardar cambios ---
       await order.save({ session });
       await session.commitTransaction();
       return order;
     } catch (err) {
       await session.abortTransaction();
+      console.error("❌ Error en updateOrder:", err);
       throw err;
     } finally {
       session.endSession();
     }
   }
 
-
-  static async updateNotes(token: string, notes: string) {
-  const order = await Order.findOne({ accessToken: token });
-  if (!order) throw new Error("Orden no encontrada");
-
-  order.notes = notes;
-  order.markModified("notes");
-
-  await order.save();
-  return order;
-}
-
+  // Puedes eliminar completeOrder o dejarla como wrapper para mantener compatibilidad
+  static async completeOrder(
+    token: string,
+    data: { status: string; additionalData?: any },
+  ) {
+    // Wrapper para mantener compatibilidad con código existente
+    return this.updateOrder(token, { ...data, status: "completed" });
+  }
 
   static async listOrders() {
     // Trae todas las órdenes ordenadas por creación

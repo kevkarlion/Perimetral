@@ -1,27 +1,50 @@
-//api/orders/[token]/route.ts
+// app/api/orders/[token]/route.ts
 import { NextResponse } from "next/server";
 import { OrderService } from "@/backend/lib/services/orderServices";
 import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 
-
 await dbConnect();
-type Params = {
-  params: { token: string };
-};
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const { token } = await params;
+  const body = await req.json();
+
+  console.log("🔵 PATCH recibido para token:", token);
+  console.log("🔵 Body:", body);
+
   try {
-    const { token } = await params; // 👈 importante
-    const body = await req.json();
-    console.log("🔵 Actualizando orden con token:", token, "y body:", body);
-    const order = await OrderService.completeOrder(token, body);
-    return NextResponse.json({ success: true, order });
+    // Siempre usamos updateOrder que maneja toda la lógica
+    const order = await OrderService.updateOrder(token, body);
+
+    return NextResponse.json({ 
+      success: true, 
+      order,
+      message: "Orden actualizada exitosamente" 
+    });
+    
   } catch (error: any) {
     console.error("❌ Error actualizando orden:", error);
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    
+    // Mensajes de error más específicos
+    let errorMessage = error.message || "Error actualizando orden";
+    let statusCode = 400;
+    
+    if (error.message.includes("no encontrada")) {
+      statusCode = 404;
+    } else if (error.message.includes("no válido")) {
+      statusCode = 422;
+    }
+    
+    return NextResponse.json(
+      { 
+        success: false,
+        error: errorMessage 
+      }, 
+      { status: statusCode }
+    );
   }
 }
 

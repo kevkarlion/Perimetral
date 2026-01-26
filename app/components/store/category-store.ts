@@ -40,7 +40,7 @@ export const useCategoryStore = create<CategoryStore>()(
   persist(
     (set, get) => ({
       categories: [],
-      loading: true,
+      loading: false,
       error: null,
       initialized: false,
 

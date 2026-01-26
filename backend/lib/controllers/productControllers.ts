@@ -81,6 +81,29 @@ export const productController = {
     }
   },
 
+
+
+ async get(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const categoryId = searchParams.get("categoryId");
+
+    const products = await productService.getProducts({ categoryId });
+
+    return NextResponse.json({ success: true, data: products });
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Error al obtener productos",
+        details: error.message,
+      },
+      { status: 500 }
+    );
+  }
+},
+
+
   async update(req: Request, id: string) {
     try {
       const body = await req.json();

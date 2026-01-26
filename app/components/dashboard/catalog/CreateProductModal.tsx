@@ -71,7 +71,7 @@ export default function CreateProductModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4 text-black">
           Crear producto en "{category.nombre}"
         </h2>
 
@@ -120,7 +120,7 @@ export default function CreateProductModal({
         />
 
         <div className="flex gap-4 mb-4">
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-black">
             <input
               type="checkbox"
               checked={destacado}
@@ -129,7 +129,7 @@ export default function CreateProductModal({
             Destacado
           </label>
 
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-black">
             <input
               type="checkbox"
               checked={activo}
@@ -142,7 +142,7 @@ export default function CreateProductModal({
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded"
+            className="px-4 py-2 border rounded text-black"
           >
             Cancelar
           </button>

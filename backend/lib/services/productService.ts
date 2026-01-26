@@ -5,6 +5,7 @@ import { IProductBase } from "@/types/productTypes";
 import { UpdateProductDTO } from "@/backend/lib/dto/product";
 import Variation from "@/backend/lib/models/VariationModel";
 
+
 export const productService = {
   async create(data: Partial<IProductBase>) {
     if (!data.nombre) {
@@ -109,16 +110,50 @@ export const productService = {
   },
 
 
-   async getByCategory(categoryId: string) {
-    if (!categoryId) throw new Error("ID de categoría es obligatorio");
+async getByCategory(categoryId: string) {
+  if (!categoryId) throw new Error("ID de categoría es obligatorio");
 
-    const products = await Product.find({ categoria: categoryId }).populate(
-      "categoria",
-      "nombre slug"
-    );
+  return await Product.aggregate([
+    { $match: { categoria: new Types.ObjectId(categoryId), activo: true } },
 
-    return products;
-  },
+    {
+      $lookup: {
+        from: "categorias",
+        localField: "categoria",
+        foreignField: "_id",
+        as: "categoria",
+      },
+    },
+    { $unwind: { path: "$categoria", preserveNullAndEmptyArrays: true } },
+
+    {
+      $lookup: {
+        from: "variations",
+        localField: "_id",
+        foreignField: "product",
+        as: "vars",
+      },
+    },
+
+    {
+      $addFields: {
+        variationsCount: {
+          $size: {
+            $filter: {
+              input: "$vars",
+              as: "v",
+              cond: { $eq: ["$$v.activo", true] },
+            },
+          },
+        },
+      },
+    },
+
+    { $project: { vars: 0 } },
+    { $sort: { createdAt: -1 } },
+  ]);
+},
+
 
   async update(id: string, data: UpdateProductDTO) {
     if (!Types.ObjectId.isValid(id)) {
@@ -173,4 +208,19 @@ export const productService = {
 
     return product;
   },
+
+  // backend/services/product.service.ts
+
+
+async getProducts(filters: { categoryId?: string | null }) {
+  if (filters.categoryId) {
+    return this.getByCategory(filters.categoryId);
+  }
+
+  return this.getAll();
+},
+
+
+
+
 };

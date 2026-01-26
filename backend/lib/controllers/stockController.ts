@@ -7,10 +7,16 @@ import { StockMovementService } from "@/backend/lib/services/StockMovement";
 
 
 export class StockMovementController {
-  static async getAll() {
-    const data = await StockMovementService.getAll();
-    return NextResponse.json(data);
-  }
+  // backend/lib/controllers/StockMovementController.ts
+static async getAll(req: Request) {
+  const url = new URL(req.url);
+  const page = Number(url.searchParams.get("page")) || 1;
+  const limit = Number(url.searchParams.get("limit")) || 20;
+
+  const result = await StockMovementService.getAll(page, limit);
+  return NextResponse.json(result);
+}
+
 
   static async getByProduct(productId: string) {
     const data = await StockMovementService.getByProduct(productId);
