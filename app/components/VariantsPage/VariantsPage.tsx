@@ -2,11 +2,12 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
+import Image from 'next/image'
 import { IVariationWithProduct } from '@/types/ProductFormData'
-import Link from 'next/link'
 import VariantsSkeleton from '@/app/components/Skeletons/VariantsSkeleton'
+import { useState } from 'react'
+import Link from 'next/link'
 
-// fetcher genérico
 const fetcher = async (url: string) => {
   const res = await fetch(url)
   const text = await res.text()
@@ -20,18 +21,114 @@ const fetcher = async (url: string) => {
   }
 }
 
+// ----------------------
+// Card individual
+// ----------------------
+function VariationCard({ v }: { v: IVariationWithProduct }) {
+  const router = useRouter()
+  const [imgIndex, setImgIndex] = useState(0)
+
+  const images = v.imagenes && v.imagenes.length > 0 ? v.imagenes : ['/no-image.png']
+
+  const nextImage = () => setImgIndex((prev) => (prev + 1) % images.length)
+  const prevImage = () => setImgIndex((prev) => (prev - 1 + images.length) % images.length)
+
+  return (
+    <div className="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden flex flex-col">
+      {/* Carrusel de imágenes */}
+      <div className="relative h-52 w-full overflow-hidden">
+        <Image
+          src={images[imgIndex]}
+          alt={v.nombre}
+          fill
+          className="object-cover"
+          sizes="(max-width: 1024px) 100vw, 33vw"
+        />
+
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-2 py-1 rounded-full hover:bg-black/70 transition"
+            >
+              ‹
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-2 py-1 rounded-full hover:bg-black/70 transition"
+            >
+              ›
+            </button>
+            <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              +{images.length - 1}
+            </span>
+          </>
+        )}
+
+        {v.destacada && (
+          <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow">
+            Destacado
+          </span>
+        )}
+
+        {v.descuento && (
+          <span className="absolute top-10 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded shadow">
+            {v.descuento}
+          </span>
+        )}
+      </div>
+
+      {/* Contenido */}
+      <div className="p-5 flex flex-col flex-grow">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">{v.nombre}</h3>
+
+        {v.atributos && v.atributos.length > 0 && (
+          <ul className="text-xs text-gray-500 mb-2 space-y-1">
+            {v.atributos.map((attr, i) => (
+              <li key={i}>
+                <span className="font-medium">{attr.nombre}:</span> {attr.valor}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {v.descripcion && (
+          <p className="text-sm text-gray-500 mb-2 line-clamp-2">{v.descripcion}</p>
+        )}
+
+        <p className="text-2xl font-bold text-gray-900 mb-2">
+          ${Number(v.precio ?? 0).toLocaleString('es-AR')}
+        </p>
+
+        {v.medida && (
+          <p className="text-xs text-gray-400 mb-2">
+            Medida: {v.medida} {v.uMedida}
+          </p>
+        )}
+
+        <button
+          onClick={() => router.push(`/variant/${v._id}`)}
+          className="mt-auto bg-brand text-white py-2 rounded-full text-center hover:bg-brandHover transition"
+        >
+          Ver detalle
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ----------------------
+// Componente principal
+// ----------------------
 export default function VariantsPage() {
   const params = useSearchParams()
   const productId = params.get('productId')
-  const router = useRouter()
 
-  // 1️⃣ Fetch de variaciones
   const { data: rawVariations, error: varError, isLoading: varLoading } = useSWR<IVariationWithProduct[]>(
     productId ? `/api/variations?productId=${productId}` : null,
     fetcher
   )
 
-  // Aseguramos que siempre sea array y que tenga product
   const variations: IVariationWithProduct[] = Array.isArray(rawVariations)
     ? rawVariations.map(v => ({
         ...v,
@@ -39,40 +136,15 @@ export default function VariantsPage() {
       }))
     : []
 
-  // Tomamos el producto para breadcrumb
   const product = variations[0]?.product
 
   if (!productId) return <p className="text-red-500 mt-24 ml-6">Producto inválido</p>
-  if (varLoading) {
-    return (
-      <section className="mt-12 p-6 max-w-7xl mx-auto">
-        {/* Breadcrumb Skeleton */}
-        <div className="flex gap-2 items-center mb-4">
-          <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
-          <span className="text-gray-400">›</span>
-          <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-          <span className="text-gray-400">›</span>
-          <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-
-        {/* Header Skeleton */}
-        <div className="mb-8">
-          <div className="h-10 w-1/3 bg-gray-300 rounded animate-pulse mb-2"></div>
-          <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-
-        {/* Grid Skeleton */}
-        <VariantsSkeleton />
-      </section>
-    )
-  }
-
+  if (varLoading) return <VariantsSkeleton />
   if (varError) return <p className="text-red-500 mt-24 ml-6">{varError.message}</p>
-  if (variations.length === 0)
-    return <p className="text-gray-500 mt-24 ml-6">No hay variaciones para este producto</p>
+  if (variations.length === 0) return <p className="text-gray-500 mt-24 ml-6">No hay variaciones para este producto</p>
 
   return (
-    <section className="mt-12 p-6 max-w-7xl mx-auto">
+    <div className="mt-6 px-4 md:px-6 mb-12">
       {/* Breadcrumb */}
       <nav className="text-sm text-gray-600 mb-4 flex gap-2">
         <Link href="/" className="hover:text-brand">Inicio</Link>
@@ -82,91 +154,18 @@ export default function VariantsPage() {
         <span className="font-semibold">{product?.nombre || 'Producto'}</span>
       </nav>
 
-      {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           Variantes de {product?.nombre || 'Producto'}
         </h1>
-        <p className="text-gray-500">Seleccioná una versión del producto</p>
+        <p className="text-gray-500 text-sm md:text-base">Seleccioná una versión del producto</p>
       </div>
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {variations.map((v) => {
-          const cover = v.imagenes?.[0] || '/no-image.png'
-          const lowStock =
-            v.stockMinimo !== undefined &&
-            v.stock !== undefined &&
-            v.stock <= v.stockMinimo
-
-          return (
-            <div
-              key={v._id}
-              className="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden flex flex-col"
-            >
-              {/* Imagen */}
-              <div className="relative h-52 w-full overflow-hidden">
-                <img src={cover} alt={v.nombre} className="w-full h-full object-cover" />
-
-                {/* Badge de imágenes extra */}
-                {v.imagenes?.length > 1 && (
-                  <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    +{v.imagenes.length - 1}
-                  </span>
-                )}
-
-                {/* Badge destacado */}
-                {v.destacada && (
-                  <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow">
-                    Destacado
-                  </span>
-                )}
-
-                {/* Badge de descuento */}
-                {v.descuento && (
-                  <span className="absolute top-10 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded shadow">
-                    {v.descuento}
-                  </span>
-                )}
-              </div>
-
-              {/* Contenido */}
-              <div className="p-5 flex flex-col flex-grow">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{v.nombre}</h3>
-
-                {v.descripcion && (
-                  <p className="text-sm text-gray-500 mb-2 line-clamp-2">{v.descripcion}</p>
-                )}
-
-                <p className="text-2xl font-bold text-gray-900 mb-2">
-                  ${Number(v.precio ?? 0).toLocaleString('es-AR')}
-                </p>
-
-                {v.medida && (
-                  <p className="text-xs text-gray-400 mb-2">
-                    Medida: {v.medida} {v.uMedida}
-                  </p>
-                )}
-
-                {/* Stock */}
-                {v.stock !== undefined && (
-                  <p className={lowStock ? 'text-red-500' : 'text-green-600'}>
-                    Stock: {v.stock} {lowStock && '¡Últimas unidades!'}
-                  </p>
-                )}
-
-                {/* CTA */}
-                <button
-                  onClick={() => router.push(`/variant/${v._id}`)}
-                  className="mt-auto bg-brand text-white py-2 rounded-full text-center hover:bg-brandHover transition"
-                >
-                  Ver detalle
-                </button>
-              </div>
-            </div>
-          )
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {variations.map(v => (
+          <VariationCard key={v._id} v={v} />
+        ))}
       </div>
-    </section>
+    </div>
   )
 }

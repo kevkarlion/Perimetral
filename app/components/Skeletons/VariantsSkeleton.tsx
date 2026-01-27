@@ -1,133 +1,63 @@
 'use client'
 
 export default function VariantsSkeleton() {
-  const skeletonItems = Array.from({ length: 6 })
+  const skeletonItems = Array.from({ length: 3 })
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      {skeletonItems.map((_, idx) => (
-        <div
-          key={idx}
-          // ESTILOS DIRECTOS - sin Tailwind para dimensiones
-          style={{
-            width: '100%',
-            minWidth: '300px',
-            height: '420px',
-            backgroundColor: '#fff',
-            borderRadius: '16px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-          className="animate-pulse"
-        >
-          {/* IMAGEN - 50% de la card */}
-          <div
-            style={{
-              width: '100%',
-              height: '208px',
-              backgroundColor: '#e5e7eb',
-              position: 'relative',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-                width: '32px',
-                height: '20px',
-                backgroundColor: '#d1d5db',
-                borderRadius: '4px',
-              }}
-            ></div>
-          </div>
+    <div className="mt-6 px-4 md:px-6">
+      {/* Breadcrumb Skeleton */}
+      <div className="flex gap-2 items-center mb-4">
+        <div className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
+        <span className="text-gray-400">›</span>
+        <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+        <span className="text-gray-400">›</span>
+        <div className="w-28 h-4 bg-gray-300 rounded animate-pulse"></div>
+      </div>
 
-          {/* CONTENIDO - 50% de la card */}
+      {/* Header Skeleton */}
+      <div className="mb-6">
+        <div className="h-8 md:h-10 bg-gray-300 rounded w-1/2 mb-2 animate-pulse"></div>
+        <div className="h-3 md:h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+      </div>
+
+      {/* Grid de Cards - CON EL MISMO ESPACIADO */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {skeletonItems.map((_, idx) => (
           <div
-            style={{
-              padding: '20px',
-              height: '212px',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            key={idx}
+            className="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden flex flex-col animate-pulse"
           >
-            {/* Título */}
-            <div
-              style={{
-                height: '24px',
-                backgroundColor: '#d1d5db',
-                borderRadius: '4px',
-                width: '75%',
-                marginBottom: '16px',
-              }}
-            ></div>
-            
-            {/* Descripción */}
-            <div style={{ marginBottom: '20px' }}>
-              <div
-                style={{
-                  height: '16px',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '4px',
-                  width: '100%',
-                  marginBottom: '8px',
-                }}
-              ></div>
-              <div
-                style={{
-                  height: '16px',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '4px',
-                  width: '85%',
-                }}
-              ></div>
+            {/* Imagen */}
+            <div className="relative h-52 w-full bg-gray-200">
+              <div className="absolute top-2 right-2 w-8 h-5 bg-gray-300 rounded"></div>
             </div>
-            
-            {/* Precio */}
-            <div
-              style={{
-                height: '32px',
-                backgroundColor: '#d1d5db',
-                borderRadius: '4px',
-                width: '35%',
-                marginBottom: '16px',
-              }}
-            ></div>
-            
-            {/* Medida y Stock */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div
-                style={{
-                  height: '12px',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '4px',
-                  width: '45%',
-                }}
-              ></div>
-              <div
-                style={{
-                  height: '16px',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '4px',
-                  width: '25%',
-                }}
-              ></div>
+
+            {/* Contenido */}
+            <div className="p-5 flex flex-col flex-grow">
+              {/* Título */}
+              <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
+
+              {/* Descripción */}
+              <div className="mb-3 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+
+              {/* Precio */}
+              <div className="h-7 bg-gray-300 rounded w-1/3 mb-2"></div>
+
+              {/* Medida */}
+              <div className="h-3 bg-gray-200 rounded w-1/2 mb-1"></div>
+
+              {/* Stock */}
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
+
+              {/* Botón */}
+              <div className="mt-auto h-9 bg-gray-300 rounded-full"></div>
             </div>
-            
-            {/* Botón */}
-            <div
-              style={{
-                height: '40px',
-                backgroundColor: '#d1d5db',
-                borderRadius: '9999px',
-                width: '100%',
-                marginTop: 'auto',
-              }}
-            ></div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

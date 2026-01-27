@@ -1,8 +1,9 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import useSWR from "swr";
-import CategoriesSkeleton from "./Skeletons/CategoriesSkeleton";
+import Link from 'next/link'
+import Image from 'next/image'
+import useSWR from 'swr'
+import CategoriesSkeleton from './Skeletons/CategoriesSkeleton'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -50,10 +51,11 @@ export default function CategoriesPageHome() {
               {/* Imagen */}
               <div className="relative h-56 w-full overflow-hidden">
                 {cat.imagen ? (
-                  <img
+                  <Image
                     src={cat.imagen}
                     alt={cat.nombre}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
                   <div className="h-full bg-gray-200 flex items-center justify-center">
@@ -63,6 +65,13 @@ export default function CategoriesPageHome() {
 
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-90" />
+
+                {/* Destacada */}
+                {cat.destacada && (
+                  <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow">
+                    Destacada
+                  </span>
+                )}
 
                 <div className="absolute bottom-3 left-4 right-4">
                   <h3 className="text-white font-semibold text-lg leading-tight">
@@ -77,13 +86,6 @@ export default function CategoriesPageHome() {
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {cat.descripcion}
                   </p>
-                )}
-
-                {/* Destacada */}
-                {cat.destacada && (
-                  <span className="text-sm text-yellow-500 font-semibold mb-2">
-                    Destacada
-                  </span>
                 )}
 
                 <Link
