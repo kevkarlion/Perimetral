@@ -72,11 +72,28 @@ export const variationService = {
       throw new Error("ID de producto inválido");
     }
 
-    return Variation.find({
+    // ✅ Aquí hacemos el populate y devolvemos las variaciones completas
+    const variations = await Variation.find({
       product: productId,
       activo: true,
-    }).sort({ createdAt: 1 });
+    })
+      .populate({
+        path: "product",
+        select: "_id nombre categoria",
+        populate: { path: "categoria", select: "_id nombre" },
+      })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    // Mapear para que coincida con IVariationWithProduct
+    return variations.map((v: any) => ({
+      ...v,
+      product: v.product,
+      productId: undefined, // opcional
+    }));
   },
+
+  
 
   async getById(id: string) {
     if (!Types.ObjectId.isValid(id)) {

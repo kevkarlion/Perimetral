@@ -1,3 +1,6 @@
+
+
+
 export interface IAttribute {
   nombre: string;
   valor: string;
@@ -30,6 +33,18 @@ export interface IVariation {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
+
+export interface IVariationWithProduct extends Omit<IVariation, 'productId'> {
+  product: {
+    _id: string;
+    nombre: string;
+    categoria?: {
+      _id: string;
+      nombre: string;
+    };
+  };
+}
+
 
 export interface IVariationDetail extends IVariation {
   productNombre: string;
