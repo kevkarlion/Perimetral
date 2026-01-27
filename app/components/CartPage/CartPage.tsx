@@ -1,4 +1,3 @@
-//(main)/variant/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -15,8 +14,9 @@ export default function CartPage() {
     items: cartItems,
     removeItem,
     updateQuantity,
-    clearCart,
     getTotalPrice,
+    startCheckout,
+    endCheckout,
   } = useCartStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,9 +50,10 @@ export default function CartPage() {
 
     setIsProcessing(true);
     setError(null);
+    startCheckout(); // activamos flag de checkout
 
     try {
-      const response = await fetch("/api/orders", {
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,26 +72,28 @@ export default function CartPage() {
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
+      if (!res.ok) {
+        const data = await res.json();
         throw new Error(data.message || "Error al procesar el pedido");
       }
 
-      const orderData = await response.json();
-      clearCart();
+      const orderData = await res.json();
 
+      // Lógica de redirección según método de pago
       if (selectedPaymentMethod === "efectivo") {
-        window.location.href = orderData.redirectUrl || `/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
+        // Redirige a la página de pago pendiente
+        window.location.href = `/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
       } else if (orderData.paymentUrl) {
-        setTimeout(() => window.location.href = orderData.paymentUrl, 100);
+        // Redirige a Mercado Pago
+        window.location.href = orderData.paymentUrl;
       } else {
         router.push(`/order/${orderData.accessToken}`);
       }
-
     } catch (err: any) {
       setError(err.message || "Error al procesar tu pedido");
       setIsProcessing(false);
       console.error("Checkout error:", err);
+      endCheckout();
     }
   };
 
@@ -132,11 +135,13 @@ export default function CartPage() {
 
                 {cartItems.map((item) => {
                   const itemTotal = item.price * item.quantity;
-
                   return (
                     <div key={item.id} className="grid grid-cols-12 gap-3 md:gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-3 md:px-4 shadow-sm">
                       <div className="col-span-6 md:col-span-5 flex items-center">
-                        <button onClick={() => removeItem(item.id)} className="mr-2 md:mr-3 text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-red-50">
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="mr-2 md:mr-3 text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-red-50"
+                        >
                           <X className="h-3 w-3 md:h-4 md:w-4" />
                         </button>
                         <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
@@ -200,14 +205,16 @@ export default function CartPage() {
                 <div className="space-y-3 md:space-y-4">
                   {["name", "email", "phone", "address"].map((field) => (
                     <div key={field}>
-                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">{field === "name" ? "Nombre completo*" : field === "phone" ? "Teléfono*" : field === "email" ? "Email*" : "Dirección"}</label>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                        {field === "name" ? "Nombre completo*" : field === "phone" ? "Teléfono*" : field === "email" ? "Email*" : "Dirección"}
+                      </label>
                       <input
                         type={field === "email" ? "email" : "text"}
                         name={field}
                         value={customerInfo[field as keyof typeof customerInfo]}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                        required={field !== "address" ? true : false}
+                        required={field !== "address"}
                       />
                     </div>
                   ))}
@@ -248,17 +255,6 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
-
-                {selectedPaymentMethod === "efectivo" && (
-                  <div className="mt-3 md:mt-4 p-3 md:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800 mb-2 text-sm md:text-base">Información importante</h4>
-                    <ul className="text-xs md:text-sm text-yellow-700 list-disc pl-4 space-y-1">
-                      <li>Contactanos para finalizar el pedido</li>
-                      <li>Horario de atención: Lunes a Viernes de 8:00 a 18:00</li>
-                      <li>Tu pedido se preparará una vez confirmado el pago</li>
-                    </ul>
-                  </div>
-                )}
               </div>
 
               {/* Resumen */}
@@ -275,9 +271,16 @@ export default function CartPage() {
                   disabled={isProcessing || cartItems.length === 0}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 flex items-center justify-center gap-2 rounded-md shadow-sm transition text-sm md:text-base"
                 >
-                  {isProcessing ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{selectedPaymentMethod === "efectivo" ? "Procesando pedido..." : "Redirigiendo a pago..."}</span> :
-                    selectedPaymentMethod === "efectivo" ? <><DollarSign className="h-4 w-4 md:h-5 md:w-5" /><span className="text-xs md:text-sm">Confirmar pedido para pago en efectivo</span></> :
-                      <><Image src="/payment-methods/mercado-pago.svg" alt="Mercado Pago" width={64} height={20} className="object-contain" /><span className="text-xs md:text-sm">Pagar con Mercado Pago</span></>}
+                  {isProcessing ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {selectedPaymentMethod === "efectivo" ? "Procesando pedido..." : "Redirigiendo a pago..."}
+                    </span>
+                  ) : selectedPaymentMethod === "efectivo" ? (
+                    <><DollarSign className="h-4 w-4 md:h-5 md:w-5" /><span className="text-xs md:text-sm">Confirmar pedido para pago en efectivo</span></>
+                  ) : (
+                    <><Image src="/payment-methods/mercado-pago.svg" alt="Mercado Pago" width={64} height={20} className="object-contain" /><span className="text-xs md:text-sm">Pagar con Mercado Pago</span></>
+                  )}
                 </Button>
 
                 <div className="mt-3 text-xs text-gray-500">

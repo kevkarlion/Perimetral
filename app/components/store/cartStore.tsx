@@ -37,12 +37,11 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      checkoutPending: false, // 🔹 nuevo flag
 
-      // 🔹 Agrega un producto al carrito o incrementa cantidad si ya existe
       addToCart: (variation: IVariation) => {
         const item = variationToCartItem(variation);
         const existing = get().items.find((i) => i.id === item.id);
-
         if (existing) {
           set({
             items: get().items.map((i) =>
@@ -54,12 +53,10 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      // 🔹 Remueve un item del carrito
       removeItem: (id: string) => {
         set({ items: get().items.filter((i) => i.id !== id) });
       },
 
-      // 🔹 Actualiza la cantidad de un item
       updateQuantity: (id: string, quantity: number) => {
         if (quantity < 1) return;
         set({
@@ -69,19 +66,16 @@ export const useCartStore = create<CartStore>()(
         });
       },
 
-      // 🔹 Vacía el carrito
       clearCart: () => set({ items: [] }),
 
-      // 🔹 Total de items en el carrito
-      getTotalItems: () => get().items.reduce((total, i) => total + i.quantity, 0),
+      startCheckout: () => set({ checkoutPending: true }), // 🔹 nuevo método
+      endCheckout: () => set({ checkoutPending: false, items: [] }), // 🔹 limpiar carrito y flag
 
-      // 🔹 Total en precio del carrito
+      getTotalItems: () => get().items.reduce((total, i) => total + i.quantity, 0),
       getTotalPrice: () =>
         get().items.reduce((total, i) => total + i.price * i.quantity, 0),
     }),
-    {
-      name: "cart-storage", // key en localStorage
-    }
+    { name: "cart-storage" }
   )
 );
 

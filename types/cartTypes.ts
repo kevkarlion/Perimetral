@@ -1,6 +1,5 @@
 import { IVariation } from "./ProductFormData";
 
-// cartTypes.ts
 export interface CartItem {
   id: string;           // combinación productId-variationId si aplica
   productId: string;    // id del producto
@@ -12,15 +11,15 @@ export interface CartItem {
   image?: string;
 }
 
-// cartTypes.ts
-// cartTypes.ts
 export interface CartStore {
   items: CartItem[];
-  addToCart: (variation: IVariation) => void; // recibe IVariation
+  checkoutPending: boolean;          // 🔹 nuevo flag
+  addToCart: (variation: IVariation) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  startCheckout: () => void;          // 🔹 inicia checkout
+  endCheckout: () => void;            // 🔹 termina checkout y limpia carrito
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
-
