@@ -9,6 +9,7 @@ const CategoriaSchema = new Schema<ICategoria>(
     parentId: { type: Schema.Types.ObjectId, ref: "Categoria", default: null },
     activo: { type: Boolean, default: true },
     imagen: { type: String, trim: true, default: "" },
+    destacada: { type: Boolean, default: false }, // NUEVO CAMPO
   },
   { timestamps: true }
 );

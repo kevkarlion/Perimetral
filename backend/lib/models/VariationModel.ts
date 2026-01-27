@@ -22,71 +22,27 @@ const VariationSchema = new Schema<IVariationDocument>(
       index: true,
     },
 
-    codigo: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
+    codigo: { type: String, required: true, unique: true, trim: true },
+    nombre: { type: String, required: true, trim: true },
+    descripcion: { type: String, trim: true },
+    medida: { type: String, trim: true },
+    uMedida: { type: String, trim: true },
+    precio: { type: Number, required: true, min: 0 },
+    stock: { type: Number, required: true, min: 0 },
+    stockMinimo: { type: Number, default: 5, min: 0 },
+    atributos: { type: [AttributeSchema], default: [] },
+    imagenes: { type: [String], required: true },
+    activo: { type: Boolean, default: true },
 
-    nombre: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    descripcion: {
-      type: String,
-      trim: true,
-    },
-
-    medida: {
-      type: String,
-      trim: true,
-    },
-
-    uMedida: {
-      type: String,
-      trim: true,
-    },
-
-    precio: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    stock: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    stockMinimo: {
-      type: Number,
-      default: 5,
-      min: 0,
-    },
-
-    atributos: {
-      type: [AttributeSchema],
-      default: [],
-    },
-
-    imagenes: {
-      type: [String],
-      required: true,
-    },
-
-    activo: {
-      type: Boolean,
-      default: true,
-    },
+    // ✅ NUEVOS CAMPOS
+    destacada: { type: Boolean, default: false },
+    descuento: { type: String, default: "" }, // texto representativo
   },
   {
     timestamps: true,
   },
 );
+
 
 export default models.Variation ||
   model<IVariationDocument>("Variation", VariationSchema);

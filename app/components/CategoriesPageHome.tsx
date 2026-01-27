@@ -11,8 +11,7 @@ interface ICategory {
   nombre: string;
   descripcion?: string;
   imagen?: string;
-  parentId?: string;
-  createdAt?: string;
+  destacada?: boolean;
 }
 
 export default function CategoriesPageHome() {
@@ -80,18 +79,16 @@ export default function CategoriesPageHome() {
                   </p>
                 )}
 
-                <div className="mt-auto flex items-center justify-between text-xs text-gray-400">
-                  <span>
-                    {cat.parentId ? "Subcategoría" : "Categoría principal"}
+                {/* Destacada */}
+                {cat.destacada && (
+                  <span className="text-sm text-yellow-500 font-semibold mb-2">
+                    Destacada
                   </span>
-                  {cat.createdAt && (
-                    <span>{new Date(cat.createdAt).toLocaleDateString()}</span>
-                  )}
-                </div>
+                )}
 
                 <Link
                   href={`/categoria?category=${cat._id}`}
-                  className="mt-5 inline-block w-full text-center bg-brand text-white py-2.5 rounded-full font-medium hover:bg-brandHover transition-colors"
+                  className="mt-auto inline-block w-full text-center bg-brand text-white py-2.5 rounded-full font-medium hover:bg-brandHover transition-colors"
                 >
                   Ver productos
                 </Link>

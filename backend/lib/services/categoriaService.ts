@@ -18,13 +18,13 @@ export const categoriaService = {
         throw new Error("La categoría padre no existe");
       }
     }
-
     const categoria = await Categoria.create({
       nombre: data.nombre,
       descripcion: data.descripcion,
-      imagen: data.imagen ?? null, // 👈 AHORA SE GUARDA
-      parentId: data.parentId ?? null,
+      imagen: data.imagen ?? null, // 👈 ya lo tenías
       activo: data.activo ?? true,
+      destacada: data.destacada ?? false, // 👈 NUEVO CAMPO
+      // parentId: data.parentId ?? null, // opcional si ya no usas jerarquía
     });
 
     return categoria;

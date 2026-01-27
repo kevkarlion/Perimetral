@@ -14,6 +14,7 @@ export interface ICategory {
   parentId?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  destacada?: boolean; // NUEVO CAMPO
 }
 
 interface CategoryStore {

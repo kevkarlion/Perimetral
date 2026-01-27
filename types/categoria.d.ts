@@ -9,6 +9,7 @@ export interface ICategoria {
   createdAt?: Date;
   updatedAt?: Date;
   imagen?: string;
+  destacada?: boolean;
 }
 
 /**

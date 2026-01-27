@@ -8,64 +8,68 @@ import { StockMovementService } from "@/backend/lib/herlpers/stockMovementServic
 
 export const variationService = {
   async create(data: any) {
-    if (!data.product) {
-      throw new Error("El producto es obligatorio");
-    }
+  if (!data.product) {
+    throw new Error("El producto es obligatorio");
+  }
 
-    if (!Types.ObjectId.isValid(data.product)) {
-      throw new Error("ID de producto inválido");
-    }
+  if (!Types.ObjectId.isValid(data.product)) {
+    throw new Error("ID de producto inválido");
+  }
 
-    const productExists = await Product.exists({
-      _id: data.product,
-      activo: true,
+  const productExists = await Product.exists({
+    _id: data.product,
+    activo: true,
+  });
+
+  if (!productExists) {
+    throw new Error("El producto no existe o está inactivo");
+  }
+
+  if (!data.codigo) throw new Error("El código de variación es obligatorio");
+  if (!data.nombre) throw new Error("El nombre de la variación es obligatorio");
+  if (data.precio === undefined) throw new Error("El precio es obligatorio");
+  if (data.stock === undefined) throw new Error("El stock es obligatorio");
+
+  if (!data.imagenes || data.imagenes.length === 0) {
+    throw new Error("Debe incluir al menos una imagen");
+  }
+
+  // 1️⃣ Crear variación
+  const variation = await Variation.create({
+    product: data.product,
+    codigo: data.codigo,
+    nombre: data.nombre,
+    descripcion: data.descripcion,
+    medida: data.medida,
+    uMedida: data.uMedida,
+    precio: data.precio,
+    stock: data.stock,
+    stockMinimo: data.stockMinimo ?? 5,
+    atributos: data.atributos ?? [],
+    imagenes: data.imagenes,
+    activo: data.activo ?? true,
+
+    // ✅ NUEVOS CAMPOS
+    destacada: data.destacada ?? false,   // checkbox
+    descuento: data.descuento ?? "",      // texto representativo
+  });
+
+  // 2️⃣ Movimiento inicial de stock
+  if (variation.stock > 0) {
+    await StockMovementService.createMovement({
+      productId: new Types.ObjectId(variation.product),
+      variationId: variation._id,
+      type: "IN",
+      reason: "MANUAL",
+      quantity: variation.stock,
+      previousStock: 0,
+      newStock: variation.stock,
     });
+  }
 
-    if (!productExists) {
-      throw new Error("El producto no existe o está inactivo");
-    }
+  return variation;
+},
 
-    if (!data.codigo) throw new Error("El código de variación es obligatorio");
-    if (!data.nombre)
-      throw new Error("El nombre de la variación es obligatorio");
-    if (data.precio === undefined) throw new Error("El precio es obligatorio");
-    if (data.stock === undefined) throw new Error("El stock es obligatorio");
-
-    if (!data.imagenes || data.imagenes.length === 0) {
-      throw new Error("Debe incluir al menos una imagen");
-    }
-
-    // 1️⃣ Crear variación
-    const variation = await Variation.create({
-      product: data.product,
-      codigo: data.codigo,
-      nombre: data.nombre,
-      descripcion: data.descripcion,
-      medida: data.medida,
-      uMedida: data.uMedida,
-      precio: data.precio,
-      stock: data.stock,
-      stockMinimo: data.stockMinimo ?? 5,
-      atributos: data.atributos ?? [],
-      imagenes: data.imagenes,
-      activo: data.activo ?? true,
-    });
-
-    // 2️⃣ Movimiento inicial de stock
-    if (variation.stock > 0) {
-      await StockMovementService.createMovement({
-        productId: new Types.ObjectId(variation.product),
-        variationId: variation._id,
-        type: "IN",
-        reason: "MANUAL",
-        quantity: variation.stock,
-        previousStock: 0,
-        newStock: variation.stock,
-      });
-    }
-
-    return variation;
-  },
 
   async getByProduct(productId: string) {
     if (!Types.ObjectId.isValid(productId)) {

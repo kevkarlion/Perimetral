@@ -44,28 +44,28 @@ export default function VariantsPage() {
 
   if (!productId) return <p className="text-red-500 mt-24 ml-6">Producto inválido</p>
   if (varLoading) {
-  return (
-    <section className="mt-12 p-6 max-w-7xl mx-auto">
-      {/* Breadcrumb Skeleton */}
-      <div className="flex gap-2 items-center mb-4">
-        <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
-        <span className="text-gray-400">›</span>
-        <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-        <span className="text-gray-400">›</span>
-        <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
-      </div>
+    return (
+      <section className="mt-12 p-6 max-w-7xl mx-auto">
+        {/* Breadcrumb Skeleton */}
+        <div className="flex gap-2 items-center mb-4">
+          <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <span className="text-gray-400">›</span>
+          <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <span className="text-gray-400">›</span>
+          <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
 
-      {/* Header Skeleton */}
-      <div className="mb-8">
-        <div className="h-10 w-1/3 bg-gray-300 rounded animate-pulse mb-2"></div>
-        <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
-      </div>
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="h-10 w-1/3 bg-gray-300 rounded animate-pulse mb-2"></div>
+          <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+        </div>
 
-      {/* Grid Skeleton */}
-      <VariantsSkeleton />
-    </section>
-  )
-}
+        {/* Grid Skeleton */}
+        <VariantsSkeleton />
+      </section>
+    )
+  }
 
   if (varError) return <p className="text-red-500 mt-24 ml-6">{varError.message}</p>
   if (variations.length === 0)
@@ -92,7 +92,7 @@ export default function VariantsPage() {
 
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {variations.map(v => {
+        {variations.map((v) => {
           const cover = v.imagenes?.[0] || '/no-image.png'
           const lowStock =
             v.stockMinimo !== undefined &&
@@ -107,9 +107,25 @@ export default function VariantsPage() {
               {/* Imagen */}
               <div className="relative h-52 w-full overflow-hidden">
                 <img src={cover} alt={v.nombre} className="w-full h-full object-cover" />
+
+                {/* Badge de imágenes extra */}
                 {v.imagenes?.length > 1 && (
                   <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                     +{v.imagenes.length - 1}
+                  </span>
+                )}
+
+                {/* Badge destacado */}
+                {v.destacada && (
+                  <span className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow">
+                    Destacado
+                  </span>
+                )}
+
+                {/* Badge de descuento */}
+                {v.descuento && (
+                  <span className="absolute top-10 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded shadow">
+                    {v.descuento}
                   </span>
                 )}
               </div>
@@ -117,12 +133,15 @@ export default function VariantsPage() {
               {/* Contenido */}
               <div className="p-5 flex flex-col flex-grow">
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{v.nombre}</h3>
+
                 {v.descripcion && (
                   <p className="text-sm text-gray-500 mb-2 line-clamp-2">{v.descripcion}</p>
                 )}
+
                 <p className="text-2xl font-bold text-gray-900 mb-2">
                   ${Number(v.precio ?? 0).toLocaleString('es-AR')}
                 </p>
+
                 {v.medida && (
                   <p className="text-xs text-gray-400 mb-2">
                     Medida: {v.medida} {v.uMedida}

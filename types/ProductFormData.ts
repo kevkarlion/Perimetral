@@ -1,6 +1,3 @@
-
-
-
 export interface IAttribute {
   nombre: string;
   valor: string;
@@ -10,15 +7,15 @@ export interface IVariation {
   _id: string;
   codigo?: string;
   productId:
-  | string
-  | {
-      _id: string;
-      nombre: string;
-      categoria?: {
+    | string
+    | {
         _id: string;
         nombre: string;
+        categoria?: {
+          _id: string;
+          nombre: string;
+        };
       };
-    };
 
   nombre: string;
   descripcion?: string;
@@ -32,9 +29,11 @@ export interface IVariation {
   activo: boolean;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  destacada?: boolean;
+  descuento?: string;
 }
 
-export interface IVariationWithProduct extends Omit<IVariation, 'productId'> {
+export interface IVariationWithProduct extends Omit<IVariation, "productId"> {
   product: {
     _id: string;
     nombre: string;
@@ -42,9 +41,10 @@ export interface IVariationWithProduct extends Omit<IVariation, 'productId'> {
       _id: string;
       nombre: string;
     };
+    destacada?: boolean;
+    descuento?: string;
   };
 }
-
 
 export interface IVariationDetail extends IVariation {
   productNombre: string;
@@ -52,32 +52,31 @@ export interface IVariationDetail extends IVariation {
   categoriaNombre?: string;
 }
 
-
 export interface ProductFormData {
-  _id?: string
-  nombre: string
-  codigoPrincipal: string
-  proveedor?: string
-  descripcionCorta: string
-  descripcionLarga?: string
-  categoria: string // solo el _id de la categoría
-  tieneVariaciones: boolean
-  activo: boolean
-  imagen?: string
-  variaciones?: IVariation[]
+  _id?: string;
+  nombre: string;
+  codigoPrincipal: string;
+  proveedor?: string;
+  descripcionCorta: string;
+  descripcionLarga?: string;
+  categoria: string; // solo el _id de la categoría
+  tieneVariaciones: boolean;
+  activo: boolean;
+  imagen?: string;
+  variaciones?: IVariation[];
 }
 
 export interface ProductFormProps {
-  initialData?: Partial<ProductFormData>
-  onSubmit: (data: ProductFormData) => void
-  onClose?: () => void
-  type?: "new" | "edit"
+  initialData?: Partial<ProductFormData>;
+  onSubmit: (data: ProductFormData) => void;
+  onClose?: () => void;
+  type?: "new" | "edit";
 }
 
 export interface VariationFormProps {
-  productId: string
-  initialData?: Partial<IVariation>
-  onSubmit: (data: IVariation) => void
-  onClose?: () => void
-  type?: "new" | "edit"
+  productId: string;
+  initialData?: Partial<IVariation>;
+  onSubmit: (data: IVariation) => void;
+  onClose?: () => void;
+  type?: "new" | "edit";
 }

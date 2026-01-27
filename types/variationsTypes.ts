@@ -14,26 +14,22 @@ export interface IVariationAttribute {
  */
 export interface IVariationBase {
   _id?: Types.ObjectId | string;
-
   product: Types.ObjectId | string;
-
   codigo: string;
   nombre: string;
-
   descripcion?: string;
-
   medida?: string;
   uMedida?: string;
-
   precio: number;
   stock: number;
   stockMinimo?: number;
-
   atributos?: IVariationAttribute[];
-
   imagenes: string[];
-
   activo?: boolean;
+
+  // ✅ NUEVOS CAMPOS
+  destacada?: boolean;
+  descuento?: string; // texto representativo
 
   createdAt?: Date;
   updatedAt?: Date;
