@@ -9,6 +9,9 @@ import {
 import { MercadoPagoService } from "@/backend/lib/services/mercadoPago.services";
 import { StockService } from "@/backend/lib/services/stockService";
 
+import { sendEmail } from "@/backend/lib/services/email.service";
+import { orderConfirmationEmail } from "@/backend/lib/email/orderConfirmationEmail";
+
 export class OrderService {
   static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
     // 1️⃣ Validar carrito contra DB (strings)
@@ -64,6 +67,12 @@ export class OrderService {
 
       paymentUrl = preference.init_point;
     }
+
+    await sendEmail({
+      to: order.customer.email,
+      subject: `Confirmación de pedido #${order.orderNumber}`,
+      html: orderConfirmationEmail(order),
+    });
 
     return {
       success: true,
@@ -180,11 +189,9 @@ export class OrderService {
     return Order.find().sort({ createdAt: -1 }).lean();
   }
 
-
   static async getOrderByToken(token: string) {
-  const order = await Order.findOne({ accessToken: token }).lean();
-  if (!order) throw new Error("Orden no encontrada");
-  return order;
-}
-
+    const order = await Order.findOne({ accessToken: token }).lean();
+    if (!order) throw new Error("Orden no encontrada");
+    return order;
+  }
 }
