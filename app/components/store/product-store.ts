@@ -14,13 +14,20 @@ export interface IProduct {
   nombre: string;
   slug?: string;
   categoria: ICategoriaRef;
+  destacado?: boolean;
   descripcionCorta?: string;
   descripcionLarga?: string;
+
+  codigoPrincipal: string;
+
   precio?: number;
-  codigoPrincipal: string
+
   tieneVariaciones?: boolean;
   variaciones?: any[];
-  imagen?: string;
+
+  // 👇 NUEVO
+  imagenes?: string[];
+
   activo?: boolean;
   variationsCount: number;
 }
@@ -50,9 +57,8 @@ export const useProductStore = create<ProductStore>()(
   persist(
     (set, get) => ({
       products: [],
-      loading: false, // 👈 NO true
+      loading: false,
       initialized: false,
-
       error: null,
 
       setProducts: (products) => set({ products }),
@@ -75,7 +81,6 @@ export const useProductStore = create<ProductStore>()(
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
 
           const result = await res.json();
-
           if (!result?.data) throw new Error("Formato inválido");
 
           set({
@@ -95,10 +100,11 @@ export const useProductStore = create<ProductStore>()(
       // 🔍 filtros en memoria
       getByCategory: (categoryId) =>
         get().products.filter(
-          (p) => p.categoria && p.categoria._id === categoryId,
+          (p) => p.categoria && p.categoria._id === categoryId
         ),
 
-      getById: (productId) => get().products.find((p) => p._id === productId),
+      getById: (productId) =>
+        get().products.find((p) => p._id === productId),
 
       clearStore: () =>
         set({
@@ -118,6 +124,6 @@ export const useProductStore = create<ProductStore>()(
       onRehydrateStorage: () => (state, error) => {
         if (error) console.error("❌ Error rehidratando productos", error);
       },
-    },
-  ),
+    }
+  )
 );

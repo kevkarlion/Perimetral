@@ -3,27 +3,30 @@ import { NextResponse } from "next/server";
 import { mapCreateProductToDomain } from "@/backend/lib/mappers/product-mappers";
 
 export const productController = {
-  async create(req: Request) {
-    try {
-      const body = await req.json();
-      const domain = mapCreateProductToDomain(body);
-      const product = await productService.create(domain);
+  // product.controller.ts
+async create(body: any) {
+  try {
+    const domain = mapCreateProductToDomain(body);
+    const product = await productService.create(domain);
 
-      return NextResponse.json({
-        success: true,
-        data: product,
-      });
-    } catch (error: any) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Error al crear el producto",
-          details: error.message,
-        },
-        { status: 400 },
-      );
-    }
-  },
+    return NextResponse.json({
+      success: true,
+      data: product,
+    });
+  } catch (error: any) {
+    console.error("CREATE PRODUCT ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Error al crear el producto",
+        details: error.message,
+      },
+      { status: 400 },
+    );
+  }
+},
+
 
   async getAll() {
     try {

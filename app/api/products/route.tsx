@@ -1,14 +1,29 @@
-// /api/products/route.tsx
+//api/products/route.tsx
 import { dbConnect } from "@/backend/lib/dbConnect/dbConnect";
 import { productController } from "@/backend/lib/controllers/productControllers";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   await dbConnect();
-  return productController.get(req);
+  const body = await req.json();
+  console.log("IMAGENES RECIBIDAS:", body.imagenes);
+
+  return productController.create(body);
 }
 
 
-export async function POST(req: Request) {
+
+
+export async function GET(req: Request) {
   await dbConnect();
-  return productController.create(req);
-} 
+
+  const { searchParams } = new URL(req.url);
+  const categoryId = searchParams.get("categoryId");
+
+  if (categoryId) {
+    // si viene categoryId, filtramos por categoría
+    return productController.getByCategory(categoryId);
+  }
+
+  // si no viene categoryId, devolvemos todos los productos
+  return productController.getAll();
+}

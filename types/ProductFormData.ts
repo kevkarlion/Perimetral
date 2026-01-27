@@ -6,7 +6,17 @@ export interface IAttribute {
 export interface IVariation {
   _id: string;
   codigo?: string;
-  productId: string; // id del producto al que pertenece
+  productId:
+  | string
+  | {
+      _id: string;
+      nombre: string;
+      categoria?: {
+        _id: string;
+        nombre: string;
+      };
+    };
+
   nombre: string;
   descripcion?: string;
   medida?: string;
@@ -19,6 +29,12 @@ export interface IVariation {
   activo: boolean;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+}
+
+export interface IVariationDetail extends IVariation {
+  productNombre: string;
+  categoriaId?: string;
+  categoriaNombre?: string;
 }
 
 

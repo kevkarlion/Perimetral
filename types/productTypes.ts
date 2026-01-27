@@ -19,6 +19,9 @@ export interface IProductBase {
   destacado?: boolean;
   activo?: boolean;
 
+  // 👇 NUEVO
+  imagenes?: string[] | null;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

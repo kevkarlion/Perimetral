@@ -33,6 +33,13 @@ const ProductSchema = new Schema<IProductBase>(
     descripcionLarga: String,
 
     proveedor: String,
+
+    // 👇 NUEVO
+    imagenes: {
+      type: [String],
+      default: [],
+    },
+
     destacado: {
       type: Boolean,
       default: false,
@@ -45,6 +52,7 @@ const ProductSchema = new Schema<IProductBase>(
   },
   { timestamps: true },
 );
+
 
 ProductSchema.pre("validate", function (next) {
   if (!this.slug && this.nombre) {

@@ -8,7 +8,7 @@ export default function CategoriesPageHome() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-50 text-center">
+      <section className="py-20 bg-gray-50 text-center">
         <p className="text-gray-500 text-lg">Cargando categorías...</p>
       </section>
     )
@@ -16,32 +16,32 @@ export default function CategoriesPageHome() {
 
   if (error) {
     return (
-      <section className="py-16 bg-gray-50 text-center">
+      <section className="py-20 bg-gray-50 text-center">
         <p className="text-red-500 text-lg">{error}</p>
       </section>
     )
   }
 
   return (
-    <section className="py-16 bg-gray-50" id="categories">
+    <section className="py-20 bg-gray-50" id="categories">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-          Nuestras <span className="text-brand">Categorías</span>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-14">
+          Explorá nuestras <span className="text-brand">Categorías</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
           {categories.map((cat) => (
-            <div
+            <article
               key={cat._id}
-              className="bg-white rounded-3xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col group"
+              className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col"
             >
-              {/* IMAGEN */}
-              <div className="relative h-56 w-full overflow-hidden rounded-t-3xl">
+              {/* Imagen */}
+              <div className="relative h-56 w-full overflow-hidden">
                 {cat.imagen ? (
                   <img
                     src={cat.imagen}
                     alt={cat.nombre}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
                   <div className="h-full bg-gray-200 flex items-center justify-center">
@@ -49,32 +49,41 @@ export default function CategoriesPageHome() {
                   </div>
                 )}
 
-                {/* Overlay con nombre */}
-                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/60 to-transparent px-4 py-2">
-                  <h3 className="text-white font-semibold text-lg">{cat.nombre}</h3>
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-90" />
+
+                <div className="absolute bottom-3 left-4 right-4">
+                  <h3 className="text-white font-semibold text-lg leading-tight">
+                    {cat.nombre}
+                  </h3>
                 </div>
               </div>
 
-              {/* CONTENIDO */}
-              <div className="p-4 flex flex-col flex-grow">
+              {/* Contenido */}
+              <div className="p-5 flex flex-col flex-grow">
                 {cat.descripcion && (
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {cat.descripcion}
                   </p>
                 )}
+
                 <div className="mt-auto flex items-center justify-between text-xs text-gray-400">
-                  <span>{cat.parentId ? "Subcategoría" : "Categoría principal"}</span>
-                  {cat.createdAt && <span>{new Date(cat.createdAt).toLocaleDateString()}</span>}
+                  <span>
+                    {cat.parentId ? "Subcategoría" : "Categoría principal"}
+                  </span>
+                  {cat.createdAt && (
+                    <span>{new Date(cat.createdAt).toLocaleDateString()}</span>
+                  )}
                 </div>
 
                 <Link
                   href={`/categoria?category=${cat._id}`}
-                  className="mt-4 inline-block bg-brand text-white text-center py-2 px-4 rounded-full hover:bg-brandHover transition-colors"
+                  className="mt-5 inline-block w-full text-center bg-brand text-white py-2.5 rounded-full font-medium hover:bg-brandHover transition-colors"
                 >
                   Ver productos
                 </Link>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import VariationModel from "@/backend/lib/models/VariationModel";
 import { IVariationBase } from "@/types/variationsTypes";
 
-
 export const variationController = {
   async create(req: Request) {
     try {
@@ -22,14 +21,14 @@ export const variationController = {
           error: "Error al crear la variación",
           details: error.message,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   },
 
   async getByProduct(productId: string) {
     try {
-       console.log("PRODUCT ID:", productId);
+      console.log("PRODUCT ID:", productId);
       const variations = await variationService.getByProduct(productId);
 
       return NextResponse.json({
@@ -43,41 +42,56 @@ export const variationController = {
           error: "Error al obtener variaciones",
           details: error.message,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   },
 
- async getById(id: string) {
-const variation = await VariationModel.findById(id).lean<IVariationBase>();
-  if (!variation) {
+  async getById(id: string) {
+    console.log("GET BY ID - ID:", id);
+    const variation = await VariationModel.findById(id)
+      .populate({
+        path: "product",
+        populate: {
+          path: "categoria",
+        },
+      })
+      .lean<any>();
+
+    if (!variation) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "No se encontró la variación",
+        }),
+        { status: 404 },
+      );
+    }
+
     return new Response(
-      JSON.stringify({ success: false, error: "No se encontró la variación" }),
-      { status: 404 }
+      JSON.stringify({
+        success: true,
+        data: {
+          _id: variation._id,
+
+          productId: variation.product?._id,
+          productNombre: variation.product?.nombre,
+
+          categoriaId: variation.product?.categoria?._id,
+          categoriaNombre: variation.product?.categoria?.nombre,
+
+          nombre: variation.nombre,
+          precio: variation.precio,
+          imagenes: variation.imagenes,
+          stock: variation.stock,
+          medida: variation.medida,
+          uMedida: variation.uMedida,
+          atributos: variation.atributos,
+        },
+      }),
+      { status: 200 },
     );
-  }
-  // 👇 Asegurarse que productId esté incluido
-  return new Response(
-    JSON.stringify({
-      success: true,
-      data: {
-        _id: variation._id,
-        productId: variation.product, // obligatorio para cartStore
-        nombre: variation.nombre,
-        precio: variation.precio,
-        imagenes: variation.imagenes,
-        stock: variation.stock,
-        medida: variation.medida,
-        uMedida: variation.uMedida,
-        atributos: variation.atributos,
-      },
-    }),
-    { status: 200 }
-  );
-},
-
-
-
+  },
 
   async update(req: Request, id: string) {
     try {
@@ -95,7 +109,7 @@ const variation = await VariationModel.findById(id).lean<IVariationBase>();
           error: "Error al actualizar la variación",
           details: error.message,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   },
@@ -115,11 +129,8 @@ const variation = await VariationModel.findById(id).lean<IVariationBase>();
           error: "Error al desactivar la variación",
           details: error.message,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   },
 };
-
-
-

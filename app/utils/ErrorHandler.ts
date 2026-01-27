@@ -40,7 +40,7 @@ export function logError(
 
   // Console.error en desarrollo, console.log en producción para evitar saturación
 
-  // Aquí puedes agregar integración con servicios externos como:
+  // agregar integración con servicios externos como:
   // - Sentry/Rollbar para monitoreo
   // - Slack/Teams para notificaciones
   // - Base de datos para historial de errores

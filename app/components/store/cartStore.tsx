@@ -5,15 +5,24 @@ import { persist } from "zustand/middleware";
 import { CartItem, CartStore } from "@/types/cartTypes";
 import { IVariation } from "@/types/ProductFormData";
 
-// 🔹 Convierte una variación en un CartItem listo para el carrito
+const getProductId = (
+  productId: string | { _id: string }
+): string => {
+  return typeof productId === "string"
+    ? productId
+    : productId._id;
+};
+
 const variationToCartItem = (variation: IVariation): CartItem => {
   if (!variation._id || !variation.productId) {
     throw new Error("La variación debe tener _id y productId");
   }
 
+  const productId = getProductId(variation.productId);
+
   return {
-    id: `${variation.productId}-${variation._id}`, // id único en carrito
-    productId: variation.productId,
+    id: `${productId}-${variation._id}`,
+    productId,                 // 🔹 ahora siempre string
     variationId: variation._id,
     name: variation.nombre,
     price: variation.precio,
@@ -22,6 +31,7 @@ const variationToCartItem = (variation: IVariation): CartItem => {
     image: variation.imagenes?.[0] || "",
   };
 };
+
 
 export const useCartStore = create<CartStore>()(
   persist(

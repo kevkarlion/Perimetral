@@ -1,8 +1,6 @@
 // mappers/product.mapper.ts
 import { Types } from "mongoose";
-import { CreateProductDTO } from "@/backend/lib/dto/product";
 import { IProductBase } from "@/types/productTypes";
-
 
 export function mapCreateProductToDomain(body: any): Partial<IProductBase> {
   if (!body.nombre) throw new Error("El nombre es obligatorio");
@@ -18,6 +16,12 @@ export function mapCreateProductToDomain(body: any): Partial<IProductBase> {
     throw new Error("ID de categoría inválido");
   }
 
+  // 👇 Normalizamos imágenes
+  const imagenes =
+    Array.isArray(body.imagenes)
+      ? body.imagenes.filter((i: any) => typeof i === "string")
+      : [];
+
   return {
     nombre: body.nombre,
     codigoPrincipal: body.codigoPrincipal,
@@ -27,5 +31,6 @@ export function mapCreateProductToDomain(body: any): Partial<IProductBase> {
     proveedor: body.proveedor,
     activo: body.activo ?? true,
     destacado: body.destacado ?? false,
+    imagenes, // 👈 ESTA era la que faltaba
   };
 }

@@ -1,9 +1,8 @@
-"use client";
 import { create } from "zustand";
 import { IVariation } from "@/types/ProductFormData";
 
 interface VariationStore {
-  variations: IVariation[];
+  variationsByProduct: Record<string, IVariation[]>;
   loading: boolean;
   error: string | null;
 
@@ -11,33 +10,37 @@ interface VariationStore {
   clear: () => void;
 }
 
-export const useVariationStore = create<VariationStore>((set) => ({
-  variations: [],
+export const useVariationStore = create<VariationStore>((set, get) => ({
+  variationsByProduct: {},
   loading: false,
   error: null,
 
   fetchByProduct: async (productId: string) => {
-  set({ loading: true, error: null });
+    // ✅ Si ya tenemos datos, no hacemos fetch
+    if (get().variationsByProduct[productId]) return;
 
-  try {
-    const res = await fetch(`/api/variations?productId=${productId}`);
+    set({ loading: true, error: null });
 
-    const text = await res.text();
-    if (!text) throw new Error("Respuesta vacía del servidor");
+    try {
+      const res = await fetch(`/api/variations?productId=${productId}`);
+      const json = await res.json();
 
-    const json = JSON.parse(text);
+      if (!res.ok || !json.success) {
+        throw new Error(json.details || json.error || "Error cargando variaciones");
+      }
 
-    if (!res.ok || !json.success) {
-      throw new Error(json.details || json.error || "Error cargando variaciones");
+      set({
+        variationsByProduct: {
+          ...get().variationsByProduct,
+          [productId]: json.data,
+        },
+        loading: false,
+      });
+    } catch (e: any) {
+      console.error("Variation fetch error:", e);
+      set({ error: e.message, loading: false });
     }
+  },
 
-    set({ variations: json.data, loading: false });
-  } catch (e: any) {
-    console.error("Variation fetch error:", e);
-    set({ error: e.message, loading: false });
-  }
-},
-
-
-  clear: () => set({ variations: [], error: null }),
+  clear: () => set({ variationsByProduct: {}, error: null }),
 }));

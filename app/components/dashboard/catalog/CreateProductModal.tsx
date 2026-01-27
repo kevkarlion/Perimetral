@@ -1,12 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { IProduct } from "@/app/components/store/product-store"
+import { useState } from "react";
+import { ICategory } from "@/app/components/store/category-store";
+import CloudinaryUploader from "@/app/components/CloudinaryUploader";
 
 interface CreateProductModalProps {
-  isOpen: boolean
-  category: IProduct["categoria"]
-  onClose: () => void
+  isOpen: boolean;
+  category: ICategory;
+  onClose: () => void;
 }
 
 export default function CreateProductModal({
@@ -14,28 +15,35 @@ export default function CreateProductModal({
   category,
   onClose,
 }: CreateProductModalProps) {
-  const [codigoPrincipal, setCodigoPrincipal] = useState("")
-  const [nombre, setNombre] = useState("")
-  const [slug, setSlug] = useState("")
-  const [descripcionCorta, setDescripcionCorta] = useState("")
-  const [descripcionLarga, setDescripcionLarga] = useState("")
-  const [proveedor, setProveedor] = useState("")
-  const [destacado, setDestacado] = useState(false)
-  const [activo, setActivo] = useState(true)
+  const [codigoPrincipal, setCodigoPrincipal] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [slug, setSlug] = useState("");
+  const [descripcionCorta, setDescripcionCorta] = useState("");
+  const [descripcionLarga, setDescripcionLarga] = useState("");
+  const [proveedor, setProveedor] = useState("");
+  const [destacado, setDestacado] = useState(false);
+  const [activo, setActivo] = useState(true);
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // 👇 IMÁGENES CLOUDINARY
+  const [imagenes, setImagenes] = useState<string[]>([]);
 
-  if (!isOpen) return null
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleRemoveImage = (url: string) => {
+    setImagenes(imagenes.filter((i) => i !== url));
+  };
 
   const handleSave = async () => {
-    if (!codigoPrincipal.trim() || !nombre.trim()) {
-      alert("El código principal y el nombre son obligatorios")
-      return
+    if (!codigoPrincipal || !nombre || imagenes.length === 0) {
+      setError("Código, nombre e imágenes son obligatorios");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/products", {
@@ -51,111 +59,127 @@ export default function CreateProductModal({
           proveedor,
           destacado,
           activo,
+          imagenes, // 👈 ya vienen de Cloudinary
         }),
-      })
+      });
 
-      const result = await res.json()
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error();
 
-      if (!res.ok || !result.success) {
-        throw new Error(result.error || "Error creando producto")
-      }
-
-      onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido")
+      onClose();
+    } catch {
+      setError("Error creando producto");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4 text-black">
-          Crear producto en "{category.nombre}"
-        </h2>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[80] mt-32">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
 
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-
-        <input
-          placeholder="Código principal *"
-          value={codigoPrincipal}
-          onChange={(e) => setCodigoPrincipal(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-2"
-        />
-
-        <input
-          placeholder="Nombre *"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-2"
-        />
-
-        <input
-          placeholder="Slug"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-2"
-        />
-
-        <textarea
-          placeholder="Descripción corta"
-          value={descripcionCorta}
-          onChange={(e) => setDescripcionCorta(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-2"
-        />
-
-        <textarea
-          placeholder="Descripción larga"
-          value={descripcionLarga}
-          onChange={(e) => setDescripcionLarga(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-2"
-        />
-
-        <input
-          placeholder="Proveedor"
-          value={proveedor}
-          onChange={(e) => setProveedor(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-3"
-        />
-
-        <div className="flex gap-4 mb-4">
-          <label className="flex items-center gap-2 text-black">
-            <input
-              type="checkbox"
-              checked={destacado}
-              onChange={(e) => setDestacado(e.target.checked)}
-            />
-            Destacado
-          </label>
-
-          <label className="flex items-center gap-2 text-black">
-            <input
-              type="checkbox"
-              checked={activo}
-              onChange={(e) => setActivo(e.target.checked)}
-            />
-            Activo
-          </label>
+        {/* HEADER */}
+        <div className="px-6 py-4 border-b bg-gray-50">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Nuevo producto
+          </h2>
+          <p className="text-sm text-gray-500">
+            Categoría: <span className="font-medium">{category.nombre}</span>
+          </p>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border rounded text-black"
-          >
+        {/* BODY */}
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {error && (
+            <div className="bg-red-50 text-red-600 px-4 py-2 rounded text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Código *">
+              <input value={codigoPrincipal} onChange={e => setCodigoPrincipal(e.target.value)} className="field" />
+            </Field>
+
+            <Field label="Nombre *">
+              <input value={nombre} onChange={e => setNombre(e.target.value)} className="field" />
+            </Field>
+
+            <Field label="Slug">
+              <input value={slug} onChange={e => setSlug(e.target.value)} className="field" />
+            </Field>
+
+            <Field label="Proveedor">
+              <input value={proveedor} onChange={e => setProveedor(e.target.value)} className="field" />
+            </Field>
+          </div>
+
+          <Field label="Descripción corta">
+            <textarea value={descripcionCorta} onChange={e => setDescripcionCorta(e.target.value)} className="field resize-none h-20" />
+          </Field>
+
+          <Field label="Descripción larga">
+            <textarea value={descripcionLarga} onChange={e => setDescripcionLarga(e.target.value)} className="field resize-none h-24" />
+          </Field>
+
+          {/* CLOUDINARY */}
+          <Field label="Imágenes *">
+            <CloudinaryUploader
+              existingImages={imagenes}
+              onImageUpload={(url) => setImagenes(prev => [...prev, url])}
+              folder="products"
+            />
+
+            {imagenes.length > 0 && (
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                {imagenes.map((img, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={img} className="w-full h-24 object-cover rounded border" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(img)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-80 hover:opacity-100"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Field>
+
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 text-gray-700">
+              <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)} />
+              Destacado
+            </label>
+
+            <label className="flex items-center gap-2 text-gray-700">
+              <input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} />
+              Activo
+            </label>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100">
             Cancelar
           </button>
-
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
+          <button onClick={handleSave} disabled={loading} className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
             {loading ? "Guardando..." : "Crear producto"}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-medium text-gray-600">{label}</label>
+      {children}
+    </div>
+  );
 }
