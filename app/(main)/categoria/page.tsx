@@ -1,8 +1,13 @@
-// app/categoria/page.tsx
 'use client'
 
-import CategoryProducts from "@/app/components/CategoryProducts"
+import { Suspense } from 'react'
+import CategoryProducts from '@/app/components/CategoryProducts'
+import CategoryProductsSkeleton from '@/app/components/Skeletons/CategoryProductsSkeleton'
 
 export default function Catalogo() {
-  return <CategoryProducts />
+  return (
+    <Suspense fallback={<CategoryProductsSkeleton />}>
+      <CategoryProducts />
+    </Suspense>
+  )
 }

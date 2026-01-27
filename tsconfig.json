@@ -26,7 +26,7 @@
       "@lib/*": ["backend/lib/*"]
     },
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend", "app/components/VariantsPage"],
   "exclude": ["node_modules"],
   "types": ["node"]
 }
