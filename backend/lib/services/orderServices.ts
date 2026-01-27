@@ -2,7 +2,10 @@ import mongoose, { Types } from "mongoose";
 import Order from "@/backend/lib/models/Order";
 import type { CreateOrderDTO, OrderResponse, IOrder } from "@/types/orderTypes";
 import { validateCartItems } from "@/backend/lib/herlpers/cartHelpers";
-import { calculateTotals } from "@/backend/lib/herlpers/totalsHelpers";
+import {
+  calculateTotals,
+  CartItem,
+} from "@/backend/lib/herlpers/totalsHelpers";
 import { MercadoPagoService } from "@/backend/lib/services/mercadoPago.services";
 import { StockService } from "@/backend/lib/services/stockService";
 
@@ -70,12 +73,14 @@ export class OrderService {
   }
 
   // En OrderService
+
   static async updateOrder(
     token: string,
     data: {
       notes?: string;
       status?: string;
       discountPercentage?: number;
+      items?: CartItem[]; // Pasamos items si queremos recalcular total
       additionalData?: any;
     },
   ) {
@@ -86,73 +91,45 @@ export class OrderService {
         session,
       );
       if (!order) throw new Error("Orden no encontrada");
+
       // --- 1. Manejo de notas ---
-      if (data.notes !== undefined) {
-        order.notes = data.notes;
-      }
-      // --- 2. Manejo de descuento (REVISIÓN COMPLETA) ---
-      if (data.discountPercentage !== undefined) {
-        const newDiscountPercentage = Math.min(
-          Math.max(data.discountPercentage, 0),
-          100,
-        );
-        const currentDiscountPercentage = order.discountPercentage || 0;
+      if (data.notes !== undefined) order.notes = data.notes;
 
-        console.log(`💰 === MANEJO DE DESCUENTO ===`);
-        console.log(`💰 Descuento actual: ${currentDiscountPercentage}%`);
-        console.log(`💰 Descuento nuevo: ${newDiscountPercentage}%`);
-        console.log(`💰 Total actual: $${order.total}`);
-        console.log(
-          `💰 totalBeforeDiscount: ${order.totalBeforeDiscount ? "$" + order.totalBeforeDiscount : "No definido"}`,
-        );
+      // --- 2. Manejo de descuento ---
+      if (data.discountPercentage !== undefined || data.items) {
+        const itemsToCalculate: CartItem[] = data.items || order.items;
 
-        // Guardar el porcentaje de descuento
-        order.discountPercentage = newDiscountPercentage;
-
-        // Si hay descuento > 0
-        if (newDiscountPercentage > 0) {
-          // Determinar el total base para el cálculo
-          let baseTotal: number;
-          // CASO A: Si ya tenemos totalBeforeDiscount, usarlo
-          if (order.totalBeforeDiscount) {
-            baseTotal = order.totalBeforeDiscount;
-          }
-          // CASO B: Si no tenemos totalBeforeDiscount pero el total actual ya tiene descuento
-          else if (currentDiscountPercentage > 0) {
-            // Revertir el descuento actual para obtener el total original
-            baseTotal = Math.round(
-              order.total / (1 - currentDiscountPercentage / 100),
-            );
-            order.totalBeforeDiscount = baseTotal;
-          }
-          // CASO C: Primer descuento aplicado
-          else {
-            baseTotal = order.total;
-            order.totalBeforeDiscount = baseTotal;
-          }
-          // Calcular el nuevo total con el descuento
-          const discountAmount = Math.round(
-            (baseTotal * newDiscountPercentage) / 100,
+        // Si ya hay totalBeforeDiscount y se intenta cambiar descuento > 0, no aplicamos otro
+        if (
+          order.totalBeforeDiscount &&
+          data.discountPercentage! > 0 &&
+          data.discountPercentage !== order.discountPercentage
+        ) {
+          throw new Error(
+            "El descuento ya fue aplicado previamente. No se puede aplicar otro.",
           );
-          const newTotal = baseTotal - discountAmount;
-          order.total = newTotal;
         }
-        // Si el descuento es 0 (eliminar descuento)
-        else {
-          // Restaurar al total original si existe totalBeforeDiscount
-          if (order.totalBeforeDiscount) {
-            order.total = order.totalBeforeDiscount;
-            order.totalBeforeDiscount = undefined;
-          } else {
-            // Si no hay totalBeforeDiscount, recalcular desde subtotal, vat, shipping
-            const recalculatedTotal =
-              (order.subtotal || 0) +
-              (order.vat || 0) +
-              (order.shippingCost || 0);
-            order.total = recalculatedTotal;
-          }
-        }
+
+        const totals = calculateTotals(
+          itemsToCalculate,
+          data.discountPercentage || 0,
+          order.totalBeforeDiscount,
+        );
+
+        order.subtotal = totals.subtotal;
+        order.vat = totals.iva;
+        order.totalBeforeDiscount = totals.totalBeforeDiscount;
+        order.discountPercentage = data.discountPercentage || 0;
+        order.total = totals.total;
+
+        // Guardamos los resultados en la orden
+        order.subtotal = totals.subtotal;
+        order.vat = totals.iva;
+        order.totalBeforeDiscount = totals.totalBeforeDiscount;
+        order.discountPercentage = data.discountPercentage || 0;
+        order.total = totals.total;
       }
+
       // --- 3. Manejo del estado ---
       if (data.status !== undefined) {
         const validStatuses = [
@@ -163,22 +140,19 @@ export class OrderService {
           "payment_failed",
           "cancelled",
         ];
-        if (!validStatuses.includes(data.status)) {
+        if (!validStatuses.includes(data.status))
           throw new Error("Estado no válido");
-        }
+
         const isCompletingOrder =
           data.status === "completed" && order.status !== "completed";
         if (order.status !== data.status) {
           order.status = data.status;
-
           if (isCompletingOrder) {
-            console.log(
-              "📦 Orden pasando a 'completed' por primera vez. Descontando stock...",
-            );
             await StockService.discountFromOrder(order);
           }
         }
       }
+
       // --- 4. Guardar cambios ---
       await order.save({ session });
       await session.commitTransaction();
