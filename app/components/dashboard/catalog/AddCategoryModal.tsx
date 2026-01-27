@@ -57,8 +57,8 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md overflow-y-auto max-h-[80vh]">
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50">
+  <div className="bg-white rounded-lg p-6 w-full max-w-md overflow-y-auto max-h-[80vh] shadow-lg">
         <h2 className="text-xl font-bold mb-4 text-black">Agregar Nueva Categoría</h2>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}

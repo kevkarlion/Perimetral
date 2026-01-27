@@ -75,9 +75,8 @@ export default function CreateProductModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[80] mt-32">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-[80]">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
-
         {/* HEADER */}
         <div className="px-6 py-4 border-b bg-gray-50">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -98,35 +97,59 @@ export default function CreateProductModal({
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Código *">
-              <input value={codigoPrincipal} onChange={e => setCodigoPrincipal(e.target.value)} className="field" />
+              <input
+                value={codigoPrincipal}
+                onChange={(e) => setCodigoPrincipal(e.target.value)}
+                className="field"
+              />
             </Field>
 
             <Field label="Nombre *">
-              <input value={nombre} onChange={e => setNombre(e.target.value)} className="field" />
+              <input
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="field"
+              />
             </Field>
 
             <Field label="Slug">
-              <input value={slug} onChange={e => setSlug(e.target.value)} className="field" />
+              <input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="field"
+              />
             </Field>
 
             <Field label="Proveedor">
-              <input value={proveedor} onChange={e => setProveedor(e.target.value)} className="field" />
+              <input
+                value={proveedor}
+                onChange={(e) => setProveedor(e.target.value)}
+                className="field"
+              />
             </Field>
           </div>
 
           <Field label="Descripción corta">
-            <textarea value={descripcionCorta} onChange={e => setDescripcionCorta(e.target.value)} className="field resize-none h-20" />
+            <textarea
+              value={descripcionCorta}
+              onChange={(e) => setDescripcionCorta(e.target.value)}
+              className="field resize-none h-20"
+            />
           </Field>
 
           <Field label="Descripción larga">
-            <textarea value={descripcionLarga} onChange={e => setDescripcionLarga(e.target.value)} className="field resize-none h-24" />
+            <textarea
+              value={descripcionLarga}
+              onChange={(e) => setDescripcionLarga(e.target.value)}
+              className="field resize-none h-24"
+            />
           </Field>
 
           {/* CLOUDINARY */}
           <Field label="Imágenes *">
             <CloudinaryUploader
               existingImages={imagenes}
-              onImageUpload={(url) => setImagenes(prev => [...prev, url])}
+              onImageUpload={(url) => setImagenes((prev) => [...prev, url])}
               folder="products"
             />
 
@@ -134,7 +157,10 @@ export default function CreateProductModal({
               <div className="mt-4 grid grid-cols-4 gap-2">
                 {imagenes.map((img, idx) => (
                   <div key={idx} className="relative group">
-                    <img src={img} className="w-full h-24 object-cover rounded border" />
+                    <img
+                      src={img}
+                      className="w-full h-24 object-cover rounded border"
+                    />
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(img)}
@@ -150,12 +176,20 @@ export default function CreateProductModal({
 
           <div className="flex gap-6">
             <label className="flex items-center gap-2 text-gray-700">
-              <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={destacado}
+                onChange={(e) => setDestacado(e.target.checked)}
+              />
               Destacado
             </label>
 
             <label className="flex items-center gap-2 text-gray-700">
-              <input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={activo}
+                onChange={(e) => setActivo(e.target.checked)}
+              />
               Activo
             </label>
           </div>
@@ -163,10 +197,17 @@ export default function CreateProductModal({
 
         {/* FOOTER */}
         <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+          >
             Cancelar
           </button>
-          <button onClick={handleSave} disabled={loading} className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
             {loading ? "Guardando..." : "Crear producto"}
           </button>
         </div>
@@ -175,7 +216,13 @@ export default function CreateProductModal({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-gray-600">{label}</label>

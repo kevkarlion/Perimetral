@@ -235,4 +235,69 @@
 //   }
 // }
 
-// seedDB();
+// seedDB();{
+//   _id: "prod-tejido-romboidal",
+//   nombre: "Tejido Romboidal Calibre 14 - Rombo 2\" - Calidad Acindar",
+//   descripcionCorta: "Solución duradera para cerramientos de alta seguridad",
+//   descripcionLarga: "Alambrado de alta calidad con protección galvanizada para mayor durabilidad contra condiciones climáticas.",
+//   categoria: "cat-alambrados", // referencia a la categoría creada
+//   imagen: "alambrado.jpg",
+//   imagenes: [
+//     "/Productos/alambrado/a1.webp",
+//     "/Productos/alambrado/a5.webp",
+//     "/Productos/alambrado/alambre-arbol1.webp",
+//     "/Productos/alambrado/alambre-arbol2.webp",
+//     "/Productos/alambrado/alambre-planta3.webp",
+//     "/Productos/alambrado/alambrado-instalacion-cancha.webp",
+//     "/Productos/alambrado/alambre-pre.webp"
+//   ],
+//   precio: 65000, // precio base (por ejemplo, el mínimo)
+//   tieneVariaciones: true
+// }
+
+
+
+
+
+// [
+//   {
+//     productId: "prod-tejido-romboidal", // referencia al producto
+//     nombre: "Tejido Romboidal 1.50m × 10 m",
+//     medida: "1.50m × 10 m",
+//     precio: 65000,
+//     stock: 10,
+//     activo: true,
+//     imagenes: ["/Productos/alambrado/a1.webp"], // opcional, si quieres sobrescribir la imagen del producto
+//     atributos: [
+//       { nombre: "Calibre", valor: "14" },
+//       { nombre: "Rombo", valor: '2"' },
+//       { nombre: "Marca", valor: "Acindar" }
+//     ]
+//   },
+//   {
+//     productId: "prod-tejido-romboidal",
+//     nombre: "Tejido Romboidal 1.80m × 10 m",
+//     medida: "1.80m × 10 m",
+//     precio: 80000,
+//     stock: 8,
+//     activo: true,
+//     atributos: [
+//       { nombre: "Calibre", valor: "14" },
+//       { nombre: "Rombo", valor: '2"' },
+//       { nombre: "Marca", valor: "Acindar" }
+//     ]
+//   },
+//   {
+//     productId: "prod-tejido-romboidal",
+//     nombre: "Tejido Romboidal 2.00m × 10 m",
+//     medida: "2.00m × 10 m",
+//     precio: 98500,
+//     stock: 5,
+//     activo: true,
+//     atributos: [
+//       { nombre: "Calibre", valor: "14" },
+//       { nombre: "Rombo", valor: '2"' },
+//       { nombre: "Marca", valor: "Acindar" }
+//     ]
+//   }
+// ]

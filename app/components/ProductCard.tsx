@@ -88,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           href={`/variants?productId=${product._id}`}
           className="mt-auto w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded"
         >
-          Ver producto
+          Ver Variantes
         </Link>
       </div>
     </div>

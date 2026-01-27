@@ -20,12 +20,16 @@ export default function CatalogTab() {
 
   const { products } = useProductStore();
   const {
-    variations,
+    variationsByProduct,
     loading: loadingVariations,
     error: variationError,
     fetchByProduct,
     clear,
   } = useVariationStore();
+
+  const variations = selectedProduct
+    ? variationsByProduct[selectedProduct] || []
+    : [];
 
   // 🔁 cada vez que cambia el producto → buscamos sus variaciones reales
   useEffect(() => {
@@ -41,57 +45,51 @@ export default function CatalogTab() {
   // );
 
   return (
-  <div className="space-y-6">
-    <h1 className="text-2xl font-bold text-white">
-      Gestionar stock
-    </h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-white">Gestionar stock</h1>
 
-    {/* Breadcrumb */}
-    <div className="text-sm text-gray-500">
-      
-      {selectedCategory && ` > Categoría`}
-      {selectedProduct && ` > Producto`}
-    </div>
+      {/* Breadcrumb */}
+      <div className="text-sm text-gray-500">
+        {selectedCategory && ` > Categoría`}
+        {selectedProduct && ` > Producto`}
+      </div>
 
-    {/* Categorías */}
-    <CategoryManagementPanel
-      onSelectCategory={(id) => {
-        setSelectedCategory(id);
-        setSelectedProduct(null);
-      }}
-    />
-
-    {/* Productos */}
-    {selectedCategory && (
-      <ProductList
-        categoryId={selectedCategory}
-        selectedProductId={selectedProduct}
-        onSelectProduct={(id) => setSelectedProduct(id)}
+      {/* Categorías */}
+      <CategoryManagementPanel
+        onSelectCategory={(id) => {
+          setSelectedCategory(id);
+          setSelectedProduct(null);
+        }}
       />
-    )}
 
-    {/* Variaciones */}
-    {selectedProduct && (
-      <>
-        {loadingVariations && <p>Cargando variaciones...</p>}
-        {variationError && (
-          <p className="text-red-500">{variationError}</p>
-        )}
-
-        <VariationList
-          variations={variations}
-          onEditVariation={(v) => {
-            setSelectedVariation(v);
-            setIsVariationModalOpen(true);
-          }}
-          onDeleteVariation={(id) => {
-            if (!id) return;
-            console.log("Eliminar variación", id);
-          }}
+      {/* Productos */}
+      {selectedCategory && (
+        <ProductList
+          categoryId={selectedCategory}
+          selectedProductId={selectedProduct}
+          onSelectProduct={(id) => setSelectedProduct(id)}
         />
-      </>
-    )}
-  </div>
-);
+      )}
 
+      {/* Variaciones */}
+      {selectedProduct && (
+        <>
+          {loadingVariations && <p>Cargando variaciones...</p>}
+          {variationError && <p className="text-red-500">{variationError}</p>}
+
+          <VariationList
+            variations={variations}
+            onEditVariation={(v) => {
+              setSelectedVariation(v);
+              setIsVariationModalOpen(true);
+            }}
+            onDeleteVariation={(id) => {
+              if (!id) return;
+              console.log("Eliminar variación", id);
+            }}
+          />
+        </>
+      )}
+    </div>
+  );
 }
