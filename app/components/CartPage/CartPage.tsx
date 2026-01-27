@@ -82,7 +82,9 @@ export default function CartPage() {
       // Lógica de redirección según método de pago
       if (selectedPaymentMethod === "efectivo") {
         // Redirige a la página de pago pendiente
-        window.location.href = `/pago-pendiente/efectivo?orderNumber=${orderData.orderNumber}&total=${orderData.total}&token=${orderData.accessToken}`;
+        window.location.href =
+  `/pago-pendiente/efectivo?orderNumber=${orderData.order.orderNumber}&total=${orderData.order.total}&token=${orderData.order.accessToken}`;
+
       } else if (orderData.paymentUrl) {
         // Redirige a Mercado Pago
         window.location.href = orderData.paymentUrl;

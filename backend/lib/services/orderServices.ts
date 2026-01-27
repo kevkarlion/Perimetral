@@ -179,4 +179,12 @@ export class OrderService {
     // Trae todas las órdenes ordenadas por creación
     return Order.find().sort({ createdAt: -1 }).lean();
   }
+
+
+  static async getOrderByToken(token: string) {
+  const order = await Order.findOne({ accessToken: token }).lean();
+  if (!order) throw new Error("Orden no encontrada");
+  return order;
+}
+
 }

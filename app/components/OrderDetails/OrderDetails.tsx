@@ -16,8 +16,7 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Obtener la función clearCart del store
+
   const clearCart = useCartStore((state) => state.clearCart);
 
   useEffect(() => {
@@ -26,11 +25,11 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
         const response = await fetch(`/api/orders/${token}`);
         const data = await response.json();
 
-        if (!response.ok || !data.orderNumber) {
+        if (!response.ok || !data.success) {
           throw new Error(data.error || 'No se pudo cargar la orden');
         }
 
-        setOrder(data);
+        setOrder(data.order);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
@@ -41,28 +40,22 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
     fetchOrder();
   }, [token]);
 
-  // 🔹 Efecto para vaciar el carrito SOLO cuando el pago esté COMPLETADO
+  // Vaciar carrito SOLO cuando la orden esté realmente completada
   useEffect(() => {
-    if (order) {
-      // Determinar el estado efectivo (si es efectivo, se considera completado)
-      const effectiveStatus = order.paymentMethod === 'cash' ? 'completed' : order.status;
-      
-      // ✅ Vaciar el carrito SOLO cuando el estado es 'completed'
-      if (effectiveStatus === 'completed') {
-        clearCart();
-        console.log('Carrito vaciado - Orden completada');
-      }
-      
-      // ✅ Alternativa: Si quieres vaciar también para estados de procesamiento exitoso
-      // if (['completed', 'processing'].includes(effectiveStatus)) {
-      //   clearCart();
-      // }
+    if (!order) return;
+
+    const effectiveStatus =
+      order.paymentMethod === 'cash' && order.status === 'pending'
+        ? 'completed'
+        : order.status;
+
+    if (effectiveStatus === 'completed') {
+      clearCart();
+      console.log('🛒 Carrito vaciado - Orden completada');
     }
   }, [order, clearCart]);
 
-  if (loading) {
-    return <OrderDetailsSkeleton />;
-  }
+  if (loading) return <OrderDetailsSkeleton />;
 
   if (error) {
     return (
@@ -83,10 +76,11 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
     );
   }
 
-  // 🔹 Forzar que si es efectivo, se considere completado
-  const effectiveStatus = order.paymentMethod === 'cash' ? 'completed' : order.status;
+  const effectiveStatus =
+    order.paymentMethod === 'cash' && order.status === 'pending'
+      ? 'completed'
+      : order.status;
 
-  // Función para traducir estados basada en los tipos reales de IOrder
   const translateStatus = (status: string) => {
     switch (status) {
       case 'completed':
@@ -108,7 +102,6 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
     }
   };
 
-  // Color según estado
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -136,7 +129,8 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
             className={`px-2 py-1 text-xs font-medium rounded-full ${
               effectiveStatus === 'completed'
                 ? 'bg-green-100 text-green-800'
-                : effectiveStatus === 'cancelled' || effectiveStatus === 'payment_failed'
+                : effectiveStatus === 'cancelled' ||
+                  effectiveStatus === 'payment_failed'
                 ? 'bg-red-100 text-red-800'
                 : effectiveStatus === 'processing'
                 ? 'bg-blue-100 text-blue-800'
@@ -181,7 +175,11 @@ export default function OrderDetails({ token }: OrderDetailsProps) {
             </div>
             <div>
               <p className="text-sm text-gray-500">Estado</p>
-              <p className={`text-sm font-medium ${getStatusColor(order.status)}`}>
+              <p
+                className={`text-sm font-medium ${getStatusColor(
+                  order.status,
+                )}`}
+              >
                 {translateStatus(order.status)}
               </p>
             </div>

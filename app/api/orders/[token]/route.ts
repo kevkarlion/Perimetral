@@ -48,4 +48,26 @@ export async function PATCH(
   }
 }
 
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  const { token } = await params;
+  try {
+    const order = await OrderService.getOrderByToken(token);
+    return NextResponse.json({
+      success: true,
+      order,
+    });
+  } catch (error: any) {
+    console.error("❌ Error obteniendo orden:", error);
+    let status = 400;
+    if (error.message.includes("no encontrada")) status = 404;
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status }
+    );
+  }
+}
+
 export const dynamic = "force-dynamic";
