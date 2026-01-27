@@ -1,15 +1,15 @@
 'use client'
 
+import { useSearchParams } from "next/navigation"
 import { useProductStore } from "@/app/components/store/product-store"
 import ProductCard from "@/app/components/ProductCard"
 import Link from "next/link"
 import CategoryProductsSkeleton from "@/app/components/Skeletons/CategoryProductsSkeleton"
 
-interface CategoryProductsProps {
-  categoryId: string
-}
+export default function CategoryProducts() {
+  const searchParams = useSearchParams()
+  const categoryId = searchParams.get("category") || ""
 
-export default function CategoryProducts({ categoryId }: CategoryProductsProps) {
   const { products, loading, error } = useProductStore()
 
   // Skeleton mientras estamos cargando o si aún no hay productos cargados
@@ -21,13 +21,8 @@ export default function CategoryProducts({ categoryId }: CategoryProductsProps) 
         <div className="container mx-auto px-4">
           {/* Breadcrumb Skeleton */}
           <div className="flex gap-2 items-center mb-4">
-            
-            
             <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
           </div>
-
-      
-
           {/* Grid skeleton */}
           <CategoryProductsSkeleton />
         </div>
@@ -40,16 +35,12 @@ export default function CategoryProducts({ categoryId }: CategoryProductsProps) 
   // Filtrar productos de la categoría
   const filteredProducts = products.filter(p => {
     if (!p.categoria) return false
-    if (typeof p.categoria === "string") return p.categoria === categoryId
-    return p.categoria._id === categoryId
+    return typeof p.categoria === "string"
+      ? p.categoria === categoryId
+      : p.categoria._id === categoryId
   })
 
-  const categoryName =
-    products.find(p => {
-      if (!p.categoria) return false
-      if (typeof p.categoria === "string") return p.categoria === categoryId
-      return p.categoria._id === categoryId
-    })?.categoria?.nombre || "Categoría"
+  const categoryName = filteredProducts[0]?.categoria?.nombre || "Categoría"
 
   // Mensaje “No hay productos” solo después de que loading ya terminó
   if (filteredProducts.length === 0) {
