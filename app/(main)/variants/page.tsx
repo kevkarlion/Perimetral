@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import { IVariationWithProduct } from '@/types/ProductFormData'
 import Link from 'next/link'
+import VariantsSkeleton from '@/app/components/Skeletons/VariantsSkeleton'
 
 // fetcher genérico
 const fetcher = async (url: string) => {
@@ -42,7 +43,30 @@ export default function VariantsPage() {
   const product = variations[0]?.product
 
   if (!productId) return <p className="text-red-500 mt-24 ml-6">Producto inválido</p>
-  if (varLoading) return <p className="mt-24 ml-6">Cargando variaciones...</p>
+  if (varLoading) {
+  return (
+    <section className="mt-12 p-6 max-w-7xl mx-auto">
+      {/* Breadcrumb Skeleton */}
+      <div className="flex gap-2 items-center mb-4">
+        <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+        <span className="text-gray-400">›</span>
+        <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+        <span className="text-gray-400">›</span>
+        <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+
+      {/* Header Skeleton */}
+      <div className="mb-8">
+        <div className="h-10 w-1/3 bg-gray-300 rounded animate-pulse mb-2"></div>
+        <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+
+      {/* Grid Skeleton */}
+      <VariantsSkeleton />
+    </section>
+  )
+}
+
   if (varError) return <p className="text-red-500 mt-24 ml-6">{varError.message}</p>
   if (variations.length === 0)
     return <p className="text-gray-500 mt-24 ml-6">No hay variaciones para este producto</p>

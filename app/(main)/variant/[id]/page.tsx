@@ -7,6 +7,7 @@ import { fetcher } from "@/backend/lib/herlpers/fetcher";
 import { useCartStore } from "@/app/components/store/cartStore";
 import { useState } from "react";
 import { CartSidebar } from "@/app/components/CartSideBar/CartSideBar";
+import VariantDetailSkeleton from "@/app/components/Skeletons/VariantDetailSkeleton";
 
 export default function VariantDetailPage() {
   const { id } = useParams();
@@ -24,7 +25,7 @@ export default function VariantDetailPage() {
   const variation = data?.data;
 
   if (!id) return <p className="mt-24 ml-10 text-red-500">Variación inválida</p>;
-  if (isLoading) return <p className="mt-24 ml-10">Cargando...</p>;
+   if (isLoading) return <VariantDetailSkeleton />;
   if (error || !variation) return <p className="mt-24 ml-10 text-red-500">No se pudo cargar la variación</p>;
 
   const cover = variation.imagenes?.[0] || "/no-image.png";

@@ -1,42 +1,39 @@
-'use client'
+"use client";
 
-import Link from "next/link"
-import useSWR from "swr"
+import Link from "next/link";
+import useSWR from "swr";
+import CategoriesSkeleton from "./Skeletons/CategoriesSkeleton";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface ICategory {
-  _id: string
-  nombre: string
-  descripcion?: string
-  imagen?: string
-  parentId?: string
-  createdAt?: string
+  _id: string;
+  nombre: string;
+  descripcion?: string;
+  imagen?: string;
+  parentId?: string;
+  createdAt?: string;
 }
 
 export default function CategoriesPageHome() {
-  const { data, error, isLoading } = useSWR<{ success: boolean; data: ICategory[] }>(
-    "/api/categories",
-    fetcher
-  )
+  const { data, error, isLoading } = useSWR<{
+    success: boolean;
+    data: ICategory[];
+  }>("/api/categories", fetcher);
 
-  if (isLoading) {
-    return (
-      <section className="py-20 bg-gray-50 text-center">
-        <p className="text-gray-500 text-lg">Cargando categorías...</p>
-      </section>
-    )
-  }
+  if (isLoading) return <CategoriesSkeleton />;
 
   if (error || !data?.success) {
     return (
       <section className="py-20 bg-gray-50 text-center">
-        <p className="text-red-500 text-lg">{error?.message || "Error cargando categorías"}</p>
+        <p className="text-red-500 text-lg">
+          {error?.message || "Error cargando categorías"}
+        </p>
       </section>
-    )
+    );
   }
 
-  const categories = data.data || []
+  const categories = data.data || [];
 
   return (
     <section className="py-20 bg-gray-50" id="categories">
@@ -69,19 +66,27 @@ export default function CategoriesPageHome() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-90" />
 
                 <div className="absolute bottom-3 left-4 right-4">
-                  <h3 className="text-white font-semibold text-lg leading-tight">{cat.nombre}</h3>
+                  <h3 className="text-white font-semibold text-lg leading-tight">
+                    {cat.nombre}
+                  </h3>
                 </div>
               </div>
 
               {/* Contenido */}
               <div className="p-5 flex flex-col flex-grow">
                 {cat.descripcion && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{cat.descripcion}</p>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    {cat.descripcion}
+                  </p>
                 )}
 
                 <div className="mt-auto flex items-center justify-between text-xs text-gray-400">
-                  <span>{cat.parentId ? "Subcategoría" : "Categoría principal"}</span>
-                  {cat.createdAt && <span>{new Date(cat.createdAt).toLocaleDateString()}</span>}
+                  <span>
+                    {cat.parentId ? "Subcategoría" : "Categoría principal"}
+                  </span>
+                  {cat.createdAt && (
+                    <span>{new Date(cat.createdAt).toLocaleDateString()}</span>
+                  )}
                 </div>
 
                 <Link
@@ -96,5 +101,5 @@ export default function CategoriesPageHome() {
         </div>
       </div>
     </section>
-  )
+  );
 }
