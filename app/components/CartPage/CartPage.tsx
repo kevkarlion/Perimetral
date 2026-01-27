@@ -5,7 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
-import { X, ChevronLeft, Plus, Minus, Loader2, CreditCard, DollarSign } from "lucide-react";
+import {
+  X,
+  ChevronLeft,
+  Plus,
+  Minus,
+  Loader2,
+  CreditCard,
+  DollarSign,
+} from "lucide-react";
 import { useCartStore } from "@/app/components/store/cartStore";
 
 export default function CartPage() {
@@ -21,7 +29,9 @@ export default function CartPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"mercadopago" | "efectivo">("mercadopago");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    "mercadopago" | "efectivo"
+  >("mercadopago");
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
@@ -34,7 +44,10 @@ export default function CartPage() {
   const total = subtotal + iva;
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+    }).format(price);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,14 +95,12 @@ export default function CartPage() {
       // Lógica de redirección según método de pago
       if (selectedPaymentMethod === "efectivo") {
         // Redirige a la página de pago pendiente
-        window.location.href =
-  `/pago-pendiente/efectivo?orderNumber=${orderData.order.orderNumber}&total=${orderData.order.total}&token=${orderData.order.accessToken}`;
-
+        window.location.href = `/pago-pendiente/efectivo?orderNumber=${orderData.order.orderNumber}&total=${orderData.order.total}&token=${orderData.order.accessToken}`;
       } else if (orderData.paymentUrl) {
         // Redirige a Mercado Pago
         window.location.href = orderData.paymentUrl;
       } else {
-        router.push(`/order/${orderData.accessToken}`);
+        router.push(`/order/${orderData.order.accessToken}`);
       }
     } catch (err: any) {
       setError(err.message || "Error al procesar tu pedido");
@@ -121,7 +132,10 @@ export default function CartPage() {
             {cartItems.length === 0 ? (
               <div className="py-8 md:py-12 text-center bg-white rounded-lg shadow-sm">
                 <p className="text-gray-600 mb-4">Tu carrito está vacío</p>
-                <Link href="/catalogo" className="text-brand font-medium text-sm md:text-base hover:text-brandHover">
+                <Link
+                  href="/catalogo"
+                  className="text-brand font-medium text-sm md:text-base hover:text-brandHover"
+                >
                   Ir al catálogo
                 </Link>
               </div>
@@ -129,16 +143,27 @@ export default function CartPage() {
               <>
                 {/* Cabecera */}
                 <div className="hidden md:grid grid-cols-12 gap-4 mb-4 pb-2 border-b border-gray-200">
-                  <div className="col-span-5 font-medium text-gray-800">Producto</div>
-                  <div className="col-span-2 font-medium text-gray-800 text-center">Precio</div>
-                  <div className="col-span-3 font-medium text-gray-800 text-center">Cantidad</div>
-                  <div className="col-span-2 font-medium text-gray-800 text-right">Total</div>
+                  <div className="col-span-5 font-medium text-gray-800">
+                    Producto
+                  </div>
+                  <div className="col-span-2 font-medium text-gray-800 text-center">
+                    Precio
+                  </div>
+                  <div className="col-span-3 font-medium text-gray-800 text-center">
+                    Cantidad
+                  </div>
+                  <div className="col-span-2 font-medium text-gray-800 text-right">
+                    Total
+                  </div>
                 </div>
 
                 {cartItems.map((item) => {
                   const itemTotal = item.price * item.quantity;
                   return (
-                    <div key={item.id} className="grid grid-cols-12 gap-3 md:gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-3 md:px-4 shadow-sm">
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-12 gap-3 md:gap-4 items-center py-4 border-b border-gray-200 bg-white rounded-lg px-3 md:px-4 shadow-sm"
+                    >
                       <div className="col-span-6 md:col-span-5 flex items-center">
                         <button
                           onClick={() => removeItem(item.id)}
@@ -147,33 +172,56 @@ export default function CartPage() {
                           <X className="h-3 w-3 md:h-4 md:w-4" />
                         </button>
                         <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                          {item.image && <Image src={item.image} alt={item.name} fill className="object-contain p-1" />}
+                          {item.image && (
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-contain p-1"
+                            />
+                          )}
                         </div>
                         <div className="ml-3 md:ml-4 min-w-0">
-                          <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-2 md:line-clamp-1">{item.name}</h3>
-                          {item.medida && <p className="text-xs text-gray-500 mt-1">{item.medida}</p>}
+                          <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-2 md:line-clamp-1">
+                            {item.name}
+                          </h3>
+                          {item.medida && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {item.medida}
+                            </p>
+                          )}
                           <div className="mt-1 md:hidden">
-                            <span className="text-xs font-medium text-gray-800">{formatPrice(item.price)} c/u</span>
+                            <span className="text-xs font-medium text-gray-800">
+                              {formatPrice(item.price)} c/u
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       <div className="col-span-2 text-center hidden md:block">
-                        <span className="text-sm font-medium text-gray-800">{formatPrice(item.price)}</span>
+                        <span className="text-sm font-medium text-gray-800">
+                          {formatPrice(item.price)}
+                        </span>
                       </div>
 
                       <div className="col-span-4 md:col-span-3 flex items-center justify-center">
                         <div className="flex items-center border border-gray-300 rounded-md bg-gray-50">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
                             disabled={item.quantity <= 1}
                             className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-40"
                           >
                             <Minus className="h-3 w-3 md:h-4 md:w-4" />
                           </button>
-                          <span className="px-2 md:px-3 py-1 text-xs md:text-sm font-medium text-gray-800 min-w-[2rem] text-center">{item.quantity}</span>
+                          <span className="px-2 md:px-3 py-1 text-xs md:text-sm font-medium text-gray-800 min-w-[2rem] text-center">
+                            {item.quantity}
+                          </span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
                             className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
                           >
                             <Plus className="h-3 w-3 md:h-4 md:w-4" />
@@ -182,15 +230,22 @@ export default function CartPage() {
                       </div>
 
                       <div className="col-span-6 md:col-span-2 flex flex-col items-end">
-                        <span className="text-sm font-medium text-gray-800">{formatPrice(itemTotal)}</span>
-                        <span className="text-xs text-gray-500 hidden md:block mt-1">{formatPrice(item.price)} c/u</span>
+                        <span className="text-sm font-medium text-gray-800">
+                          {formatPrice(itemTotal)}
+                        </span>
+                        <span className="text-xs text-gray-500 hidden md:block mt-1">
+                          {formatPrice(item.price)} c/u
+                        </span>
                       </div>
                     </div>
                   );
                 })}
 
                 <div className="mt-6 md:mt-8">
-                  <Link href="/catalogo" className="flex items-center text-brand font-medium text-sm md:text-base hover:text-brandHover">
+                  <Link
+                    href="/catalogo"
+                    className="flex items-center text-brand font-medium text-sm md:text-base hover:text-brandHover"
+                  >
                     <ChevronLeft className="h-4 w-4 mr-1" /> Seguir comprando
                   </Link>
                 </div>
@@ -203,12 +258,20 @@ export default function CartPage() {
             <div className="lg:col-span-1 space-y-4 md:space-y-6">
               {/* Datos cliente */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Datos del cliente</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
+                  Datos del cliente
+                </h3>
                 <div className="space-y-3 md:space-y-4">
                   {["name", "email", "phone", "address"].map((field) => (
                     <div key={field}>
                       <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                        {field === "name" ? "Nombre completo*" : field === "phone" ? "Teléfono*" : field === "email" ? "Email*" : "Dirección"}
+                        {field === "name"
+                          ? "Nombre completo*"
+                          : field === "phone"
+                            ? "Teléfono*"
+                            : field === "email"
+                              ? "Email*"
+                              : "Dirección"}
                       </label>
                       <input
                         type={field === "email" ? "email" : "text"}
@@ -225,7 +288,9 @@ export default function CartPage() {
 
               {/* Método de pago */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Método de pago</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
+                  Método de pago
+                </h3>
                 <div className="space-y-2 md:space-y-3">
                   <div
                     className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${selectedPaymentMethod === "mercadopago" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
@@ -236,8 +301,12 @@ export default function CartPage() {
                         <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">Mercado Pago</span>
-                        <p className="text-xs text-gray-500">Tarjeta de crédito/débito o transferencia</p>
+                        <span className="font-medium text-sm md:text-base">
+                          Mercado Pago
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          Tarjeta de crédito/débito o transferencia
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -251,8 +320,12 @@ export default function CartPage() {
                         <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                       </div>
                       <div>
-                        <span className="font-medium text-sm md:text-base">Pago en Efectivo</span>
-                        <p className="text-xs text-gray-500">Abonás al retirar en nuestro local</p>
+                        <span className="font-medium text-sm md:text-base">
+                          Pago en Efectivo
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          Abonás al retirar en nuestro local
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -261,11 +334,34 @@ export default function CartPage() {
 
               {/* Resumen */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 sticky bottom-0 md:static">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">Resumen del pedido</h3>
+                <h3 className="text-lg font-bold text-gray-800 mb-3 md:mb-4">
+                  Resumen del pedido
+                </h3>
                 <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-                  <div className="flex justify-between"><span className="text-gray-600 text-sm md:text-base">Subtotal</span><span className="font-medium text-gray-800 text-sm md:text-base">{formatPrice(subtotal)}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-600 text-sm md:text-base">IVA (21%)</span><span className="font-medium text-gray-800 text-sm md:text-base">{formatPrice(iva)}</span></div>
-                  <div className="flex justify-between pt-3 md:pt-4 border-t border-gray-200"><span className="text-gray-900 font-bold text-sm md:text-base">Total</span><span className="text-gray-900 font-bold text-sm md:text-base">{formatPrice(total)}</span></div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm md:text-base">
+                      Subtotal
+                    </span>
+                    <span className="font-medium text-gray-800 text-sm md:text-base">
+                      {formatPrice(subtotal)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm md:text-base">
+                      IVA (21%)
+                    </span>
+                    <span className="font-medium text-gray-800 text-sm md:text-base">
+                      {formatPrice(iva)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-3 md:pt-4 border-t border-gray-200">
+                    <span className="text-gray-900 font-bold text-sm md:text-base">
+                      Total
+                    </span>
+                    <span className="text-gray-900 font-bold text-sm md:text-base">
+                      {formatPrice(total)}
+                    </span>
+                  </div>
                 </div>
 
                 <Button
@@ -276,17 +372,37 @@ export default function CartPage() {
                   {isProcessing ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      {selectedPaymentMethod === "efectivo" ? "Procesando pedido..." : "Redirigiendo a pago..."}
+                      {selectedPaymentMethod === "efectivo"
+                        ? "Procesando pedido..."
+                        : "Redirigiendo a pago..."}
                     </span>
                   ) : selectedPaymentMethod === "efectivo" ? (
-                    <><DollarSign className="h-4 w-4 md:h-5 md:w-5" /><span className="text-xs md:text-sm">Confirmar pedido para pago en efectivo</span></>
+                    <>
+                      <DollarSign className="h-4 w-4 md:h-5 md:w-5" />
+                      <span className="text-xs md:text-sm">
+                        Confirmar pedido para pago en efectivo
+                      </span>
+                    </>
                   ) : (
-                    <><Image src="/payment-methods/mercado-pago.svg" alt="Mercado Pago" width={64} height={20} className="object-contain" /><span className="text-xs md:text-sm">Pagar con Mercado Pago</span></>
+                    <>
+                      <Image
+                        src="/payment-methods/mercado-pago.svg"
+                        alt="Mercado Pago"
+                        width={64}
+                        height={20}
+                        className="object-contain"
+                      />
+                      <span className="text-xs md:text-sm">
+                        Pagar con Mercado Pago
+                      </span>
+                    </>
                   )}
                 </Button>
 
                 <div className="mt-3 text-xs text-gray-500">
-                  <p>* Los gastos de envío se calcularán al finalizar la compra.</p>
+                  <p>
+                    * Los gastos de envío se calcularán al finalizar la compra.
+                  </p>
                   <p>* Precios incluyen IVA cuando corresponda.</p>
                 </div>
               </div>
