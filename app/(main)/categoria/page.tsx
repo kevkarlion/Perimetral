@@ -1,8 +1,8 @@
-// app/categoria/page.tsx
-'use client'
+// // app/categoria/page.tsx
+// 'use client'
 
-import CategoryProducts from "@/app/components/CategoryProducts"
+// import CategoryProducts from "@/app/components/CategoryProducts"
 
-export default function Catalogo() {
-  return <CategoryProducts />
-}
+// export default function Catalogo() {
+//   return <CategoryProducts />
+// }
