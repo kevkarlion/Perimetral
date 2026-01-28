@@ -18,8 +18,6 @@ export interface IProduct {
   descripcionCorta?: string;
   descripcionLarga?: string;
 
-  codigoPrincipal: string;
-
   precio?: number;
 
   tieneVariaciones?: boolean;
@@ -100,11 +98,10 @@ export const useProductStore = create<ProductStore>()(
       // 🔍 filtros en memoria
       getByCategory: (categoryId) =>
         get().products.filter(
-          (p) => p.categoria && p.categoria._id === categoryId
+          (p) => p.categoria && p.categoria._id === categoryId,
         ),
 
-      getById: (productId) =>
-        get().products.find((p) => p._id === productId),
+      getById: (productId) => get().products.find((p) => p._id === productId),
 
       clearStore: () =>
         set({
@@ -124,6 +121,6 @@ export const useProductStore = create<ProductStore>()(
       onRehydrateStorage: () => (state, error) => {
         if (error) console.error("❌ Error rehidratando productos", error);
       },
-    }
-  )
+    },
+  ),
 );
