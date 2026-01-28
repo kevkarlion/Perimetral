@@ -12,9 +12,10 @@ export default function CategoryProducts() {
 
   const { products, loading, error } = useProductStore()
 
+  // 1. LOADING
   if (loading) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <CategoryProductsSkeleton />
         </div>
@@ -22,8 +23,16 @@ export default function CategoryProducts() {
     )
   }
 
-  if (error) return <p className="text-center py-8 text-red-500">{error}</p>
+  // 2. ERROR
+  if (error) {
+    return (
+      <p className="text-center py-16 text-red-500">
+        {error}
+      </p>
+    )
+  }
 
+  // 3. FILTRADO (solo cuando ya terminó de cargar)
   const filteredProducts = products.filter(p => {
     if (!p.categoria) return false
     return typeof p.categoria === 'string'
@@ -31,14 +40,21 @@ export default function CategoryProducts() {
       : p.categoria._id === categoryId
   })
 
-  const categoryName = filteredProducts[0]?.categoria?.nombre || 'Categoría'
+  const categoryName =
+    filteredProducts[0]?.categoria?.nombre || 'Categoría'
 
+  // 4. EMPTY STATE
   if (filteredProducts.length === 0) {
-    return <p className="text-center py-8 text-gray-500">No hay productos en esta categoría</p>
+    return (
+      <p className="text-center py-16 text-gray-500">
+        No hay productos en esta categoría
+      </p>
+    )
   }
 
+  // 5. DATA
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-background text-foreground">
       <div className="container mx-auto px-4">
         <div className="text-sm text-gray-600 mb-4 flex gap-2 items-center">
           <Link href="/" className="hover:text-brand cursor-pointer">
@@ -48,7 +64,9 @@ export default function CategoryProducts() {
           <span className="font-semibold">{categoryName}</span>
         </div>
 
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">{categoryName}</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          {categoryName}
+        </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map(product => (

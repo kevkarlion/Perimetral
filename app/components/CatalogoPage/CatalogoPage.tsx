@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import useSWR from 'swr'
-import Link from 'next/link'
-import Image from 'next/image'
-import CategoryProductsSkeleton from '@/app/components/Skeletons/CategoryProductsSkeleton'
+import { useState } from "react";
+import useSWR from "swr";
+import Link from "next/link";
+import Image from "next/image";
+import CatalogoProductsSkeleton from "@/app/components/Skeletons/CategoryProductsSkeleton";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Product {
-  _id: string
-  nombre: string
-  descripcionCorta?: string
-  imagenes: string[]
-  destacado?: boolean
-  activo?: boolean
-  categoria?: { nombre: string }
-  variationsCount?: number
+  _id: string;
+  nombre: string;
+  descripcionCorta?: string;
+  imagenes: string[];
+  destacado?: boolean;
+  activo?: boolean;
+  categoria?: { nombre: string };
+  variationsCount?: number;
 }
 
 export default function CatalogoPage() {
-  const { data, error, isLoading } = useSWR('/api/products', fetcher)
+  const { data, error, isLoading } = useSWR("/api/products", fetcher);
 
-  const products: Product[] = Array.isArray(data?.data) ? data.data : []
+  const products: Product[] = Array.isArray(data?.data) ? data.data : [];
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-background text-foreground ">
         <div className="container mx-auto px-4">
-          <CategoryProductsSkeleton />
+          <CatalogoProductsSkeleton />
         </div>
       </section>
-    )
+    );
   }
 
   if (error) {
@@ -39,7 +39,7 @@ export default function CatalogoPage() {
       <section className="py-16 bg-gray-50 text-center">
         <p className="text-red-500 text-lg">Error al cargar los productos</p>
       </section>
-    )
+    );
   }
 
   if (products.length === 0) {
@@ -47,11 +47,11 @@ export default function CatalogoPage() {
       <section className="py-16 bg-gray-50 text-center">
         <p className="text-gray-500 text-lg">No hay productos disponibles</p>
       </section>
-    )
+    );
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16  bg-background text-foreground">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-bold text-gray-900 mb-12 text-center">
           Catálogo de productos
@@ -64,18 +64,19 @@ export default function CatalogoPage() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 // -------------------------
 // Componente ProductCard
 // -------------------------
 function ProductCard({ product }: { product: Product }) {
-  const [currentImage, setCurrentImage] = useState(0)
-  const totalImages = product.imagenes?.length || 0
+  const [currentImage, setCurrentImage] = useState(0);
+  const totalImages = product.imagenes?.length || 0;
 
-  const nextImage = () => setCurrentImage((prev) => (prev + 1) % totalImages)
-  const prevImage = () => setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages)
+  const nextImage = () => setCurrentImage((prev) => (prev + 1) % totalImages);
+  const prevImage = () =>
+    setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition">
@@ -142,19 +143,19 @@ function ProductCard({ product }: { product: Product }) {
 
         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
           <span>
-            {product.variationsCount ?? 0 > 0
-              ? `${product.variationsCount} variante${product.variationsCount !== 1 ? 's' : ''}`
-              : 'Sin variaciones'}
+            {(product.variationsCount ?? 0 > 0)
+              ? `${product.variationsCount} variante${product.variationsCount !== 1 ? "s" : ""}`
+              : "Sin variaciones"}
           </span>
 
           <span
             className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
               product.activo
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
             }`}
           >
-            {product.activo ? 'Activo' : 'Inactivo'}
+            {product.activo ? "Activo" : "Inactivo"}
           </span>
         </div>
 
@@ -166,5 +167,5 @@ function ProductCard({ product }: { product: Product }) {
         </Link>
       </div>
     </div>
-  )
+  );
 }

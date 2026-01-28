@@ -5,7 +5,7 @@ export default function CategoriesSkeleton() {
   const skeletonItems = Array.from({ length: 8 })
 
   return (
-    <section className="py-20 bg-gray-50" id="categories-skeleton">
+    <section className="py-20 bg-background text-foreground" id="categories-skeleton">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-14">
           <span className="inline-block w-64 h-8 bg-gray-300 rounded-md animate-pulse mx-auto"></span>

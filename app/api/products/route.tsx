@@ -5,25 +5,17 @@ import { productController } from "@/backend/lib/controllers/productControllers"
 export async function POST(req: Request) {
   await dbConnect();
   const body = await req.json();
-  console.log("IMAGENES RECIBIDAS:", body.imagenes);
-
   return productController.create(body);
 }
 
-
-
-
 export async function GET(req: Request) {
   await dbConnect();
-
   const { searchParams } = new URL(req.url);
   const categoryId = searchParams.get("categoryId");
-
   if (categoryId) {
     // si viene categoryId, filtramos por categoría
     return productController.getByCategory(categoryId);
   }
-
   // si no viene categoryId, devolvemos todos los productos
   return productController.getAll();
 }

@@ -1,4 +1,5 @@
 import { Schema, model, models, Types } from "mongoose";
+import crypto from "crypto";
 import { IProductBase } from "@/types/productTypes";
 
 const ProductSchema = new Schema<IProductBase>(
@@ -8,6 +9,8 @@ const ProductSchema = new Schema<IProductBase>(
       required: true,
       unique: true,
       trim: true,
+      default: () =>
+        "PRD-" + crypto.randomBytes(3).toString("hex").toUpperCase(),
     },
 
     nombre: {
@@ -34,7 +37,6 @@ const ProductSchema = new Schema<IProductBase>(
 
     proveedor: String,
 
-    // 👇 NUEVO
     imagenes: {
       type: [String],
       default: [],
@@ -50,11 +52,18 @@ const ProductSchema = new Schema<IProductBase>(
       default: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-
+// SKU + SLUG AUTOMÁTICOS
 ProductSchema.pre("validate", function (next) {
+  // SKU
+  if (!this.codigoPrincipal) {
+    this.codigoPrincipal =
+      "PRD-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+  }
+
+  // Slug
   if (!this.slug && this.nombre) {
     this.slug = this.nombre
       .toLowerCase()

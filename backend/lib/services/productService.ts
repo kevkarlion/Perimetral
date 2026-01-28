@@ -9,7 +9,7 @@ import Variation from "@/backend/lib/models/VariationModel";
 export const productService = {
   async create(data: Partial<IProductBase>) {
   if (!data.nombre) throw new Error("El nombre del producto es obligatorio");
-  if (!data.codigoPrincipal) throw new Error("El código principal es obligatorio");
+  
   if (!data.categoria) throw new Error("La categoría es obligatoria");
 
   if (!Types.ObjectId.isValid(String(data.categoria))) {
@@ -26,19 +26,16 @@ export const productService = {
   }
 
   const product = new Product({
-    codigoPrincipal: data.codigoPrincipal,
-    nombre: data.nombre,
-    categoria: data.categoria,
-    descripcionCorta: data.descripcionCorta,
-    descripcionLarga: data.descripcionLarga,
-    proveedor: data.proveedor,
+  nombre: data.nombre,
+  categoria: data.categoria,
+  descripcionCorta: data.descripcionCorta,
+  descripcionLarga: data.descripcionLarga,
+  proveedor: data.proveedor,
+  imagenes: data.imagenes?.length ? data.imagenes : [],
+  destacado: data.destacado ?? false,
+  activo: data.activo ?? true,
+});
 
-    // 👇 CLAVE
-     imagenes: data.imagenes?.length ? data.imagenes : [],
-
-    destacado: data.destacado ?? false,
-    activo: data.activo ?? true,
-  });
 
   await product.save();
   return product;

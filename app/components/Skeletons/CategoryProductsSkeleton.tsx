@@ -4,7 +4,7 @@ export default function CategoryProductsSkeleton() {
   const skeletonItems = Array.from({ length: 3 })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-foreground ">
       {/* Breadcrumb Skeleton: solo 2 lineas finas */}
       <div className="flex gap-2 items-center text-sm">
         <div className="w-12 h-3 bg-gray-200 rounded animate-pulse"></div>

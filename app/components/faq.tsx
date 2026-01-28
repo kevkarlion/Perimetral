@@ -49,13 +49,13 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="bg-gray-50 py-16">
+    <section className="bg-background text-foreground py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 flex flex-col items-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Preguntas Frecuentes
           </h2>
-          <p className="max-w-[700px] pb-8 font-bold  text-center text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+          <p className="max-w-[700px] pb-8 font-semibold  text-center text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
             Resolvemos tus dudas sobre cercos perimetrales en el Alto Valle
           </p>
         </div>

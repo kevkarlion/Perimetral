@@ -54,7 +54,7 @@ export default function ServicesBanner() {
     ];
 
   return (
-    <section className="py-10 px-2 bg-gray-50">
+    <section className="py-10 px-2 bg-background text-foreground">
       <div className="container mx-auto px-6 ">
         <div className="flex flex-col items-center justify-center">
 

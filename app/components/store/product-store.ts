@@ -57,7 +57,7 @@ export const useProductStore = create<ProductStore>()(
   persist(
     (set, get) => ({
       products: [],
-      loading: false,
+      loading: true,
       initialized: false,
       error: null,
 

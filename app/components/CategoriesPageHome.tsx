@@ -36,7 +36,7 @@ export default function CategoriesPageHome() {
   const categories = data.data || [];
 
   return (
-    <section className="py-20 bg-gray-50" id="categories">
+    <section className="py-20 bg-background text-foreground construction-pattern" id="categories">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-14">
           Explorá nuestras <span className="text-brand">Categorías</span>

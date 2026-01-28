@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useState } from "react";
 import { ICategory } from "@/app/components/store/category-store";
@@ -15,7 +15,6 @@ export default function CreateProductModal({
   category,
   onClose,
 }: CreateProductModalProps) {
-  const [codigoPrincipal, setCodigoPrincipal] = useState("");
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
   const [descripcionCorta, setDescripcionCorta] = useState("");
@@ -24,7 +23,7 @@ export default function CreateProductModal({
   const [destacado, setDestacado] = useState(false);
   const [activo, setActivo] = useState(true);
 
-  // 👇 IMÁGENES CLOUDINARY
+  // IMÁGENES
   const [imagenes, setImagenes] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -37,8 +36,8 @@ export default function CreateProductModal({
   };
 
   const handleSave = async () => {
-    if (!codigoPrincipal || !nombre || imagenes.length === 0) {
-      setError("Código, nombre e imágenes son obligatorios");
+    if (!nombre || imagenes.length === 0) {
+      setError("Nombre e imágenes son obligatorios");
       return;
     }
 
@@ -50,7 +49,6 @@ export default function CreateProductModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          codigoPrincipal,
           nombre,
           slug,
           categoria: category._id,
@@ -59,7 +57,7 @@ export default function CreateProductModal({
           proveedor,
           destacado,
           activo,
-          imagenes, // 👈 ya vienen de Cloudinary
+          imagenes,
         }),
       });
 
@@ -96,14 +94,6 @@ export default function CreateProductModal({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Código *">
-              <input
-                value={codigoPrincipal}
-                onChange={(e) => setCodigoPrincipal(e.target.value)}
-                className="field"
-              />
-            </Field>
-
             <Field label="Nombre *">
               <input
                 value={nombre}
@@ -112,11 +102,12 @@ export default function CreateProductModal({
               />
             </Field>
 
-            <Field label="Slug">
+            <Field label="Slug (opcional)">
               <input
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 className="field"
+                placeholder="Se genera solo si lo dejás vacío"
               />
             </Field>
 

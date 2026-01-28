@@ -21,7 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="w-full h-full object-cover"
         />
 
-        {/* BADGE DE CANTIDAD */}
+        {/* BADGE CANTIDAD */}
         {product.imagenes && product.imagenes.length > 1 && (
           <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
             +{product.imagenes.length - 1}
@@ -47,49 +47,35 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* NOMBRE */}
-        <h3 className="text-base font-semibold text-gray-900 leading-tight mb-1 line-clamp-2">
+        <h3 className="text-base font-semibold text-gray-900 leading-tight mb-2 line-clamp-2">
           {product.nombre}
         </h3>
 
-        {/* CÓDIGO */}
-        <span className="text-xs text-gray-500 mb-2">
-          Código: <span className="font-medium">{product.codigoPrincipal}</span>
-        </span>
-
         {/* DESCRIPCIÓN */}
         {product.descripcionCorta && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
             {product.descripcionCorta}
           </p>
         )}
 
-        {/* VARIANTES */}
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-          <span>
+        {/* FOOTER */}
+        <div className="flex items-center justify-between mt-auto">
+
+          {/* VARIANTES */}
+          <span className="text-xs text-gray-500">
             {product.variationsCount > 0
               ? `${product.variationsCount} variante${product.variationsCount !== 1 ? 's' : ''}`
               : 'Sin variaciones'}
           </span>
 
-          {/* ESTADO */}
-          <span
-            className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
-              product.activo
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
-            }`}
+          {/* CTA */}
+          <Link
+            href={`/variants?productId=${product._id}`}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded"
           >
-            {product.activo ? 'Activo' : 'Inactivo'}
-          </span>
+            Ver
+          </Link>
         </div>
-
-        {/* CTA */}
-        <Link
-          href={`/variants?productId=${product._id}`}
-          className="mt-auto w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded"
-        >
-          Ver Variantes
-        </Link>
       </div>
     </div>
   )

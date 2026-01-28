@@ -1,168 +1,92 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ICategory } from "@/app/components/store/category-store";
-import CreateProductModal from "./CreateProductModal";
-import ProductVariationsModal from "./ProductVariationsModal";
+import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
+import ProductCard from "@/app/components/ProductCard";
+import { IProduct } from "@/app/components/store/product-store";
+import Link from "next/link";
+import CategoryProductsSkeleton from "@/app/components/Skeletons/CategoryProductsSkeleton";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Product {
   _id: string;
-  codigoPrincipal: string;
   nombre: string;
-  slug?: string;
   descripcionCorta?: string;
-  descripcionLarga?: string;
-  proveedor?: string;
+  imagenes: string[];
   destacado?: boolean;
   activo?: boolean;
+  categoria?: {
+    _id: string;
+    nombre: string;
+  };
   variationsCount?: number;
 }
 
-interface CategoryProductsModalProps {
-  isOpen: boolean;
-  category: ICategory | null;
-  onClose: () => void;
-}
+export default function CategoryProducts() {
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get("category");
 
-export default function CategoryProductsModal({
-  isOpen,
-  category,
-  onClose,
-}: CategoryProductsModalProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [variationsProduct, setVariationsProduct] = useState<Product | null>(
-    null,
+  const { data, error, isLoading } = useSWR(
+    categoryId ? `/api/products?categoryId=${categoryId}` : null,
+    fetcher
   );
 
-  const fetchProducts = async () => {
-    if (!category) return;
-    setLoading(true);
-    setError(null);
+  const products: IProduct[] = Array.isArray(data?.data) ? data.data : [];
 
-    try {
-      const res = await fetch(`/api/products?categoryId=${category._id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = await res.json();
-      if (!result?.data)
-        throw new Error(result.error || "Error al traer productos");
-      setProducts(result.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 1. LOADING
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <CategoryProductsSkeleton />
+        </div>
+      </section>
+    );
+  }
 
-  useEffect(() => {
-    if (isOpen && category) fetchProducts();
-  }, [isOpen, category]);
+  // 2. ERROR
+  if (error) {
+    return (
+      <p className="text-center py-16 text-red-500">
+        Error al cargar los productos
+      </p>
+    );
+  }
 
-  if (!isOpen || !category) return null;
+  // 3. EMPTY
+  if (products.length === 0) {
+    return (
+      <p className="text-center py-16 text-gray-500">
+        No hay productos en esta categoría
+      </p>
+    );
+  }
 
+  const categoryName = products[0]?.categoria?.nombre || "Categoría";
+
+  // 4. DATA
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-        <h2 className="text-xl text-black font-bold mb-4">
-          Productos de la Categoría "{category.nombre}"
-        </h2>
-
-        <button
-          onClick={() => setCreateModalOpen(true)}
-          className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          + Crear Producto Nuevo
-        </button>
-
-        {loading && <p>Cargando productos...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-
-        <ul className="space-y-1 max-h-96 overflow-y-auto border-t border-gray-200 pt-2">
-          {products.map((p) => (
-            <li
-              key={p._id}
-              className="flex justify-between items-center border-b py-2 px-2"
-            >
-              <div>
-                <p className="font-medium flex items-center gap-2 text-black">
-                  {p.nombre}
-
-                  {p.variationsCount && p.variationsCount > 1 && (
-                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                      {p.variationsCount} variaciones
-                    </span>
-                  )}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Cod: {p.codigoPrincipal}
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setVariationsProduct(p)}
-                  className=" text-white px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-700"
-                >
-                  Ver variaciones
-                </button>
-
-                <button
-                  onClick={async () => {
-                    if (!confirm(`¿Eliminar el producto "${p.nombre}"?`))
-                      return;
-
-                    try {
-                      const res = await fetch(`/api/products/${p._id}`, {
-                        method: "DELETE",
-                      });
-
-                      if (!res.ok) throw new Error("No se pudo eliminar");
-
-                      fetchProducts();
-                    } catch (err) {
-                      alert("Error eliminando producto");
-                    }
-                  }}
-                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded border hover:bg-gray-100 text-black"
-          >
-            Cerrar
-          </button>
+    <section className="py-16 bg-background text-foreground">
+      <div className="container mx-auto px-4">
+        <div className="text-sm text-gray-600 mb-4 flex gap-2 items-center">
+          <Link href="/" className="hover:text-brand cursor-pointer">
+            Inicio
+          </Link>
+          <span>›</span>
+          <span className="font-semibold">{categoryName}</span>
         </div>
 
-        {createModalOpen && category && (
-          <CreateProductModal
-            isOpen={createModalOpen}
-            category={category}
-            onClose={() => {
-              setCreateModalOpen(false);
-              fetchProducts();
-            }}
-          />
-        )}
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          {categoryName}
+        </h2>
 
-        {variationsProduct && (
-          <ProductVariationsModal
-            product={variationsProduct}
-            isOpen={!!variationsProduct}
-            onClose={() => setVariationsProduct(null)}
-          />
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

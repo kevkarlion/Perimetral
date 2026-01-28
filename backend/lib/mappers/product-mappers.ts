@@ -4,8 +4,7 @@ import { IProductBase } from "@/types/productTypes";
 
 export function mapCreateProductToDomain(body: any): Partial<IProductBase> {
   if (!body.nombre) throw new Error("El nombre es obligatorio");
-  if (!body.codigoPrincipal)
-    throw new Error("El código principal es obligatorio");
+  
 
   const categoria =
     typeof body.categoria === "string"
