@@ -7,7 +7,7 @@ import EditVariationModal from "./EditVariationModal"
 interface Product {
   _id: string
   nombre: string
-    variationsCount?: number; // 👈 NUEVO
+  variationsCount?: number
 }
 
 interface Variation {
@@ -33,6 +33,8 @@ export default function ProductVariationsModal({
   const [variations, setVariations] = useState<Variation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editVariation, setEditVariation] = useState<Variation | null>(null)
 
@@ -71,6 +73,13 @@ export default function ProductVariationsModal({
           + Crear variación
         </button>
 
+        {/* SUCCESS */}
+        {success && (
+          <div className="bg-green-50 text-green-700 px-4 py-2 rounded text-sm mb-3">
+            {success}
+          </div>
+        )}
+
         {loading && <p>Cargando...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
@@ -100,10 +109,22 @@ export default function ProductVariationsModal({
                 <button
                   onClick={async () => {
                     if (!confirm("¿Desactivar esta variación?")) return
-                    await fetch(`/api/variations/${v._id}`, {
-                      method: "DELETE",
-                    })
-                    fetchVariations()
+
+                    try {
+                      const res = await fetch(
+                        `/api/variations/${v._id}/desactivate`,
+                        { method: "PATCH" }
+                      )
+
+                      if (!res.ok) throw new Error()
+
+                      await fetchVariations()
+                      setSuccess("Variación desactivada correctamente")
+                      setTimeout(() => setSuccess(null), 3000)
+
+                    } catch {
+                      setError("Error desactivando variación")
+                    }
                   }}
                   className="px-2 py-1 bg-red-600 text-white rounded"
                 >

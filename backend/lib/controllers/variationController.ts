@@ -2,12 +2,13 @@
 import { variationService } from "@/backend/lib/services/variationService";
 import { NextResponse } from "next/server";
 import VariationModel from "@/backend/lib/models/VariationModel";
-import { IVariationBase } from "@/types/variationsTypes";
+
 
 export const variationController = {
   async create(req: Request) {
     try {
       const body = await req.json();
+      console.log("REQUEST BODY:", body);
       const variation = await variationService.create(body);
 
       return NextResponse.json({

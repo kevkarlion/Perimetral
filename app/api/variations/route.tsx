@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   const productId = req.nextUrl.searchParams.get("productId");
-
+  
   if (!productId) {
     return new Response(
       JSON.stringify({

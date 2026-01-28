@@ -2,19 +2,16 @@
 
 import { useState } from "react";
 import CloudinaryUploader from "@/app/components/CloudinaryUploader";
+import { IVariationAttribute } from "@/types/variation.frontend";
 
-interface Product {
+// Tipo de producto frontend (mínimo necesario)
+interface IProductRef {
   _id: string;
   nombre: string;
 }
 
-interface Attribute {
-  nombre: string;
-  valor: string;
-}
-
 interface Props {
-  product: Product;
+  product: IProductRef;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -24,49 +21,50 @@ export default function CreateVariationModal({
   isOpen,
   onClose,
 }: Props) {
-  const [codigo, setCodigo] = useState("");
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [medida, setMedida] = useState("");
   const [uMedida, setUMedida] = useState("");
-  const [precio, setPrecio] = useState(0);
-  const [stock, setStock] = useState(0);
+  const [precio, setPrecio] = useState<number>(0);
+  const [stock, setStock] = useState<number>(0);
   const [imagenes, setImagenes] = useState<string[]>([]);
-  const [atributos, setAtributos] = useState<Attribute[]>([]);
+  const [atributos, setAtributos] = useState<IVariationAttribute[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
+  // --------------------
   // ATRIBUTOS
+  // --------------------
   const handleAddAttribute = () =>
-    setAtributos([...atributos, { nombre: "", valor: "" }]);
+    setAtributos((prev) => [...prev, { nombre: "", valor: "" }]);
+
   const handleChangeAttribute = (
     index: number,
-    field: "nombre" | "valor",
+    field: keyof IVariationAttribute,
     value: string,
   ) => {
     const newAttrs = [...atributos];
     newAttrs[index][field] = value;
     setAtributos(newAttrs);
   };
-  const handleRemoveAttribute = (index: number) =>
-    setAtributos(atributos.filter((_, i) => i !== index));
 
-  // ELIMINAR IMAGEN
+  const handleRemoveAttribute = (index: number) =>
+    setAtributos((prev) => prev.filter((_, i) => i !== index));
+
+  // --------------------
+  // IMÁGENES
+  // --------------------
   const handleRemoveImage = (url: string) => {
-    setImagenes(imagenes.filter((i) => i !== url));
+    setImagenes((prev) => prev.filter((i) => i !== url));
   };
 
-  // GUARDAR VARIACIÓN
+  // --------------------
+  // GUARDAR
+  // --------------------
   const handleSave = async () => {
-    if (
-      !codigo ||
-      !nombre ||
-      precio < 0 ||
-      stock < 0 ||
-      imagenes.length === 0
-    ) {
+    if (!nombre || precio < 0 || stock < 0 || imagenes.length === 0) {
       setError("Completa todos los campos obligatorios");
       return;
     }
@@ -80,7 +78,6 @@ export default function CreateVariationModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product: product._id,
-          codigo,
           nombre,
           descripcion,
           medida,
@@ -93,6 +90,7 @@ export default function CreateVariationModal({
       });
 
       if (!res.ok) throw new Error();
+
       onClose();
     } catch {
       setError("Error creando variación");
@@ -101,8 +99,11 @@ export default function CreateVariationModal({
     }
   };
 
+  // --------------------
+  // UI
+  // --------------------
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-[80] ">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-[80]">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
         {/* HEADER */}
         <div className="px-6 py-4 border-b bg-gray-50">
@@ -123,13 +124,6 @@ export default function CreateVariationModal({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Código *">
-              <input
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                className="field"
-              />
-            </Field>
             <Field label="Nombre *">
               <input
                 value={nombre}
@@ -137,22 +131,25 @@ export default function CreateVariationModal({
                 className="field"
               />
             </Field>
+
             <Field label="Precio *">
               <input
                 type="number"
                 value={precio}
-                onChange={(e) => setPrecio(+e.target.value)}
+                onChange={(e) => setPrecio(Number(e.target.value))}
                 className="field"
               />
             </Field>
+
             <Field label="Stock *">
               <input
                 type="number"
                 value={stock}
-                onChange={(e) => setStock(+e.target.value)}
+                onChange={(e) => setStock(Number(e.target.value))}
                 className="field"
               />
             </Field>
+
             <Field label="Medida">
               <input
                 value={medida}
@@ -160,6 +157,7 @@ export default function CreateVariationModal({
                 className="field"
               />
             </Field>
+
             <Field label="Unidad">
               <input
                 value={uMedida}
@@ -181,9 +179,12 @@ export default function CreateVariationModal({
           <Field label="Imágenes *">
             <CloudinaryUploader
               existingImages={imagenes}
-              onImageUpload={(url) => setImagenes((prev) => [...prev, url])}
+              onImageUpload={(url) =>
+                setImagenes((prev) => [...prev, url])
+              }
               folder="variations"
             />
+
             {imagenes.length > 0 && (
               <div className="mt-4 grid grid-cols-4 gap-2">
                 {imagenes.map((img, idx) => (
@@ -196,7 +197,7 @@ export default function CreateVariationModal({
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(img)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-80 hover:opacity-100"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
                     >
                       ✕
                     </button>
@@ -269,6 +270,8 @@ export default function CreateVariationModal({
     </div>
   );
 }
+
+// --------------------------------
 
 function Field({
   label,

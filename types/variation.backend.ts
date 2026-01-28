@@ -1,20 +1,18 @@
 import { Types, Document } from "mongoose";
 
 /**
- * Atributo dinámico de una variación
- * Ej: Material: Acero galvanizado
+ * Atributo dinámico de una variación (backend)
  */
-export interface IVariationAttribute {
+export interface IVariationAttributeBackend {
   nombre: string;
-  valor: string | number | boolean;
+  valor: string;
 }
 
 /**
- * Variación (entidad vendible)
+ * Base de la variación en Mongo
  */
-export interface IVariationBase {
-  _id?: Types.ObjectId | string;
-  product: Types.ObjectId | string;
+export interface IVariationBackend {
+  product: Types.ObjectId;
   codigo: string;
   nombre: string;
   descripcion?: string;
@@ -23,13 +21,11 @@ export interface IVariationBase {
   precio: number;
   stock: number;
   stockMinimo?: number;
-  atributos?: IVariationAttribute[];
+  atributos?: IVariationAttributeBackend[];
   imagenes: string[];
   activo?: boolean;
-
-  // ✅ NUEVOS CAMPOS
   destacada?: boolean;
-  descuento?: string; // texto representativo
+  descuento?: string;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -39,7 +35,7 @@ export interface IVariationBase {
  * Documento Mongoose
  */
 export interface IVariationDocument
-  extends IVariationBase,
+  extends IVariationBackend,
     Document {
   _id: Types.ObjectId;
 }

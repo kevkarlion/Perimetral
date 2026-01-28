@@ -5,70 +5,71 @@ import Product from "@/backend/lib/models/Product";
 import { UpdateVariationDTO } from "@/backend/lib/dto/variation";
 import StockMovement from "@/backend/lib/models/StockMovement";
 import { StockMovementService } from "@/backend/lib/herlpers/stockMovementService";
+import { IVariationBackend } from "@/types/variation.backend";
+
 
 export const variationService = {
-  async create(data: any) {
-  if (!data.product) {
-    throw new Error("El producto es obligatorio");
-  }
-
-  if (!Types.ObjectId.isValid(data.product)) {
-    throw new Error("ID de producto inválido");
-  }
-
-  const productExists = await Product.exists({
-    _id: data.product,
-    activo: true,
-  });
-
-  if (!productExists) {
-    throw new Error("El producto no existe o está inactivo");
-  }
-
-  if (!data.codigo) throw new Error("El código de variación es obligatorio");
-  if (!data.nombre) throw new Error("El nombre de la variación es obligatorio");
-  if (data.precio === undefined) throw new Error("El precio es obligatorio");
-  if (data.stock === undefined) throw new Error("El stock es obligatorio");
-
-  if (!data.imagenes || data.imagenes.length === 0) {
-    throw new Error("Debe incluir al menos una imagen");
-  }
-
-  // 1️⃣ Crear variación
-  const variation = await Variation.create({
-    product: data.product,
-    codigo: data.codigo,
-    nombre: data.nombre,
-    descripcion: data.descripcion,
-    medida: data.medida,
-    uMedida: data.uMedida,
-    precio: data.precio,
-    stock: data.stock,
-    stockMinimo: data.stockMinimo ?? 5,
-    atributos: data.atributos ?? [],
-    imagenes: data.imagenes,
-    activo: data.activo ?? true,
-
-    // ✅ NUEVOS CAMPOS
-    destacada: data.destacada ?? false,   // checkbox
-    descuento: data.descuento ?? "",      // texto representativo
-  });
-
-  // 2️⃣ Movimiento inicial de stock
-  if (variation.stock > 0) {
-    await StockMovementService.createMovement({
-      productId: new Types.ObjectId(variation.product),
-      variationId: variation._id,
-      type: "IN",
-      reason: "MANUAL",
-      quantity: variation.stock,
-      previousStock: 0,
-      newStock: variation.stock,
+async create(data: IVariationBackend) {
+    console.log("SERVICE DATA:", data);
+    // 1️⃣ Validaciones básicas
+    if (!data.product) {
+      throw new Error("El producto es obligatorio");
+    }
+    // 👉 ACÁ se valida el string
+    if (!Types.ObjectId.isValid(data.product as any)) {
+      throw new Error("ID de producto inválido");
+    }
+    // 👉 ACÁ se hace la conversión REAL string → ObjectId
+    const productId = new Types.ObjectId(data.product);
+    const productExists = await Product.exists({
+      _id: productId,
+      activo: true,
     });
-  }
+    if (!productExists) {
+      throw new Error("El producto no existe o está inactivo");
+    }
 
-  return variation;
-},
+    if (!data.nombre) throw new Error("El nombre de la variación es obligatorio");
+    if (data.precio === undefined) throw new Error("El precio es obligatorio");
+    if (data.stock === undefined) throw new Error("El stock es obligatorio");
+
+    if (!data.imagenes || data.imagenes.length === 0) {
+      throw new Error("Debe incluir al menos una imagen");
+    }
+
+    // 2️⃣ Crear variación (sin codigo, lo genera el schema)
+    const variation = await Variation.create({
+      product: productId, // 👈 ya convertido
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      medida: data.medida,
+      uMedida: data.uMedida,
+      precio: data.precio,
+      stock: data.stock,
+      stockMinimo: data.stockMinimo ?? 5,
+      atributos: data.atributos ?? [],
+      imagenes: data.imagenes,
+      activo: data.activo ?? true,
+      destacada: data.destacada ?? false,
+      descuento: data.descuento ?? "",
+    });
+
+    // 3️⃣ Movimiento inicial de stock
+    if (variation.stock > 0) {
+      await StockMovementService.createMovement({
+        productId: productId,
+        variationId: variation._id,
+        type: "IN",
+        reason: "MANUAL",
+        quantity: variation.stock,
+        previousStock: 0,
+        newStock: variation.stock,
+      });
+    }
+
+    return variation;
+  },
+
 
 
   async getByProduct(productId: string) {

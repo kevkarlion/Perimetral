@@ -1,18 +1,14 @@
-import { Schema, model, models, Types } from "mongoose";
-import { IVariationDocument } from "@/types/variationsTypes";
+import { Schema, model, models } from "mongoose";
+import { IVariationDocument } from "@/types/variation.backend";
 
-// 🔹 Subschema de atributos
-// 🔹 Subschema de atributos
 const AttributeSchema = new Schema(
   {
-    nombre: { type: String, required: true, trim: true }, // ej: "Material", "Color"
-    valor: { type: String, required: true, trim: true },  // ej: "Acero galvanizado", "Rojo"
+    nombre: { type: String, required: true, trim: true },
+    valor: { type: String, required: true, trim: true },
   },
   { _id: false },
-)
+);
 
-
-// 🔹 Schema principal de Variación
 const VariationSchema = new Schema<IVariationDocument>(
   {
     product: {
@@ -22,7 +18,8 @@ const VariationSchema = new Schema<IVariationDocument>(
       index: true,
     },
 
-    codigo: { type: String, required: true, unique: true, trim: true },
+    codigo: { type: String, unique: true, trim: true },
+
     nombre: { type: String, required: true, trim: true },
     descripcion: { type: String, trim: true },
     medida: { type: String, trim: true },
@@ -33,15 +30,20 @@ const VariationSchema = new Schema<IVariationDocument>(
     atributos: { type: [AttributeSchema], default: [] },
     imagenes: { type: [String], required: true },
     activo: { type: Boolean, default: true },
-
-    // ✅ NUEVOS CAMPOS
     destacada: { type: Boolean, default: false },
-    descuento: { type: String, default: "" }, // texto representativo
+    descuento: { type: String, default: "" },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
+
+// 🔥 AUTOGENERAR CÓDIGO
+VariationSchema.pre("save", async function (next) {
+  if (this.codigo) return next();
+
+  const count = await models.Variation.countDocuments();
+  this.codigo = `VAR-${String(count + 1).padStart(6, "0")}`;
+  next();
+});
 
 
 export default models.Variation ||
