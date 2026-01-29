@@ -14,76 +14,75 @@ import { sendEmail } from "@/backend/lib/services/email.service";
 import { orderConfirmationEmail } from "@/backend/lib/email/orderConfirmationEmail";
 
 export class OrderService {
-  static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
-    // 1️⃣ Validar carrito contra DB (strings)
-    const validatedItems = await validateCartItems(data.items);
+ static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
+  // 1️⃣ Validar carrito
+  const validatedItems = await validateCartItems(data.items);
 
-    // 2️⃣ Totales (con precios reales)
-    const { subtotal, iva } = calculateTotals(validatedItems);
+  // 2️⃣ Totales
+  const { subtotal, iva } = calculateTotals(validatedItems);
+  const total = subtotal + iva + (data.shippingCost || 0) - (data.discount || 0);
 
-    const total =
-      subtotal + iva + (data.shippingCost || 0) - (data.discount || 0);
+  // 3️⃣ Normalizar IDs para Mongo
+  const dbItems = validatedItems.map(item => ({
+    ...item,
+    productId: new Types.ObjectId(item.productId),
+    variationId: item.variationId ? new Types.ObjectId(item.variationId) : undefined,
+  }));
 
-    // 3️⃣ Normalizar IDs para Mongo
-    const dbItems = validatedItems.map((item) => ({
-      ...item,
-      productId: new Types.ObjectId(item.productId),
-      variationId: item.variationId
-        ? new Types.ObjectId(item.variationId)
-        : undefined,
-    }));
+  // 4️⃣ Crear orden
+  const order: IOrder = new Order({
+    customer: data.customer,
+    items: dbItems,
+    subtotal,
+    vat: iva,
+    total,
+    shippingCost: data.shippingCost || 0,
+    discount: data.discount || 0,
+    paymentMethod: data.paymentMethod,
+    status: "pending",
+    orderNumber: `ORD-${Date.now()}`,
+    accessToken: Math.random().toString(36).substring(2, 10),
+  });
 
-    // 4️⃣ Crear orden (sin pisar fields)
-    const order: IOrder = new Order({
-      customer: data.customer,
-      items: dbItems,
-      subtotal,
-      vat: iva,
-      total,
-      shippingCost: data.shippingCost || 0,
-      discount: data.discount || 0,
-      paymentMethod: data.paymentMethod,
+  await order.save();
+
+  let paymentUrl: string | undefined;
+
+  if (data.paymentMethod === "mercadopago") {
+    // 🔹 Crear preferencia de MP
+    const preference = await MercadoPagoService.createPreference(order);
+
+    order.paymentDetails = {
+      method: "mercadopago",
       status: "pending",
-      orderNumber: `ORD-${Date.now()}`,
-      accessToken: Math.random().toString(36).substring(2, 10),
-    });
+      mercadopagoPreferenceId: preference.id,
+      paymentUrl: preference.init_point,
+    };
 
+    order.status = "pending_payment";
     await order.save();
 
-    let paymentUrl: string | undefined;
+    paymentUrl = preference.init_point;
+    // NO enviamos mail acá, lo hará el webhook cuando se apruebe el pago
+  } else {
+    // 🔹 Otros métodos (efectivo, transferencia, etc.) → mail inmediato
+    order.status = "pending"; // Opcional, si querés marcarlo como completado
+    await order.save();
 
-    // 5️⃣ MercadoPago
-    if (data.paymentMethod === "mercadopago") {
-      const preference = await MercadoPagoService.createPreference(order);
-
-      order.paymentDetails = {
-        method: "mercadopago",
-        status: "pending",
-        mercadopagoPreferenceId: preference.id,
-        paymentUrl: preference.init_point,
-      };
-
-      order.status = "pending_payment";
-      await order.save();
-
-      paymentUrl = preference.init_point;
-    }
-
-    //mail cuando el estado es pending_payment
-    if (order.status === "pending_payment") {
-      await sendEmail({
-        to: order.customer.email,
-        subject: `Pedido #${order.orderNumber} recibido - pendiente de pago`,
-        html: orderConfirmationEmail(order),
-      });
-    }
-
-    return {
-      success: true,
-      order,
-      paymentUrl,
-    };
+    await sendEmail({
+      to: order.customer.email,
+      subject: `Pedido #${order.orderNumber} recibido`,
+      html: orderConfirmationEmail(order),
+    });
   }
+
+  return {
+    success: true,
+    order,
+    paymentUrl,
+  };
+}
+
 
   // En OrderService
 
