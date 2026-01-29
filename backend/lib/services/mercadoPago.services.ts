@@ -78,12 +78,7 @@ export class MercadoPagoService {
         },
       });
 
-      // console.log("✅ Preferencia de MercadoPago creada exitosamente:", {
-      //   preferenceId: response.id,
-      //   totalEnviado: order.total,
-      //   paymentUrl: response.init_point || (response as any).sandbox_init_point,
-      //   sandbox: !!(response as any).sandbox_init_point,
-      // });
+      
 
       return {
         id: response.id,

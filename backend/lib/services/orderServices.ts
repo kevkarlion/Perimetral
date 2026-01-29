@@ -83,96 +83,91 @@ static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
   // En OrderService
 
   static async updateOrder(
-    token: string,
-    data: {
-      notes?: string;
-      status?: string;
-      discountPercentage?: number;
-      items?: CartItem[]; // Pasamos items si queremos recalcular total
-      additionalData?: any;
-    },
-  ) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const order = await Order.findOne({ accessToken: token }).session(
-        session,
-      );
-      if (!order) throw new Error("Orden no encontrada");
+  token: string,
+  data: {
+    notes?: string;
+    status?: string;
+    discountPercentage?: number;
+    items?: CartItem[]; // Pasamos items si queremos recalcular total
+    additionalData?: any;
+  },
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const order = await Order.findOne({ accessToken: token }).session(
+      session,
+    );
+    if (!order) throw new Error("Orden no encontrada");
 
-      // --- 1. Manejo de notas ---
-      if (data.notes !== undefined) order.notes = data.notes;
+    // --- 1. Manejo de notas ---
+    if (data.notes !== undefined) order.notes = data.notes;
 
-      // --- 2. Manejo de descuento ---
-      if (data.discountPercentage !== undefined || data.items) {
-        const itemsToCalculate: CartItem[] = data.items || order.items;
+    // --- 2. Manejo de descuento ---
+    if (data.discountPercentage !== undefined || data.items) {
+      const itemsToCalculate: CartItem[] = data.items || order.items;
 
-        // Si ya hay totalBeforeDiscount y se intenta cambiar descuento > 0, no aplicamos otro
-        if (
-          order.totalBeforeDiscount &&
-          data.discountPercentage! > 0 &&
-          data.discountPercentage !== order.discountPercentage
-        ) {
-          throw new Error(
-            "El descuento ya fue aplicado previamente. No se puede aplicar otro.",
-          );
-        }
-
-        const totals = calculateTotals(
-          itemsToCalculate,
-          data.discountPercentage || 0,
-          order.totalBeforeDiscount,
+      // Si ya hay totalBeforeDiscount y se intenta cambiar descuento > 0, no aplicamos otro
+      if (
+        order.totalBeforeDiscount &&
+        data.discountPercentage! > 0 &&
+        data.discountPercentage !== order.discountPercentage
+      ) {
+        throw new Error(
+          "El descuento ya fue aplicado previamente. No se puede aplicar otro.",
         );
-
-        order.subtotal = totals.subtotal;
-        order.vat = totals.iva;
-        order.totalBeforeDiscount = totals.totalBeforeDiscount;
-        order.discountPercentage = data.discountPercentage || 0;
-        order.total = totals.total;
-
-        // Guardamos los resultados en la orden
-        order.subtotal = totals.subtotal;
-        order.vat = totals.iva;
-        order.totalBeforeDiscount = totals.totalBeforeDiscount;
-        order.discountPercentage = data.discountPercentage || 0;
-        order.total = totals.total;
       }
 
-      // --- 3. Manejo del estado ---
-      if (data.status !== undefined) {
-        const validStatuses = [
-          "pending",
-          "pending_payment",
-          "processing",
-          "completed",
-          "payment_failed",
-          "cancelled",
-        ];
-        if (!validStatuses.includes(data.status))
-          throw new Error("Estado no válido");
+      const totals = calculateTotals(
+        itemsToCalculate,
+        data.discountPercentage || 0,
+        order.totalBeforeDiscount,
+      );
 
-        const isCompletingOrder =
-          data.status === "completed" && order.status !== "completed";
-        if (order.status !== data.status) {
-          order.status = data.status;
-          if (isCompletingOrder) {
-            await StockService.discountFromOrder(order);
-          }
-        }
-      }
-
-      // --- 4. Guardar cambios ---
-      await order.save({ session });
-      await session.commitTransaction();
-      return order;
-    } catch (err) {
-      await session.abortTransaction();
-      console.error("❌ Error en updateOrder:", err);
-      throw err;
-    } finally {
-      session.endSession();
+      order.subtotal = totals.subtotal;
+      order.vat = totals.iva;
+      order.totalBeforeDiscount = totals.totalBeforeDiscount;
+      order.discountPercentage = data.discountPercentage || 0;
+      order.total = totals.total;
     }
+
+    // --- 3. Manejo del estado ---
+    if (data.status !== undefined) {
+      const validStatuses = [
+        "pending",
+        "pending_payment",
+        "processing",
+        "completed",
+        "payment_failed",
+        "cancelled",
+      ];
+      if (!validStatuses.includes(data.status))
+        throw new Error("Estado no válido");
+
+      const isCompleted = data.status === "completed";
+
+      // 🔹 Solo descontar stock si el estado es completed y aún no se descontó
+      if (isCompleted && !order.stockDiscounted) {
+        await StockService.discountFromOrder(order);
+        order.stockDiscounted = true; // 🔹 Marcamos que ya se descontó
+      }
+
+      order.status = data.status; // Actualizamos status normalmente
+    }
+
+    // --- 4. Guardar cambios ---
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    console.error("❌ Error en updateOrder:", err);
+    throw err;
+  } finally {
+    session.endSession();
   }
+}
+
 
   // Puedes eliminar completeOrder o dejarla como wrapper para mantener compatibilidad
   static async completeOrder(

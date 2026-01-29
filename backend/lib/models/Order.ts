@@ -42,6 +42,7 @@ export interface IOrder extends Document {
   totalBeforeDiscount?: number;
   discountPercentage?: number;
   total: number;
+  stockDiscounted?: boolean; // 🔹 Nuevo campo para controlar descuento de stock
   subtotal?: number;
   vat?: number;
   shippingCost?: number;
@@ -124,6 +125,10 @@ const orderSchema = new Schema<IOrder>(
     type: Number,
     required: false, // Opcional, solo se llena cuando hay descuento
   },
+  stockDiscounted: {
+      type: Boolean,
+      default: false, // 🔹 Por defecto no se descontó
+    },
   
   discountPercentage: {
     type: Number,
