@@ -14,7 +14,7 @@ import { sendEmail } from "@/backend/lib/services/email.service";
 import { orderConfirmationEmail } from "@/backend/lib/email/orderConfirmationEmail";
 
 export class OrderService {
- static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
+static async createOrder(data: CreateOrderDTO): Promise<OrderResponse> {
   // 1️⃣ Validar carrito
   const validatedItems = await validateCartItems(data.items);
 
@@ -39,7 +39,7 @@ export class OrderService {
     shippingCost: data.shippingCost || 0,
     discount: data.discount || 0,
     paymentMethod: data.paymentMethod,
-    status: "pending",
+    status: "pending", // creada, sin asumir pago
     orderNumber: `ORD-${Date.now()}`,
     accessToken: Math.random().toString(36).substring(2, 10),
   });
@@ -59,16 +59,12 @@ export class OrderService {
       paymentUrl: preference.init_point,
     };
 
-    order.status = "pending_payment";
     await order.save();
 
     paymentUrl = preference.init_point;
-    // NO enviamos mail acá, lo hará el webhook cuando se apruebe el pago
+    // ❌ NO enviamos mail acá
   } else {
     // 🔹 Otros métodos (efectivo, transferencia, etc.) → mail inmediato
-    order.status = "pending"; // Opcional, si querés marcarlo como completado
-    await order.save();
-
     await sendEmail({
       to: order.customer.email,
       subject: `Pedido #${order.orderNumber} recibido`,

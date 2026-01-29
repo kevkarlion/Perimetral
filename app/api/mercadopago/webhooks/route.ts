@@ -12,12 +12,8 @@ import type { MercadoPagoPayment, WebhookResponse } from "@/types/mercadopagoTyp
 // Parseo seguro del pago
 // ----------------------------
 function parsePaymentData(paymentData: any): MercadoPagoPayment {
-  if (typeof paymentData?.id !== "number") {
-    throw new Error("ID de pago inválido");
-  }
-  if (typeof paymentData?.status !== "string") {
-    throw new Error("Estado de pago inválido");
-  }
+  if (typeof paymentData?.id !== "number") throw new Error("ID de pago inválido");
+  if (typeof paymentData?.status !== "string") throw new Error("Estado de pago inválido");
 
   return {
     id: paymentData.id,
@@ -54,11 +50,7 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
 
       const merchantOrder = await fetch(
         `https://api.mercadolibre.com/merchant_orders/${merchantOrderId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
       ).then((res) => res.json());
 
       console.log("📦 Merchant order data:", merchantOrder);
@@ -106,16 +98,20 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     const orderToken = paymentDetails.external_reference;
     if (!orderToken) {
       console.error("❌ Pago sin external_reference");
-      return NextResponse.json(
-        { success: false, error: "Orden sin external_reference" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Orden sin external_reference" }, { status: 400 });
     }
 
     // ============================
-    // 🔹 Obtener orden desde OrderService
+    // 🔹 Obtener orden desde OrderService con retry por si llega antes de guardarse
     // ============================
-    const order = await OrderService.getOrderByToken(orderToken);
+    let order;
+    try {
+      order = await OrderService.getOrderByToken(orderToken);
+    } catch {
+      console.warn(`Orden ${orderToken} no encontrada, reintentando en 3s...`);
+      await new Promise((r) => setTimeout(r, 3000));
+      order = await OrderService.getOrderByToken(orderToken);
+    }
     console.log("📦 Orden encontrada:", order.orderNumber);
 
     // ============================
@@ -130,7 +126,6 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
         paymentMethod: paymentDetails.payment_method_id,
       },
     });
-
     console.log(`✅ Orden ${orderToken} actualizada a estado: completed`);
 
     // ============================
@@ -150,9 +145,6 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     return NextResponse.json({ success: true, orderToken });
   } catch (error) {
     console.error("❌ Error en webhook:", error);
-    return NextResponse.json(
-      { success: false, error: "Error procesando webhook" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Error procesando webhook" }, { status: 500 });
   }
 }
