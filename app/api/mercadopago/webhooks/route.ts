@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
+import { sendEmail } from "@/backend/lib/services/email.service";
+import { completedOrderEmail } from "@/backend/lib/email/orderConfirmationEmail";
 
 import type {
   MercadoPagoPayment,
@@ -125,7 +127,24 @@ export async function POST(
       );
     }
 
-    console.log("✅ Pago aprobado para orden:", orderToken);
+    // ============================
+    // 🔹 Actualización de la orden según el estado del pago
+    // ============================
+    let newStatus: string | null = null;
+
+    if (paymentDetails.status === "approved") {
+      newStatus = "completed";
+    } else if (paymentDetails.status === "pending") {
+      newStatus = "pending_payment";
+    } else if (paymentDetails.status === "rejected" || paymentDetails.status === "cancelled") {
+      newStatus = "payment_failed";
+    }
+
+    if (!newStatus) {
+      console.log("⏳ Pago en estado no manejado:", paymentDetails.status);
+      return NextResponse.json({ success: true });
+    }
+
 
   
 
@@ -146,7 +165,19 @@ export async function POST(
       }),
     });
 
-    console.log("🎉 Orden completada correctamente");
+    if (newStatus === "completed") {
+      // Mail de orden completada
+      await sendEmail({
+        to: "", // Aquí podrías obtener el email desde tu API de orden si lo devuelves en PATCH
+        subject: `Pago confirmado - Pedido ${orderToken}`,
+        html: completedOrderEmail({
+          orderNumber: orderToken,
+          total: paymentDetails.transaction_amount,
+          accessToken: orderToken,
+        }),
+      });
+      console.log("✉️ Mail de orden completada enviado");
+    }
 
     return NextResponse.json({
       success: true,

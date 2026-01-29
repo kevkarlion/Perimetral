@@ -68,11 +68,15 @@ export class OrderService {
       paymentUrl = preference.init_point;
     }
 
-    await sendEmail({
-      to: order.customer.email,
-      subject: `Confirmación de pedido #${order.orderNumber}`,
-      html: orderConfirmationEmail(order),
-    });
+
+    //mail cuando el estado es pending_payment
+    if (order.status === "pending_payment") {
+      await sendEmail({
+        to: order.customer.email,
+        subject: `Pedido #${order.orderNumber} recibido - pendiente de pago`,
+        html: orderConfirmationEmail(order),
+      });
+    }
 
     return {
       success: true,

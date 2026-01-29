@@ -323,7 +323,8 @@ export default function OrdersTab() {
             : calculateTotalWithDiscount(order, currentDiscount)
 
           // Determinar si el input debe estar bloqueado
-          const isInputDisabled = dtoAppliedFromBackend || dtoAppliedManually
+          // Bloquear si hay descuento aplicado desde backend O manualmente O si el estado es "completed"
+          const isInputDisabled = dtoAppliedFromBackend || dtoAppliedManually || draft.status === 'completed'
 
           return (
             <div key={order._id} className="bg-white/5 border border-white/10 rounded-2xl p-4">
@@ -335,6 +336,14 @@ export default function OrdersTab() {
                 <div className="space-y-1">
                   <p className="font-semibold text-white">{order.orderNumber}</p>
                   <p className="text-white/60 text-sm">{order.customer.name} · {order.customer.email}</p>
+                  {/* AGREGADO: Mostrar dirección, teléfono y método de compra */}
+                  {order.customer.phone && (
+                    <p className="text-white/50 text-xs">Tel: {order.customer.phone}</p>
+                  )}
+                  {order.customer.address && (
+                    <p className="text-white/50 text-xs">Dir: {order.customer.address}</p>
+                  )}
+                  <p className="text-white/50 text-xs">Método: {order.paymentMethod}</p>
                   <p className="text-white/50 text-xs">Fecha: {new Date(order.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -386,6 +395,37 @@ export default function OrdersTab() {
                     ))}
                   </div>
 
+                  {/* AGREGADO: Información adicional del cliente */}
+                  <div className="bg-white/5 p-3 rounded-lg">
+                    <h4 className="text-white/70 font-semibold mb-2">Información del Cliente</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-white/50">Nombre:</p>
+                        <p className="text-white">{order.customer.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/50">Email:</p>
+                        <p className="text-white">{order.customer.email}</p>
+                      </div>
+                      {order.customer.phone && (
+                        <div>
+                          <p className="text-white/50">Teléfono:</p>
+                          <p className="text-white">{order.customer.phone}</p>
+                        </div>
+                      )}
+                      {order.customer.address && (
+                        <div>
+                          <p className="text-white/50">Dirección:</p>
+                          <p className="text-white">{order.customer.address}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-white/50">Método de compra:</p>
+                        <p className="text-white">{order.paymentMethod}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Notas y estado */}
                   <div className="space-y-2 mt-4">
                     <label className="block text-white/70">Notas</label>
@@ -427,7 +467,7 @@ export default function OrdersTab() {
                           
                           {/* Botones de acción */}
                           <div className="flex gap-2">
-                            {!dtoAppliedFromBackend && (
+                            {!dtoAppliedFromBackend && draft.status !== 'completed' && (
                               <>
                                 {!dtoAppliedManually ? (
                                   <button
@@ -451,6 +491,12 @@ export default function OrdersTab() {
                             {dtoAppliedFromBackend && (
                               <span className="text-xs text-green-400 px-2 py-1">
                                 (Descuento ya aplicado)
+                              </span>
+                            )}
+                            
+                            {draft.status === 'completed' && !dtoAppliedFromBackend && (
+                              <span className="text-xs text-yellow-400 px-2 py-1">
+                                (No se puede aplicar descuento en estado "completed")
                               </span>
                             )}
                           </div>
