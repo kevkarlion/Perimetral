@@ -144,7 +144,7 @@ export default function VariantsPage() {
   if (variations.length === 0) return <p className="text-gray-500 mt-24 ml-6">No hay variaciones para este producto</p>
 
   return (
-    <div className="mt-6 px-4 md:px-6 mb-12 pt-12">
+    <div className="mt-8 lg:mt-2 px-4 md:px-6 mb-12 pt-12">
       {/* Breadcrumb */}
       <nav className="text-sm text-gray-600 mb-4 flex gap-2">
         <Link href="/" className="hover:text-brand">Inicio</Link>

@@ -54,7 +54,7 @@ export default function CategoryProducts() {
 
   // 5. DATA
   return (
-    <section className="py-16 bg-background text-foreground">
+    <section className="py-16 bg-background text-foreground mt-8 lg:mt-0">
       <div className="container mx-auto px-4">
         <div className="text-sm text-gray-600 mb-4 flex gap-2 items-center">
           <Link href="/" className="hover:text-brand cursor-pointer">

@@ -4,7 +4,7 @@ export default function VariantsSkeleton() {
   const skeletonItems = Array.from({ length: 3 })
 
   return (
-    <div className="mt-6 px-4 md:px-6">
+    <div className="mt-20  lg:mt-12 px-4 md:px-6 ">
       {/* Breadcrumb Skeleton */}
       <div className="flex gap-2 items-center mb-4">
         <div className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>

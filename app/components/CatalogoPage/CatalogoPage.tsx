@@ -51,9 +51,9 @@ export default function CatalogoPage() {
   }
 
   return (
-    <section className="py-16  bg-background text-foreground">
+    <section className="py-16  bg-background text-foreground  lg:mt-2">
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-12 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Catálogo de productos
         </h1>
 

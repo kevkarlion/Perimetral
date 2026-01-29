@@ -57,7 +57,7 @@ export default function VariantDetailPage() {
   };
 
   return (
-    <div className="container mx-auto py-7 px-4 mt-[88px] lg:mt-[30px]">
+    <div className="container mx-auto py-7 px-4 mt-[50px] lg:mt-[30px]">
 
       {/* Botón para ir atrás */}
       <button
@@ -79,7 +79,7 @@ export default function VariantDetailPage() {
             {/* Mobile: imagen grande arriba, miniaturas abajo */}
             <div className="lg:hidden space-y-4">
               {/* Imagen principal */}
-              <div className="relative aspect-square border rounded-lg overflow-hidden">
+              <div className="relative aspect-square border rounded-lg overflow-hidden bg-white">
                 <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                   {variation.descuento && (
                     <span className="bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">

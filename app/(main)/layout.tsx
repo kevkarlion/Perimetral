@@ -48,7 +48,7 @@ export default function RootLayout({
         />
         <link rel="manifest" href="/favicon/site.webmanifest" />
       </head>
-      <body className={`${inter.className} flex flex-col min-h-screen pt-6`}>
+      <body className={`${inter.className} flex flex-col min-h-screen pt-6 mt-12 lg:mt-0`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
