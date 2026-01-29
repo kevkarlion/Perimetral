@@ -49,49 +49,22 @@ export const variationController = {
   },
 
   async getById(id: string) {
-    console.log("GET BY ID - ID:", id);
-    const variation = await VariationModel.findById(id)
-      .populate({
-        path: "product",
-        populate: {
-          path: "categoria",
-        },
-      })
-      .lean<any>();
+    try {
+      const data = await variationService.getById(id);
 
-    if (!variation) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json({
+        success: true,
+        data,
+      });
+    } catch (err: any) {
+      return NextResponse.json(
+        {
           success: false,
-          error: "No se encontró la variación",
-        }),
-        { status: 404 },
+          error: err.message || "Error al obtener la variación",
+        },
+        { status: err.message === "Variación no encontrada" ? 404 : 500 }
       );
     }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          _id: variation._id,
-
-          productId: variation.product?._id,
-          productNombre: variation.product?.nombre,
-
-          categoriaId: variation.product?.categoria?._id,
-          categoriaNombre: variation.product?.categoria?.nombre,
-
-          nombre: variation.nombre,
-          precio: variation.precio,
-          imagenes: variation.imagenes,
-          stock: variation.stock,
-          medida: variation.medida,
-          uMedida: variation.uMedida,
-          atributos: variation.atributos,
-        },
-      }),
-      { status: 200 },
-    );
   },
 
   async update(req: Request, id: string) {

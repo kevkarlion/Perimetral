@@ -4,19 +4,23 @@ import { useState, useEffect } from "react";
 import { ICategory } from "@/app/components/store/category-store";
 import CreateProductModal from "./CreateProductModal";
 import ProductVariationsModal from "./ProductVariationsModal";
+import EditProductModal from "@/app/components/dashboard/catalog/EditProductModal";
 
-interface Product {
-  _id: string;
-  codigoPrincipal: string;
-  nombre: string;
-  slug?: string;
-  descripcionCorta?: string;
-  descripcionLarga?: string;
-  proveedor?: string;
-  destacado?: boolean;
-  activo?: boolean;
-  variationsCount?: number;
+
+import { IProductBase } from "@/types/product.frontend";
+
+interface Props {
+  product: IProductBase;
+  isOpen: boolean;
+  onClose: () => void;
 }
+
+
+type ProductWithMeta = IProductBase & {
+  codigoPrincipal?: string;
+  variationsCount?: number;
+};
+
 
 interface CategoryProductsModalProps {
   isOpen: boolean;
@@ -29,15 +33,15 @@ export default function CategoryProductsModal({
   category,
   onClose,
 }: CategoryProductsModalProps) {
-  const [success, setSuccess] = useState<string | null>(null);
+  const [products, setProducts] = useState<ProductWithMeta[]>([]);
+  const [variationsProduct, setVariationsProduct] =
+    useState<ProductWithMeta | null>(null);
 
-  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [variationsProduct, setVariationsProduct] = useState<Product | null>(
-    null,
-  );
+  const [editProduct, setEditProduct] =
+    useState<ProductWithMeta | null>(null);
 
   const fetchProducts = async () => {
     if (!category) return;
@@ -78,13 +82,6 @@ export default function CategoryProductsModal({
           + Crear Producto Nuevo
         </button>
 
-        {/* SUCCESS */}
-        {success && (
-          <div className="bg-green-50 text-green-700 px-4 py-2 rounded text-sm mb-3">
-            {success}
-          </div>
-        )}
-
         {loading && <p>Cargando productos...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
@@ -98,18 +95,18 @@ export default function CategoryProductsModal({
                 <p className="font-medium flex items-center gap-2 text-black">
                   {p.nombre}
 
-                  {typeof p.variationsCount === "number" &&
-                    p.variationsCount > 0 && (
-                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                        {p.variationsCount} variación
-                        {p.variationsCount > 1 && "es"}
-                      </span>
-                    )}
+                  {p.variationsCount && p.variationsCount > 1 && (
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                      {p.variationsCount} variaciones
+                    </span>
+                  )}
                 </p>
 
-                <p className="text-sm text-gray-500">
-                  Cod: {p.codigoPrincipal}
-                </p>
+                {p.codigoPrincipal && (
+                  <p className="text-sm text-gray-500">
+                    Cod: {p.codigoPrincipal}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -117,33 +114,36 @@ export default function CategoryProductsModal({
                   onClick={() => setVariationsProduct(p)}
                   className="text-white px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-700"
                 >
-                  Ver variaciones
+                  Variaciones
+                </button>
+
+                <button
+                  onClick={() => setEditProduct(p)}
+                  className="text-white px-3 py-1 bg-yellow-500 rounded hover:bg-yellow-600"
+                >
+                  Editar
                 </button>
 
                 <button
                   onClick={async () => {
-                    if (!confirm(`¿Desactivar el producto "${p.nombre}"?`))
+                    if (!confirm(`¿Eliminar el producto "${p.nombre}"?`))
                       return;
 
                     try {
-                      const res = await fetch(
-                        `/api/products/${p._id}/desactivate`,
-                        { method: "PATCH" },
-                      );
+                      const res = await fetch(`/api/products/${p._id}`, {
+                        method: "DELETE",
+                      });
 
-                      if (!res.ok) throw new Error("No se pudo desactivar");
+                      if (!res.ok) throw new Error("No se pudo eliminar");
 
-                      await fetchProducts();
-                      setSuccess("Producto desactivado correctamente");
-
-                      setTimeout(() => setSuccess(null), 3000);
-                    } catch {
-                      alert("Error desactivando producto");
+                      fetchProducts();
+                    } catch (err) {
+                      alert("Error eliminando producto");
                     }
                   }}
-                  className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                 >
-                  Desactivar
+                  Eliminar
                 </button>
               </div>
             </li>
@@ -159,7 +159,7 @@ export default function CategoryProductsModal({
           </button>
         </div>
 
-        {createModalOpen && category && (
+        {createModalOpen && (
           <CreateProductModal
             isOpen={createModalOpen}
             category={category}
@@ -175,6 +175,17 @@ export default function CategoryProductsModal({
             product={variationsProduct}
             isOpen={!!variationsProduct}
             onClose={() => setVariationsProduct(null)}
+          />
+        )}
+
+        {editProduct && (
+          <EditProductModal
+            isOpen={!!editProduct}
+            product={editProduct}
+            onClose={() => {
+              setEditProduct(null);
+              fetchProducts();
+            }}
           />
         )}
       </div>

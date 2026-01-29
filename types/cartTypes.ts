@@ -1,9 +1,9 @@
-import { IVariation } from "./ProductFormData";
+import { VariationDTO } from "@/types/variation.backend";
 
 export interface CartItem {
-  id: string;           // combinación productId-variationId si aplica
-  productId: string;    // id del producto
-  variationId?: string; // id de la variación (si aplica)
+  id: string;
+  productId: string;
+  variationId?: string;
   name: string;
   price: number;
   quantity: number;
@@ -13,13 +13,17 @@ export interface CartItem {
 
 export interface CartStore {
   items: CartItem[];
-  checkoutPending: boolean;          // 🔹 nuevo flag
-  addToCart: (variation: IVariation) => void;
+  checkoutPending: boolean;
+
+  addToCart: (variation: VariationDTO) => void;
+
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  startCheckout: () => void;          // 🔹 inicia checkout
-  endCheckout: () => void;            // 🔹 termina checkout y limpia carrito
+
+  startCheckout: () => void;
+  endCheckout: () => void;
+
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }

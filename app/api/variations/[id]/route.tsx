@@ -7,7 +7,7 @@ type Params = {
 };
 export async function GET(_: Request, { params }: Params) {
   await dbConnect();
-  const { id } = await params; // 👈 CLAVE
+  const { id } = await params;
   return variationController.getById(id);
 }
 

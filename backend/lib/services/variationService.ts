@@ -1,15 +1,16 @@
 // File: backend/lib/services/variationService.ts
 import { Types } from "mongoose";
-import Variation from "@/backend/lib/models/VariationModel";
+import Categoria from "@/backend/lib/models/Categoria";
 import Product from "@/backend/lib/models/Product";
+import Variation from "@/backend/lib/models/VariationModel";
 import { UpdateVariationDTO } from "@/backend/lib/dto/variation";
 import StockMovement from "@/backend/lib/models/StockMovement";
 import { StockMovementService } from "@/backend/lib/herlpers/stockMovementService";
 import { IVariationBackend } from "@/types/variation.backend";
-
+import { VariationDTO } from "@/types/variation.dto";
 
 export const variationService = {
-async create(data: IVariationBackend) {
+  async create(data: IVariationBackend) {
     console.log("SERVICE DATA:", data);
     // 1️⃣ Validaciones básicas
     if (!data.product) {
@@ -29,7 +30,8 @@ async create(data: IVariationBackend) {
       throw new Error("El producto no existe o está inactivo");
     }
 
-    if (!data.nombre) throw new Error("El nombre de la variación es obligatorio");
+    if (!data.nombre)
+      throw new Error("El nombre de la variación es obligatorio");
     if (data.precio === undefined) throw new Error("El precio es obligatorio");
     if (data.stock === undefined) throw new Error("El stock es obligatorio");
 
@@ -70,8 +72,6 @@ async create(data: IVariationBackend) {
     return variation;
   },
 
-
-
   async getByProduct(productId: string) {
     if (!Types.ObjectId.isValid(productId)) {
       throw new Error("ID de producto inválido");
@@ -98,21 +98,44 @@ async create(data: IVariationBackend) {
     }));
   },
 
-  
+   async  getById(id: string): Promise<VariationDTO> {
+  // Validar ID
+  if (!Types.ObjectId.isValid(id)) {
+    throw new Error("ID de variación inválido");
+  }
 
-  async getById(id: string) {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new Error("ID de variación inválido");
-    }
-    const variation = await Variation.findById(id).populate(
-      "product",
-      "nombre codigoPrincipal",
-    );
-    if (!variation) {
-      throw new Error("Variación no encontrada");
-    }
-    return variation;
-  },
+  // Buscar la variación y popular solo el producto
+  const variation = await Variation.findById(id)
+    .populate("product", "nombre codigoPrincipal")
+    .lean<any>();
+
+  if (!variation) {
+    throw new Error("Variación no encontrada");
+  }
+
+  // Mapear al DTO que el frontend espera
+  return {
+    _id: variation._id.toString(),
+
+    productId: variation.product?._id?.toString() || "",
+    productNombre: variation.product?.nombre || "",
+
+    nombre: variation.nombre,
+    descripcion: variation.descripcion || "",
+    precio: variation.precio,
+    stock: variation.stock,
+    medida: variation.medida,
+    uMedida: variation.uMedida,
+    imagenes: variation.imagenes || [],
+    atributos: variation.atributos || [],
+    activo: variation.activo,
+    destacada: variation.destacada,
+    descuento: variation.descuento,
+
+    createdAt: variation.createdAt?.toISOString(),
+    updatedAt: variation.updatedAt?.toISOString(),
+  };
+},
 
   async update(id: string, data: UpdateVariationDTO) {
     if (!Types.ObjectId.isValid(id)) {

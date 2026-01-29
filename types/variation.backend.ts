@@ -1,16 +1,11 @@
+// types/variation.backend.ts
 import { Types, Document } from "mongoose";
 
-/**
- * Atributo dinámico de una variación (backend)
- */
 export interface IVariationAttributeBackend {
   nombre: string;
   valor: string;
 }
 
-/**
- * Base de la variación en Mongo
- */
 export interface IVariationBackend {
   product: Types.ObjectId;
   codigo: string;
@@ -31,9 +26,6 @@ export interface IVariationBackend {
   updatedAt?: Date;
 }
 
-/**
- * Documento Mongoose
- */
 export interface IVariationDocument
   extends IVariationBackend,
     Document {

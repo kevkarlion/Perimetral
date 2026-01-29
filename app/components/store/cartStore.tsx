@@ -3,28 +3,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { CartItem, CartStore } from "@/types/cartTypes";
-import { IVariation } from "@/types/ProductFormData";
+import { VariationDTO } from "@/types/variation.backend";
 
-const getProductId = (
-  productId: string | { _id: string }
-): string => {
-  return typeof productId === "string"
-    ? productId
-    : productId._id;
-};
-
-const variationToCartItem = (variation: IVariation): CartItem => {
+// el cart SOLO trabaja con lo que viene del backend
+const variationToCartItem = (variation: VariationDTO): CartItem => {
   if (!variation._id || !variation.productId) {
     throw new Error("La variación debe tener _id y productId");
   }
 
-  const productId = getProductId(variation.productId);
+  const productId = variation.productId;
 
   return {
     id: `${productId}-${variation._id}`,
-    productId,                 // 🔹 ahora siempre string
+    productId,
     variationId: variation._id,
-    name: variation.nombre,
+    name: variation.productNombre,
     price: variation.precio,
     quantity: 1,
     medida: variation.medida,
@@ -32,20 +25,22 @@ const variationToCartItem = (variation: IVariation): CartItem => {
   };
 };
 
-
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      checkoutPending: false, // 🔹 nuevo flag
+      checkoutPending: false,
 
-      addToCart: (variation: IVariation) => {
+      addToCart: (variation: VariationDTO) => {
         const item = variationToCartItem(variation);
         const existing = get().items.find((i) => i.id === item.id);
+
         if (existing) {
           set({
             items: get().items.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+              i.id === item.id
+                ? { ...i, quantity: i.quantity + 1 }
+                : i
             ),
           });
         } else {
@@ -68,18 +63,24 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
 
-      startCheckout: () => set({ checkoutPending: true }), // 🔹 nuevo método
-      endCheckout: () => set({ checkoutPending: false, items: [] }), // 🔹 limpiar carrito y flag
+      startCheckout: () => set({ checkoutPending: true }),
+      endCheckout: () =>
+        set({ checkoutPending: false, items: [] }),
 
-      getTotalItems: () => get().items.reduce((total, i) => total + i.quantity, 0),
+      getTotalItems: () =>
+        get().items.reduce((total, i) => total + i.quantity, 0),
+
       getTotalPrice: () =>
-        get().items.reduce((total, i) => total + i.price * i.quantity, 0),
+        get().items.reduce(
+          (total, i) => total + i.price * i.quantity,
+          0
+        ),
     }),
     { name: "cart-storage" }
   )
 );
 
-// 🔹 Función para limpiar carrito desde fuera de React
+// helper externo
 export const clearCart = () => {
   if (typeof window !== "undefined") {
     useCartStore.getState().clearCart();

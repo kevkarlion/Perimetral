@@ -6,26 +6,30 @@ export interface IVariationAttribute {
   valor: string;
 }
 
+
+
+
+
+
 /**
  * Variación lista para usar en UI
  */
+// types/variation.frontend.ts
 export interface IVariation {
   _id: string;
   product: string;
-  codigo: string;
+  productNombre: string;
+  categoriaId?: string;
+  categoriaNombre?: string; // 🔹 agregamos
   nombre: string;
   descripcion?: string;
-  medida?: string;
-  uMedida?: string;
   precio: number;
   stock: number;
-  stockMinimo?: number;
-  atributos?: IVariationAttribute[];
+  medida?: string;
+  uMedida?: string;
   imagenes: string[];
+  atributos: { nombre: string; valor: string }[];
   activo?: boolean;
   destacada?: boolean;
   descuento?: string;
-
-  createdAt?: string;
-  updatedAt?: string;
 }

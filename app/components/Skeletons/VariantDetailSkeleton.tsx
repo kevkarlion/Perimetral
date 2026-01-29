@@ -2,7 +2,7 @@
 
 export default function VariantDetailSkeleton() {
   return (
-    <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0 animate-pulse">
+    <div className="container mx-auto py-7 px-4 sm:px-6 lg:px-8 mt-[88px] md:mt-0 animate-pulse mb-12">
       
       {/* Breadcrumb Skeleton */}
       <div className="flex gap-2 items-center mb-4">
