@@ -1,6 +1,6 @@
 import { IOrder } from "@/types/orderTypes";
 
-const urlFrontend = process.env.NEXT_PUBLIC_URL_FRONTEND
+const urlFrontend = process.env.BASE_URL
 
 export function orderConfirmationEmail(order: IOrder) {
   return `
