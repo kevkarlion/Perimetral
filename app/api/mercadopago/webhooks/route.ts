@@ -2,8 +2,7 @@
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
-import { sendEmail } from "@/backend/lib/services/email.service";
-import { completedOrderEmail } from "@/backend/lib/email/orderConfirmationEmail";
+
 import { OrderService } from "@/backend/lib/services/orderServices";
 import type { IOrder } from "@/types/orderTypes";
 import Order, { IOrder as IOrderModel } from "@/backend/lib/models/Order";
@@ -155,16 +154,7 @@ export async function POST(
     // ============================
     // 🔹 Enviar mail de orden completada
     // ============================
-    await sendEmail({
-      to: updatedOrder.customer.email,
-      subject: `Pago confirmado - Pedido ${updatedOrder.orderNumber}`,
-      html: completedOrderEmail({
-        orderNumber: updatedOrder.orderNumber,
-        total: paymentDetails.transaction_amount,
-        accessToken: updatedOrder.accessToken,
-      }),
-    });
-    console.log("✉️ Mail de orden completada enviado");
+    
 
     return NextResponse.json({ success: true, orderToken });
   } catch (error) {

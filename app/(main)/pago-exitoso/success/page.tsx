@@ -1,8 +1,7 @@
 //app/(main)/pago-exitoso/success/page.tsx
 
 "use client";
-import Link from "next/link";
-import { verifyPayment } from "@/backend/lib/services/mercadoPagoPayment"; // Función que debes crear
+
 
 import { useEffect } from "react";
 import { useCartStore } from "@/app/components/store/cartStore";
@@ -19,7 +18,7 @@ export default async function PagoExitoso({
   }, [clearCart]);
 
   const paymentId = searchParams.payment_id as string;
-  const paymentStatus = await verifyPayment(paymentId);
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">

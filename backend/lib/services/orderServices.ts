@@ -3,10 +3,15 @@ import mongoose, { Types } from "mongoose";
 
 import type { CreateOrderDTO, OrderResponse } from "@/types/orderTypes";
 import { validateCartItems } from "@/backend/lib/herlpers/cartHelpers";
-import { calculateTotals, CartItem } from "@/backend/lib/herlpers/totalsHelpers";
+import {
+  calculateTotals,
+  CartItem,
+} from "@/backend/lib/herlpers/totalsHelpers";
 import { MercadoPagoService } from "@/backend/lib/services/mercadoPago.services";
 import { StockService } from "@/backend/lib/services/stockService";
 import Order, { IOrder as IOrderModel } from "@/backend/lib/models/Order";
+
+import { completedOrderEmail } from "@/backend/lib/email/orderConfirmationEmail";
 import { sendEmail } from "@/backend/lib/services/email.service";
 import { orderConfirmationEmail } from "@/backend/lib/email/orderConfirmationEmail";
 import { IOrder as IOrderDTO, mapOrderToDTO } from "@/types/orderTypes";
@@ -98,7 +103,9 @@ export class OrderService {
     session.startTransaction();
 
     try {
-      const order = await Order.findOne({ accessToken: token }).session(session);
+      const order = await Order.findOne({ accessToken: token }).session(
+        session,
+      );
       if (!order) throw new Error("Orden no encontrada");
 
       // 1️⃣ Notas
@@ -132,41 +139,43 @@ export class OrderService {
       }
 
       // 3️⃣ Estado y descuento de stock
-      if (data.status !== undefined) {
-        const validStatuses = [
-          "pending",
-          "pending_payment",
-          "processing",
-          "completed",
-          "payment_failed",
-          "cancelled",
-        ];
-        if (!validStatuses.includes(data.status))
-          throw new Error("Estado no válido");
+      if (data.status === "completed") {
+        const updatedOrder = await Order.findOneAndUpdate(
+          {
+            accessToken: token,
+            stockDiscounted: false, // solo si no se descontó
+          },
+          {
+            $set: { status: "completed", stockDiscounted: true },
+          },
+          { new: true, session },
+        );
 
-        if (data.status === "completed") {
-          const updatedOrder = await Order.findOneAndUpdate(
-            {
-              accessToken: token,
-              stockDiscounted: false,
-            },
-            {
-              $set: { status: "completed", stockDiscounted: true },
-            },
-            { new: true, session },
+        if (updatedOrder) {
+          // Descontamos stock
+          await StockService.discountFromOrder(updatedOrder);
+          console.log(
+            `✅ Stock descontado para orden ${updatedOrder.orderNumber}`,
           );
 
-          if (updatedOrder) {
-            await StockService.discountFromOrder(updatedOrder);
-            console.log(
-              `✅ Stock descontado para orden ${updatedOrder.orderNumber}`,
-            );
-          } else {
-            console.log(`⚠️ Stock ya descontado o orden no encontrada`);
-          }
+          // 🔹 Enviar mail solo si se descontó stock (primera vez)
+          await sendEmail({
+            to: updatedOrder.customer.email,
+            subject: `Pago confirmado - Pedido ${updatedOrder.orderNumber}`,
+            html: completedOrderEmail({
+              orderNumber: updatedOrder.orderNumber,
+              total: updatedOrder.total,
+              accessToken: updatedOrder.accessToken,
+            }),
+          });
+          console.log("✉️ Mail de orden completada enviado");
         } else {
-          order.status = data.status;
+          console.log(
+            `⚠️ Stock ya descontado o orden no encontrada, mail no enviado`,
+          );
         }
+      } else {
+        order.status = data.status;
       }
 
       await order.save({ session });
