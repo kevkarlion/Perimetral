@@ -1,14 +1,12 @@
-//api/mercadopago/webhooks/route.ts
+// api/mercadopago/webhooks/route.ts
 import { NextResponse } from "next/server";
 import { Payment } from "mercadopago";
 import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
 import { sendEmail } from "@/backend/lib/services/email.service";
 import { completedOrderEmail } from "@/backend/lib/email/orderConfirmationEmail";
+import { OrderService } from "@/backend/lib/services/orderServices";
 
-import type {
-  MercadoPagoPayment,
-  WebhookResponse,
-} from "@/types/mercadopagoTypes";
+import type { MercadoPagoPayment, WebhookResponse } from "@/types/mercadopagoTypes";
 
 // ----------------------------
 // Parseo seguro del pago
@@ -17,7 +15,6 @@ function parsePaymentData(paymentData: any): MercadoPagoPayment {
   if (typeof paymentData?.id !== "number") {
     throw new Error("ID de pago inválido");
   }
-
   if (typeof paymentData?.status !== "string") {
     throw new Error("Estado de pago inválido");
   }
@@ -34,9 +31,7 @@ function parsePaymentData(paymentData: any): MercadoPagoPayment {
 // ----------------------------
 // Webhook
 // ----------------------------
-export async function POST(
-  request: Request
-): Promise<NextResponse<WebhookResponse>> {
+export async function POST(request: Request): Promise<NextResponse<WebhookResponse>> {
   try {
     const rawBody = await request.text();
     if (!rawBody) return NextResponse.json({ success: true });
@@ -48,7 +43,6 @@ export async function POST(
     console.log("🧪 Topic recibido:", topic);
 
     const client = getClient();
-
     let paymentDetails: MercadoPagoPayment | null = null;
 
     // ============================
@@ -56,7 +50,6 @@ export async function POST(
     // ============================
     if (topic === "merchant_order" && body.resource) {
       const merchantOrderId = body.resource.split("/").pop();
-
       console.log("📦 Merchant order ID:", merchantOrderId);
 
       const merchantOrder = await fetch(
@@ -70,10 +63,7 @@ export async function POST(
 
       console.log("📦 Merchant order data:", merchantOrder);
 
-      const approvedPayment = merchantOrder.payments?.find(
-        (p: any) => p.status === "approved"
-      );
-
+      const approvedPayment = merchantOrder.payments?.find((p: any) => p.status === "approved");
       if (!approvedPayment) {
         console.log("⏳ No hay pagos aprobados todavía");
         return NextResponse.json({ success: true });
@@ -91,13 +81,9 @@ export async function POST(
     // ============================
     // 🔹 CASO 2: payment / payment.updated
     // ============================
-    if (
-      (topic === "payment" || topic === "payment.updated") &&
-      body?.data?.id
-    ) {
+    if ((topic === "payment" || topic === "payment.updated") && body?.data?.id) {
       const payment = new Payment(client);
       const rawPayment = await payment.get({ id: body.data.id });
-
       paymentDetails = parsePaymentData(rawPayment);
     }
 
@@ -118,7 +104,6 @@ export async function POST(
     }
 
     const orderToken = paymentDetails.external_reference;
-
     if (!orderToken) {
       console.error("❌ Pago sin external_reference");
       return NextResponse.json(
@@ -128,61 +113,41 @@ export async function POST(
     }
 
     // ============================
-    // 🔹 Actualización de la orden según el estado del pago
+    // 🔹 Obtener orden desde OrderService
     // ============================
-    let newStatus: string | null = null;
+    const order = await OrderService.getOrderByToken(orderToken);
+    console.log("📦 Orden encontrada:", order.orderNumber);
 
-    if (paymentDetails.status === "approved") {
-      newStatus = "completed";
-    } else if (paymentDetails.status === "pending") {
-      newStatus = "pending_payment";
-    } else if (paymentDetails.status === "rejected" || paymentDetails.status === "cancelled") {
-      newStatus = "payment_failed";
-    }
-
-    if (!newStatus) {
-      console.log("⏳ Pago en estado no manejado:", paymentDetails.status);
-      return NextResponse.json({ success: true });
-    }
-
-
-  
-
-    // ✅ Actualizar orden (esto dispara stock + lógica interna)
-    await fetch(`${process.env.BASE_URL}/api/orders/${orderToken}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
+    // ============================
+    // 🔹 Actualizar orden a completed
+    // ============================
+    const updatedOrder = await OrderService.updateOrder(orderToken, {
+      status: "completed",
+      additionalData: {
+        paymentStatus: paymentDetails.status,
+        paymentId: paymentDetails.id.toString(),
+        paidAmount: paymentDetails.transaction_amount,
+        paymentMethod: paymentDetails.payment_method_id,
       },
-      body: JSON.stringify({
-        status: "completed",
-        additionalData: {
-          paymentStatus: paymentDetails.status,
-          paymentId: paymentDetails.id.toString(),
-          paidAmount: paymentDetails.transaction_amount,
-          paymentMethod: paymentDetails.payment_method_id,
-        },
+    });
+
+    console.log(`✅ Orden ${orderToken} actualizada a estado: completed`);
+
+    // ============================
+    // 🔹 Enviar mail de orden completada
+    // ============================
+    await sendEmail({
+      to: updatedOrder.customer.email,
+      subject: `Pago confirmado - Pedido ${updatedOrder.orderNumber}`,
+      html: completedOrderEmail({
+        orderNumber: updatedOrder.orderNumber,
+        total: paymentDetails.transaction_amount,
+        accessToken: updatedOrder.accessToken,
       }),
     });
+    console.log("✉️ Mail de orden completada enviado");
 
-    if (newStatus === "completed") {
-      // Mail de orden completada
-      await sendEmail({
-        to: "", // Aquí podrías obtener el email desde tu API de orden si lo devuelves en PATCH
-        subject: `Pago confirmado - Pedido ${orderToken}`,
-        html: completedOrderEmail({
-          orderNumber: orderToken,
-          total: paymentDetails.transaction_amount,
-          accessToken: orderToken,
-        }),
-      });
-      console.log("✉️ Mail de orden completada enviado");
-    }
-
-    return NextResponse.json({
-      success: true,
-      orderToken,
-    });
+    return NextResponse.json({ success: true, orderToken });
   } catch (error) {
     console.error("❌ Error en webhook:", error);
     return NextResponse.json(

@@ -1,3 +1,4 @@
+//services/orderServices.ts
 import mongoose, { Types } from "mongoose";
 import Order from "@/backend/lib/models/Order";
 import type { CreateOrderDTO, OrderResponse, IOrder } from "@/types/orderTypes";
@@ -67,7 +68,6 @@ export class OrderService {
 
       paymentUrl = preference.init_point;
     }
-
 
     //mail cuando el estado es pending_payment
     if (order.status === "pending_payment") {
@@ -193,8 +193,8 @@ export class OrderService {
     return Order.find().sort({ createdAt: -1 }).lean();
   }
 
-  static async getOrderByToken(token: string) {
-    const order = await Order.findOne({ accessToken: token }).lean();
+  static async getOrderByToken(token: string): Promise<IOrder> {
+    const order = await Order.findOne({ accessToken: token }).lean<IOrder>();
     if (!order) throw new Error("Orden no encontrada");
     return order;
   }
