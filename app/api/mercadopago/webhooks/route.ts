@@ -5,15 +5,22 @@ import { getClient } from "@/backend/lib/services/mercadoPagoPayment";
 import { sendEmail } from "@/backend/lib/services/email.service";
 import { completedOrderEmail } from "@/backend/lib/email/orderConfirmationEmail";
 import { OrderService } from "@/backend/lib/services/orderServices";
+import type { IOrder } from "@/types/orderTypes";
+import Order, { IOrder as IOrderModel } from "@/backend/lib/models/Order";
 
-import type { MercadoPagoPayment, WebhookResponse } from "@/types/mercadopagoTypes";
+import type {
+  MercadoPagoPayment,
+  WebhookResponse,
+} from "@/types/mercadopagoTypes";
 
 // ----------------------------
 // Parseo seguro del pago
 // ----------------------------
 function parsePaymentData(paymentData: any): MercadoPagoPayment {
-  if (typeof paymentData?.id !== "number") throw new Error("ID de pago inválido");
-  if (typeof paymentData?.status !== "string") throw new Error("Estado de pago inválido");
+  if (typeof paymentData?.id !== "number")
+    throw new Error("ID de pago inválido");
+  if (typeof paymentData?.status !== "string")
+    throw new Error("Estado de pago inválido");
 
   return {
     id: paymentData.id,
@@ -27,7 +34,9 @@ function parsePaymentData(paymentData: any): MercadoPagoPayment {
 // ----------------------------
 // Webhook
 // ----------------------------
-export async function POST(request: Request): Promise<NextResponse<WebhookResponse>> {
+export async function POST(
+  request: Request,
+): Promise<NextResponse<WebhookResponse>> {
   try {
     const rawBody = await request.text();
     if (!rawBody) return NextResponse.json({ success: true });
@@ -50,12 +59,14 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
 
       const merchantOrder = await fetch(
         `https://api.mercadolibre.com/merchant_orders/${merchantOrderId}`,
-        { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
+        { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } },
       ).then((res) => res.json());
 
       console.log("📦 Merchant order data:", merchantOrder);
 
-      const approvedPayment = merchantOrder.payments?.find((p: any) => p.status === "approved");
+      const approvedPayment = merchantOrder.payments?.find(
+        (p: any) => p.status === "approved",
+      );
       if (!approvedPayment) {
         console.log("⏳ No hay pagos aprobados todavía");
         return NextResponse.json({ success: true });
@@ -73,7 +84,10 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     // ============================
     // 🔹 CASO 2: payment / payment.updated
     // ============================
-    if ((topic === "payment" || topic === "payment.updated") && body?.data?.id) {
+    if (
+      (topic === "payment" || topic === "payment.updated") &&
+      body?.data?.id
+    ) {
       const payment = new Payment(client);
       const rawPayment = await payment.get({ id: body.data.id });
       paymentDetails = parsePaymentData(rawPayment);
@@ -98,13 +112,16 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     const orderToken = paymentDetails.external_reference;
     if (!orderToken) {
       console.error("❌ Pago sin external_reference");
-      return NextResponse.json({ success: false, error: "Orden sin external_reference" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Orden sin external_reference" },
+        { status: 400 },
+      );
     }
 
     // ============================
     // 🔹 Obtener orden desde OrderService con retry por si llega antes de guardarse
     // ============================
-    let order;
+    let order: IOrder | null = null;
     try {
       order = await OrderService.getOrderByToken(orderToken);
     } catch {
@@ -114,8 +131,15 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     }
     console.log("📦 Orden encontrada:", order.orderNumber);
 
+    if (order.stockDiscounted && paymentDetails.status === "approved") {
+      console.log(
+        `⚠️ Stock ya descontado, webhook ignorado para orden ${orderToken}`,
+      );
+      return NextResponse.json({ success: true });
+    }
+
     // ============================
-    // 🔹 Actualizar orden a completed
+    // 🔹 Actualizar orden a completed y descontar stock de forma segura
     // ============================
     const updatedOrder = await OrderService.updateOrder(orderToken, {
       status: "completed",
@@ -145,6 +169,9 @@ export async function POST(request: Request): Promise<NextResponse<WebhookRespon
     return NextResponse.json({ success: true, orderToken });
   } catch (error) {
     console.error("❌ Error en webhook:", error);
-    return NextResponse.json({ success: false, error: "Error procesando webhook" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Error procesando webhook" },
+      { status: 500 },
+    );
   }
 }

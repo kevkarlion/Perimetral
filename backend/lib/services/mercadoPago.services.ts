@@ -89,15 +89,7 @@ export class MercadoPagoService {
         total_processed: order.total,
       };
     } catch (error: any) {
-      // console.error("❌ Error creando preferencia de MercadoPago:", {
-      //   error: error.message,
-      //   status: error.status,
-      //   orderId: order?._id,
-      //   orderNumber: order?.orderNumber,
-      //   total: order?.total,
-      //   items: order?.items?.length,
-      // });
-
+   
       // Error más específico para el frontend
       let errorMessage = "Error al procesar el pago con Mercado Pago";
 

@@ -1,64 +1,10 @@
-import { Document, Types } from "mongoose";
+// types/orderTypes.ts
+import { Types } from "mongoose";
+import { IOrder as IOrderModel } from "@/backend/lib/models/Order";
 
-
-//solo DB
-export interface IOrderItem {
-  productId: Types.ObjectId;
-  variationId?: Types.ObjectId;
-  name: string;
-  quantity: number;
-  price: number;
-  priceWithVat?: number;
-  image?: string;
-  medida?: string;
-  sku?: string;
-}
-
-
-//FRONT
-export interface CartItemDTO {
-  productId: string;
-  variationId: string;
-  quantity: number;
-}
-
-
-
-// Resultado de la validación de items del carrito
-export interface ValidatedCartItem {
-  productId: Types.ObjectId;
-  variationId: Types.ObjectId;
-  name: string;
-  quantity: number;
-  price: number;
-  image?: string;
-  medida?: string;
-  sku?: string;
-  stock: number;
-}
-
-
-
-export interface IOrderData {
-  _id: string;
-  orderNumber: string;
-  accessToken: string;
-  customer: ICustomerData;
-  items: IOrderItem[];
-  total: number;
-  subtotal?: number;
-  vat?: number;
-  shippingCost?: number;
-  status: 'pending' | 'pending_payment' | 'processing' | 'completed' | 'payment_failed' | 'cancelled';
-  paymentMethod: string;
-  paymentDetails?: IPaymentDetails;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-
-
+// -----------------------------
+// Interfaces y tipos existentes
+// -----------------------------
 export interface ICustomerData {
   name: string;
   email: string;
@@ -74,14 +20,27 @@ export interface IPaymentDetails {
   mercadopagoPreferenceId?: string;
   paymentUrl?: string;
   approvedAt?: Date;
-  expirationDate?: Date; // Para pagos en efectivo
+  expirationDate?: Date;
   isCashPayment?: boolean;
   [key: string]: any;
 }
 
-export interface IOrder extends Document {
+export interface IOrderItem {
+  productId: Types.ObjectId;
+  variationId?: Types.ObjectId;
+  name: string;
+  quantity: number;
+  price: number;
+  priceWithVat?: number;
+  image?: string;
+  medida?: string;
+  sku?: string;
+}
+
+export interface IOrder {
   _id: string;
-  discount: number;
+  orderNumber: string;
+  accessToken: string;
   customer: ICustomerData;
   items: IOrderItem[];
   subtotal: number;
@@ -98,31 +57,69 @@ export interface IOrder extends Document {
     | "payment_failed";
   paymentMethod: string;
   paymentDetails?: IPaymentDetails;
-  notes?: string; // 🔹 Nuevo campo para anotaciones
+  notes?: string;
+  discount: number; // 🔹 obligatorio para TS
   createdAt: Date;
   updatedAt: Date;
-  orderNumber: string;
-  accessToken: string;
-  
+  stockDiscounted?: boolean; // 🔹 Agregar aquí
 }
 
-// Tipos derivados
-export type OrderStatus = IOrder["status"];
-export type PaymentMethod = IOrder["paymentMethod"];
+// -----------------------------
+// Mapper centralizado
+// -----------------------------
+export function mapOrderToDTO(order: IOrderModel): IOrder {
+  return {
+    _id: (order._id as Types.ObjectId).toString(),
+    orderNumber: order.orderNumber,
+    accessToken: order.accessToken,
+    customer: order.customer,
+    items: order.items.map((i) => ({
+      productId: i.productId,
+      variationId: i.variationId!,
+      name: i.name,
+      quantity: i.quantity,
+      price: i.price,
+      image: i.image,
+      medida: i.medida,
+      sku: i.sku,
+    })),
+    total: order.total,
+    subtotal: order.subtotal || 0,
+    vat: order.vat || 0,
+    shippingCost: order.shippingCost,
+    status: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentDetails: order.paymentDetails
+      ? {
+          ...order.paymentDetails,
+          method: (order.paymentDetails.method || "mercadopago") as
+            | "mercadopago"
+            | "transferencia"
+            | "efectivo"
+            | "tarjeta",
+        }
+      : undefined,
+    notes: order.notes || "",
+    discount: order.discountPercentage || 0,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  };
+}
 
-// Tipos para respuesta de API
+// -----------------------------
+// Otros tipos
+// -----------------------------
+export interface CreateOrderDTO extends Omit<IOrder, "_id" | "createdAt" | "updatedAt" | "items"> {
+  items: {
+    productId: string;
+    variationId?: string;
+    quantity: number;
+  }[];
+}
+
 export interface OrderResponse {
   success: boolean;
   order: IOrder;
   paymentUrl?: string;
   error?: string;
 }
-
-// Tipo para crear nuevas órdenes (sin campos de Mongoose)
-// Tipado para crear orden desde frontend
-export type CreateOrderDTO = Omit<
-  IOrder,
-  keyof Document | "createdAt" | "updatedAt" | "items"
-> & {
-  items: CartItemDTO[];
-};

@@ -2,6 +2,11 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 import crypto from "crypto";
 
+
+
+
+
+
 // Interfaces sin export individual
 interface IOrderItem {
   productId: Types.ObjectId;
